@@ -1,0 +1,32 @@
+datasource:
+  main:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  data:
+    redis:
+      password: root
+datasource:
+  main:
+    jdbc-url: jdbc:mysql://localhost:3306/retoday?connectionTimeZone=UTC
+    username: root
+    password: root
+---
+spring:
+  config:
+    activate:
+      on-profile:
+      - dev
+      - prod
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      password: ${REDIS_PASSWORD}
+datasource:
+  main:
+    jdbc-url: ${MAIN_DB_URL}
+    username: ${MAIN_DB_USERNAME}
+    password: ${MAIN_DB_PASSWORD}

@@ -1,0 +1,154 @@
+[versions]
+
+# Kotlin
+kotlin = "2.2.0"
+
+# Spring
+spring-boot = "3.5.3"
+
+# JOOQ
+jooq = "3.19.24"
+
+# Flyway
+flyway = "11.7.2"
+
+# JWT
+jwt = "0.12.6"
+
+# Kotest
+kotest = "5.9.1"
+
+# Mockk
+mockk = "1.14.4"
+
+# OpenAPI
+restdocs-api-spec = "0.19.4"
+
+[plugins]
+
+# Java
+java-library = { id = "java-library" }
+java-test-fixtures = { id = "java-test-fixtures" }
+
+# Kotlin
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
+kotlin-lint = { id = "org.jlleitschuh.gradle.ktlint", version = "13.0.0" }
+
+# Spring
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+spring-dependency-management = { id = "io.spring.dependency-management", version = "1.1.7" }
+
+# JOOQ
+jooq = { id = "org.jooq.jooq-codegen-gradle", version.ref = "jooq" }
+
+# Flyway
+flyway = { id = "net.ltgt.flyway", version = "1.0.0" }
+
+# OpenAPI
+restdocs-api-spec = { id = "com.epages.restdocs-api-spec", version.ref = "restdocs-api-spec" }
+
+# Jib
+jib = { id = "com.google.cloud.tools.jib", version = "3.4.4" }
+
+[libraries]
+
+# Kotlin
+kotlin-logging = { group = "io.github.oshai", name = "kotlin-logging-jvm", version = "7.0.3" }
+
+# Spring
+spring-web = { group = "org.springframework.boot", name = "spring-boot-starter-web" }
+spring-validation = { group = "org.springframework.boot", name = "spring-boot-starter-validation" }
+spring-security = { group = "org.springframework.boot", name = "spring-boot-starter-security" }
+spring-log4j2 = { group = "org.springframework.boot", name = "spring-boot-starter-log4j2" }
+spring-logging = { group = "org.springframework.boot", name = "spring-boot-starter-logging" }
+spring-jooq = { group = "org.springframework.boot", name = "spring-boot-starter-jooq" }
+spring-batch = { group = "org.springframework.boot", name = "spring-boot-starter-batch" }
+spring-actuator = { group = "org.springframework.boot", name = "spring-boot-starter-actuator" }
+spring-data-jdbc = { group = "org.springframework.boot", name = "spring-boot-starter-data-jdbc" }
+spring-data-redis = { group = "org.springframework.boot", name = "spring-boot-starter-data-redis" }
+spring-ai-gemini = { group = "org.springframework.ai", name = "spring-ai-starter-model-google-genai", version = "1.1.4" }
+spring-test = { group = "org.springframework.boot", name = "spring-boot-starter-test" }
+spring-testcontainers = { group = "org.springframework.boot", name = "spring-boot-testcontainers" }
+spring-restdocs-webtestclient = { group = "org.springframework.restdocs", name = "spring-restdocs-webtestclient" }
+
+# Database
+mysql-driver = { group = "com.mysql", name = "mysql-connector-j", version = "8.2.0" }
+
+# JOOQ
+jooq-meta = { group = "org.jooq", name = "jooq-meta-extensions", version.ref = "jooq" }
+jooq-kotlin = { group = "org.jooq", name = "jooq-kotlin", version.ref = "jooq" }
+
+# Flyway
+flyway-core = { group = "org.flywaydb", name = "flyway-core", version.ref = "flyway" }
+flyway-mysql = { group = "org.flywaydb", name = "flyway-mysql", version.ref = "flyway" }
+
+# JWT
+jjwt-api = { group = "io.jsonwebtoken", name = "jjwt-api", version.ref = "jwt" }
+jjwt-implementation = { group = "io.jsonwebtoken", name = "jjwt-impl", version.ref = "jwt" }
+jjwt-jackson = { group = "io.jsonwebtoken", name = "jjwt-jackson", version.ref = "jwt" }
+
+# Jackson
+jackson-kotlin = { group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin" }
+jackson-yaml = { group = "com.fasterxml.jackson.dataformat", name = "jackson-dataformat-yaml" }
+
+# UUID
+uuid = { group = "com.fasterxml.uuid", name = "java-uuid-generator", version = "5.2.0" }
+
+# Kotest
+kotest = { group = "io.kotest", name = "kotest-assertions-core", version.ref = "kotest" }
+kotest-junit = { group = "io.kotest", name = "kotest-runner-junit5", version.ref = "kotest" }
+kotest-spring = { group = "io.kotest.extensions", name = "kotest-extensions-spring", version = "1.1.3" }
+
+# Mockk
+mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+mockk-spring = { group = "com.ninja-squad", name = "springmockk", version = "4.0.2" }
+
+# OpenAPI
+restdocs-api-spec = { group = "com.epages", name = "restdocs-api-spec", version.ref = "restdocs-api-spec" }
+restdocs-api-spec-webtestclient = { group = "com.epages", name = "restdocs-api-spec-webtestclient", version.ref = "restdocs-api-spec" }
+
+# Testcontainers
+testcontainers-junit = { group = "org.testcontainers", name = "junit-jupiter" }
+testcontainers-mysql = { group = "org.testcontainers", name = "mysql" }
+
+# Prometheus
+prometheus = { group = "io.micrometer", name = "micrometer-registry-prometheus" }
+
+[bundles]
+
+jooq = [
+    "spring-jooq",
+    "jooq-kotlin"
+]
+flyway = [
+    "flyway-core",
+    "flyway-mysql"
+]
+jwt = [
+    "jjwt-api",
+    "jjwt-implementation",
+    "jjwt-jackson"
+]
+jackson = [
+    "jackson-kotlin",
+    "jackson-yaml"
+]
+spring-restdocs = [
+    "spring-restdocs-webtestclient",
+    "restdocs-api-spec",
+    "restdocs-api-spec-webtestclient"
+]
+test = [
+    "kotest",
+    "kotest-junit",
+    "mockk",
+    "spring-test",
+    "kotest-spring",
+    "mockk-spring"
+]
+testcontainers = [
+    "spring-testcontainers",
+    "testcontainers-junit",
+    "testcontainers-mysql"
+]

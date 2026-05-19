@@ -1,0 +1,71 @@
+package com.retoday.core.fixture
+
+import com.retoday.core.domain.auth.dto.command.LoginCommand
+import com.retoday.core.domain.auth.dto.command.RefreshCommand
+import com.retoday.core.domain.auth.dto.response.GetOAuthUserResponse
+import com.retoday.core.domain.auth.dto.result.LoginResult
+import com.retoday.core.domain.auth.dto.result.RefreshResult
+import com.retoday.core.domain.auth.entity.RefreshToken
+import com.retoday.core.domain.user.entity.SocialProvider
+import java.time.Duration
+import java.util.*
+
+const val TOKEN = "eyJhbGciOiJub25lIn0.eyJpZCI6MSwiaWF0IjoxNTE2MjM5MDIyfQ."
+val EXPIRATION = Duration.ofHours(1)!!
+
+fun createRefreshToken(
+    userId: UUID = ID,
+    content: String = TOKEN,
+    expiration: Long = EXPIRATION.seconds
+): RefreshToken =
+    RefreshToken(
+        userId = userId,
+        content = content,
+        expiration = expiration
+    )
+
+fun createGetOAuthUserResponse(
+    id: String = SOCIAL_ID,
+    provider: SocialProvider = SOCIAL_PROVIDER,
+    email: String = EMAIL,
+    firstName: String = FIRST_NAME,
+    lastName: String = LAST_NAME,
+    imageUrl: String = IMAGE_URL
+): GetOAuthUserResponse =
+    GetOAuthUserResponse(
+        id = id,
+        provider = provider,
+        email = email,
+        firstName = firstName,
+        lastName = lastName,
+        imageUrl = imageUrl
+    )
+
+fun createLoginCommand(
+    oAuthToken: String = TOKEN,
+    provider: SocialProvider = SOCIAL_PROVIDER
+): LoginCommand =
+    LoginCommand(
+        oAuthToken = oAuthToken,
+        socialProvider = provider
+    )
+
+fun createRefreshCommand(refreshToken: String = TOKEN): RefreshCommand = RefreshCommand(refreshToken = refreshToken)
+
+fun createLoginResult(
+    accessToken: String = TOKEN,
+    refreshToken: String = TOKEN
+): LoginResult =
+    LoginResult(
+        accessToken = accessToken,
+        refreshToken = refreshToken
+    )
+
+fun createRefreshResult(
+    accessToken: String = TOKEN,
+    refreshToken: String = TOKEN
+): RefreshResult =
+    RefreshResult(
+        accessToken = accessToken,
+        refreshToken = refreshToken
+    )
