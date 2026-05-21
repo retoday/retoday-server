@@ -58,7 +58,7 @@ openapi3 {
     format = "yaml"
     outputFileNamePrefix = "api"
     outputDirectory = "src/main/resources/static/docs"
-    setServer("/api/v1")
+    setServer("/v1")
 }
 
 jib {

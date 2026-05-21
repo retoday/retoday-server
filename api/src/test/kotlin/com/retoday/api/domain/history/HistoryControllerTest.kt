@@ -3,22 +3,42 @@ package com.retoday.api.domain.history
 import com.ninjasquad.springmockk.MockkBean
 import com.retoday.api.common.ControllerTest
 import com.retoday.api.domain.history.controller.HistoryController
+import com.retoday.api.domain.history.dto.response.GetMyCategoryAnalysesResponse
+import com.retoday.api.domain.history.dto.response.GetMyFrequentlyVisitedWebsitesResponse
+import com.retoday.api.domain.history.dto.response.GetMyLongestStayedWebsiteResponse
 import com.retoday.api.domain.history.dto.response.GetMyScreenTimesResponse
+import com.retoday.api.domain.history.dto.response.GetMyWorkPatternResponse
 import com.retoday.api.domain.history.dto.response.RecordHistoryResponse
+import com.retoday.api.extension.document
 import com.retoday.api.extension.expectBody
 import com.retoday.api.extension.expectError
 import com.retoday.api.extension.expectStatus
 import com.retoday.api.extension.withAuthentication
 import com.retoday.api.fixture.createHistoryRecordRequest
+import com.retoday.api.snippet.errorResponseFields
+import com.retoday.api.snippet.getMyCategoryAnalysesResponseFields
+import com.retoday.api.snippet.getMyCategoryAnalysisQueryFields
+import com.retoday.api.snippet.getMyFrequentlyVisitedWebsitesQueryFields
+import com.retoday.api.snippet.getMyFrequentlyVisitedWebsitesResponseFields
+import com.retoday.api.snippet.getMyLongestStayedWebsiteQueryFields
+import com.retoday.api.snippet.getMyLongestStayedWebsiteResponseFields
+import com.retoday.api.snippet.getMyScreenTimesQueryFields
+import com.retoday.api.snippet.getMyScreenTimesResponseFields
+import com.retoday.api.snippet.getMyWorkPatternQueryFields
+import com.retoday.api.snippet.getMyWorkPatternResponseFields
+import com.retoday.api.snippet.recordHistoryRequestFields
+import com.retoday.api.snippet.recordHistoryResponseFields
 import com.retoday.core.domain.history.exception.DuplicateHistoryException
 import com.retoday.core.domain.history.exception.InvalidTimeRangeException
 import com.retoday.core.domain.history.exception.WebsiteExcludedByUserException
 import com.retoday.core.domain.history.service.HistoryService
+import com.retoday.core.fixture.createGetMyCategoryAnalysisResult
+import com.retoday.core.fixture.createGetMyFrequentlyVisitedWebsitesResult
+import com.retoday.core.fixture.createGetMyLongestStayedWebsiteResult
 import com.retoday.core.fixture.createGetMyScreenTimesResult
+import com.retoday.core.fixture.createGetMyWorkPatternResult
 import com.retoday.core.fixture.createHistoryRecordResult
-import com.retoday.core.global.extension.limit
 import io.mockk.every
-import io.mockk.mockkStatic
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import java.time.LocalDate
 
@@ -28,16 +48,6 @@ class HistoryControllerTest : ControllerTest() {
     private lateinit var historyService: HistoryService
 
     init {
-        mockkStatic("com.retoday.core.global.extension.RateLimitExtensionsKt")
-        every {
-            limit<Any?>(
-                any<String>(),
-                any<Long>(),
-                any<java.time.Duration>(),
-                any<() -> Any?>()
-            )
-        } answers { lastArg<() -> Any?>().invoke() }
-
         describe("recordHistory()") {
             val request =
                 webClient
@@ -55,6 +65,10 @@ class HistoryControllerTest : ControllerTest() {
                         .exchange()
                         .expectStatus(200)
                         .expectBody(RecordHistoryResponse.from(result))
+                        .document("히스토리 기록 성공(200)") {
+                            requestBody(recordHistoryRequestFields)
+                            responseBody(recordHistoryResponseFields)
+                        }
                 }
             }
 
@@ -66,6 +80,10 @@ class HistoryControllerTest : ControllerTest() {
                         .exchange()
                         .expectStatus(409)
                         .expectError()
+                        .document("히스토리 기록 실패(409)") {
+                            requestBody(recordHistoryRequestFields)
+                            responseBody(errorResponseFields)
+                        }
                 }
             }
 
@@ -76,7 +94,10 @@ class HistoryControllerTest : ControllerTest() {
                     request
                         .exchange()
                         .expectStatus(204)
-                        .expectError()
+                        .expectBody(Void::class.java)
+                        .document("히스토리 기록 제외 도메인(204)") {
+                            requestBody(recordHistoryRequestFields)
+                        }
                 }
             }
 
@@ -88,6 +109,10 @@ class HistoryControllerTest : ControllerTest() {
                         .exchange()
                         .expectStatus(400)
                         .expectError()
+                        .document("히스토리 기록 실패(400)") {
+                            requestBody(recordHistoryRequestFields)
+                            responseBody(errorResponseFields)
+                        }
                 }
             }
         }
@@ -109,6 +134,110 @@ class HistoryControllerTest : ControllerTest() {
                         .exchange()
                         .expectStatus(200)
                         .expectBody(GetMyScreenTimesResponse.from(result))
+                        .document("내 스크린타임 조회 성공(200)") {
+                            queryParams(getMyScreenTimesQueryFields)
+                            responseBody(getMyScreenTimesResponseFields)
+                        }
+                }
+            }
+        }
+
+        describe("getMyCategoryAnalyses()") {
+            val date = LocalDate.parse("2026-02-13")
+            val request =
+                webClient
+                    .get()
+                    .uri("/users/me/category-analyses?date=$date&timeZone=SEOUL")
+                    .withAuthentication()
+
+            context("유효한 요청") {
+                val result = createGetMyCategoryAnalysisResult()
+                every { historyService.getMyCategoryAnalyses(any(), any()) } returns result
+
+                it("200과 응답 본문을 반환한다") {
+                    request
+                        .exchange()
+                        .expectStatus(200)
+                        .expectBody(GetMyCategoryAnalysesResponse.from(result))
+                        .document("내 카테고리 분석 조회 성공(200)") {
+                            queryParams(getMyCategoryAnalysisQueryFields)
+                            responseBody(getMyCategoryAnalysesResponseFields)
+                        }
+                }
+            }
+        }
+
+        describe("getMyFrequentlyVisitedWebsites()") {
+            val date = LocalDate.parse("2026-02-13")
+            val request =
+                webClient
+                    .get()
+                    .uri("/users/me/frequently-visited-websites?date=$date&timeZone=SEOUL&limit=5")
+                    .withAuthentication()
+
+            context("유효한 요청") {
+                val result = createGetMyFrequentlyVisitedWebsitesResult()
+                every { historyService.getMyFrequentlyVisitedWebsites(any(), any()) } returns result
+
+                it("200과 응답 본문을 반환한다") {
+                    request
+                        .exchange()
+                        .expectStatus(200)
+                        .expectBody(GetMyFrequentlyVisitedWebsitesResponse.from(result))
+                        .document("내 자주 방문한 웹사이트 조회 성공(200)") {
+                            queryParams(getMyFrequentlyVisitedWebsitesQueryFields)
+                            responseBody(getMyFrequentlyVisitedWebsitesResponseFields)
+                        }
+                }
+            }
+        }
+
+        describe("getMyWorkPattern()") {
+            val date = LocalDate.parse("2026-02-13")
+            val request =
+                webClient
+                    .get()
+                    .uri("/users/me/work-pattern?date=$date&timeZone=SEOUL")
+                    .withAuthentication()
+
+            context("유효한 요청") {
+                val result = createGetMyWorkPatternResult()
+                every { historyService.getMyWorkPattern(any(), any()) } returns result
+
+                it("200과 응답 본문을 반환한다") {
+                    request
+                        .exchange()
+                        .expectStatus(200)
+                        .expectBody(GetMyWorkPatternResponse.from(result))
+                        .document("내 작업 패턴 조회 성공(200)") {
+                            queryParams(getMyWorkPatternQueryFields)
+                            responseBody(getMyWorkPatternResponseFields)
+                        }
+                }
+            }
+        }
+
+        describe("getMyLongestStayedWebsite()") {
+            val date = LocalDate.parse("2026-02-13")
+            val request =
+                webClient
+                    .get()
+                    .uri("/users/me/longest-stayed-website?date=$date&timeZone=SEOUL")
+                    .withAuthentication()
+
+            context("유효한 요청") {
+                val result = createGetMyLongestStayedWebsiteResult()
+                every { historyService.getMyLongestStayedWebsite(any(), any()) } returns result
+
+                it("200과 응답 본문을 반환한다") {
+                    request
+                        .exchange()
+                        .expectStatus(200)
+                        .expectBody(GetMyLongestStayedWebsiteResponse.from(result))
+                        .document("내 최장 체류 웹사이트 조회 성공(200)") {
+                            queryParams(getMyLongestStayedWebsiteQueryFields)
+                            responseBody(getMyLongestStayedWebsiteResponseFields)
+                        }
                 }
             }
         }

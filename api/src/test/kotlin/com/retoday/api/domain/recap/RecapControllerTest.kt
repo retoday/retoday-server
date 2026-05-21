@@ -4,9 +4,12 @@ import com.ninjasquad.springmockk.MockkBean
 import com.retoday.api.common.ControllerTest
 import com.retoday.api.domain.recap.controller.RecapController
 import com.retoday.api.domain.recap.dto.response.GetMyRecapResponse
+import com.retoday.api.extension.document
 import com.retoday.api.extension.expectBody
 import com.retoday.api.extension.expectStatus
 import com.retoday.api.extension.withAuthentication
+import com.retoday.api.snippet.getMyRecapQueryFields
+import com.retoday.api.snippet.getMyRecapResponseFields
 import com.retoday.core.domain.recap.dto.result.GetMyRecapResult
 import com.retoday.core.domain.recap.entity.RecapSection
 import com.retoday.core.domain.recap.entity.RecapTimeline
@@ -55,6 +58,10 @@ class RecapControllerTest : ControllerTest() {
                     .exchange()
                     .expectStatus(200)
                     .expectBody(GetMyRecapResponse.from(result))
+                    .document("내 리캡 조회 성공(200)") {
+                        queryParams(getMyRecapQueryFields)
+                        responseBody(getMyRecapResponseFields)
+                    }
             }
         }
     }
