@@ -1,4 +1,4 @@
-name: Deploy to develop environment
+name: Deploy
 on:
   push:
     branches:
@@ -21,6 +21,8 @@ jobs:
         distribution: corretto
         java-version: 21
         cache: gradle
+    - name: Run tests
+      run: ./gradlew :api:test
     - name: Deploy image to container registry
       id: deploy-image
       env:
@@ -47,7 +49,7 @@ jobs:
       env:
         API_IMAGE: ${{ needs.deploy-image.outputs.api-image }}
       run: |
-        yq -i '.api.image = "${{ env.API_IMAGE }}"' values-${{ github.ref_name }}.yaml
+        yq -i '.api.image = "${{ env.API_IMAGE }}"' ./application/values-${{ github.ref_name }}.yaml
     - name: Commit changes
       run: |
         git config user.name "github-actions"
