@@ -15,6 +15,7 @@ dependencies {
     implementation(libs.prometheus)
     implementation(libs.bundles.jwt)
     implementation(libs.bundles.jackson)
+    implementation(libs.bundles.sentry)
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(libs.bundles.test)

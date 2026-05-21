@@ -24,6 +24,9 @@ mockk = "1.14.4"
 # OpenAPI
 restdocs-api-spec = "0.19.4"
 
+# Sentry
+sentry = "8.19.1"
+
 [plugins]
 
 # Java
@@ -115,6 +118,10 @@ testcontainers-mysql = { group = "org.testcontainers", name = "mysql" }
 # Prometheus
 prometheus = { group = "io.micrometer", name = "micrometer-registry-prometheus" }
 
+# Sentry
+sentry-spring = { group = "io.sentry", name = "sentry-spring-boot-starter-jakarta", version.ref = "sentry" }
+sentry-log4j2 = { group = "io.sentry", name = "sentry-log4j2", version.ref = "sentry" }
+
 [bundles]
 
 jooq = [
@@ -151,4 +158,8 @@ testcontainers = [
     "spring-testcontainers",
     "testcontainers-junit",
     "testcontainers-mysql"
+]
+sentry = [
+    "sentry-spring",
+    "sentry-log4j2"
 ]
