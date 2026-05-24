@@ -1,6 +1,10 @@
 package com.retoday.api.common
 
+import com.retoday.core.global.extension.limit
+import io.kotest.core.spec.Spec
 import io.kotest.core.spec.style.DescribeSpec
+import io.mockk.every
+import io.mockk.mockkStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs
 import org.springframework.restdocs.RestDocumentationContextProvider
@@ -12,6 +16,10 @@ import org.springframework.web.context.WebApplicationContext
 abstract class ControllerTest(
     private val version: Int = 1
 ) : DescribeSpec() {
+    private companion object {
+        const val RATE_LIMIT_EXTENSION_CLASS = "com.retoday.core.global.extension.RateLimitExtensionsKt"
+    }
+
     @Autowired
     private lateinit var webApplicationContext: WebApplicationContext
 
@@ -22,8 +30,13 @@ abstract class ControllerTest(
         MockMvcWebTestClient
             .bindToApplicationContext(webApplicationContext)
             .configureClient()
-            .baseUrl("/api/v$version")
+            .baseUrl("/v$version")
             .filter(WebTestClientRestDocumentation.documentationConfiguration(restDocumentationContextProvider))
-            .build()
+            .build()!!
+    }
+
+    override suspend fun beforeSpec(spec: Spec) {
+        mockkStatic(RATE_LIMIT_EXTENSION_CLASS)
+        every { limit(any(), any(), any(), any<() -> Any?>()) } answers { lastArg<() -> Any?>().invoke() }
     }
 }

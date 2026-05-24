@@ -10,6 +10,8 @@ import com.retoday.api.extension.expectBody
 import com.retoday.api.extension.expectError
 import com.retoday.api.extension.expectStatus
 import com.retoday.api.extension.withAuthentication
+import com.retoday.api.snippet.addMyExcludedDomainRequestFields
+import com.retoday.api.snippet.deleteMyExcludedDomainRequestFields
 import com.retoday.api.snippet.errorResponseFields
 import com.retoday.core.domain.user.entity.UserExcludedWebsiteDomain
 import com.retoday.core.domain.user.exception.ExcludedDomainAlreadyExistsException
@@ -41,7 +43,10 @@ class UserControllerTest : ControllerTest() {
                     request
                         .exchange()
                         .expectStatus(200)
-                        .expectBody()
+                        .expectBody(Void::class.java)
+                        .document("내 예외 도메인 추가 성공(200)") {
+                            requestBody(addMyExcludedDomainRequestFields)
+                        }
                 }
             }
 
@@ -54,6 +59,7 @@ class UserControllerTest : ControllerTest() {
                         .expectStatus(409)
                         .expectError()
                         .document("내 예외 도메인 추가 실패(409)") {
+                            requestBody(addMyExcludedDomainRequestFields)
                             responseBody(errorResponseFields)
                         }
                 }
@@ -75,7 +81,10 @@ class UserControllerTest : ControllerTest() {
                     request
                         .exchange()
                         .expectStatus(200)
-                        .expectBody()
+                        .expectBody(Void::class.java)
+                        .document("내 예외 도메인 삭제 성공(200)") {
+                            requestBody(deleteMyExcludedDomainRequestFields)
+                        }
                 }
             }
         }

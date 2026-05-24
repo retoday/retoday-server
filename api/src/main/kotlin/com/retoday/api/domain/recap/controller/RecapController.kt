@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController
 import java.util.*
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/v1")
 class RecapController(
     private val recapService: RecapService
 ) {

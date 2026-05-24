@@ -11,7 +11,7 @@ import java.time.Duration
 import java.util.*
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/v1")
 class HistoryController(
     private val historyService: HistoryService
 ) {

@@ -15,6 +15,7 @@ dependencies {
     implementation(libs.prometheus)
     implementation(libs.bundles.jwt)
     implementation(libs.bundles.jackson)
+    implementation(libs.bundles.sentry)
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(libs.bundles.test)
@@ -57,7 +58,7 @@ openapi3 {
     format = "yaml"
     outputFileNamePrefix = "api"
     outputDirectory = "src/main/resources/static/docs"
-    setServer("/api/v1")
+    setServer("/v1")
 }
 
 jib {
