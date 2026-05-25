@@ -55,19 +55,18 @@ class AuthService(
                             email = getOAuthUserResponse.email,
                             socialProvider = getOAuthUserResponse.provider
                         )
-
-                userRepository.save(user)
+                val savedUser = userRepository.save(user)
 
                 val profile =
                     profileRepository
-                        .findByUserId(user.id!!)
+                        .findByUserId(savedUser.id!!)
                         ?.copy(
                             firstName = getOAuthUserResponse.firstName,
                             lastName = getOAuthUserResponse.lastName,
                             imageUrl = getOAuthUserResponse.imageUrl
                         )
                         ?: Profile(
-                            userId = user.id!!,
+                            userId = savedUser.id,
                             firstName = getOAuthUserResponse.firstName,
                             lastName = getOAuthUserResponse.lastName,
                             imageUrl = getOAuthUserResponse.imageUrl
@@ -75,7 +74,7 @@ class AuthService(
 
                 profileRepository.save(profile)
 
-                user.createTokens()
+                savedUser.createTokens()
             }
 
         return LoginResult(
