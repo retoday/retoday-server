@@ -5,7 +5,6 @@ plugins {
 
 dependencies {
     implementation(libs.spring.web)
-    implementation(libs.spring.log4j2)
     implementation(libs.spring.data.jdbc)
     implementation(libs.spring.data.redis)
     implementation(libs.spring.ai.gemini)
@@ -14,10 +13,13 @@ dependencies {
     implementation(libs.uuid)
     implementation(libs.bundles.jwt)
     implementation(libs.bundles.jooq)
-    jooqCodegen(libs.jooq.meta)
+
+    api(libs.spring.log4j2)
 
     runtimeOnly(libs.mysql.driver)
     runtimeOnly(libs.bundles.flyway)
+
+    jooqCodegen(libs.jooq.meta)
 
     testImplementation(libs.spring.test)
     testImplementation(libs.bundles.test)
