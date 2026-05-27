@@ -29,7 +29,10 @@ class JwtAuthenticationFilter(
             .getHeader(HttpHeaders.AUTHORIZATION)
             ?.run {
                 runCatching { jwtProvider.extractPayload(getBearerToken()) }
-                    .onSuccess { SecurityContextHolder.getContext().authentication = objectMapper.convertValue(it) }
+                    .onSuccess {
+                        SecurityContextHolder.getContext().authentication =
+                            objectMapper.convertValue<RetodayAuthentication>(it)
+                    }
                     .onFailure { if (it !is JwtException) throw it }
             }
 
