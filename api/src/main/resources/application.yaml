@@ -43,6 +43,10 @@ logging:
   config: classpath:log4j2-${spring.profiles.active}.yaml
 frontend:
   uris: https://localhost:3000
+sentry:
+  environment: ${spring.profiles.active}
+  in-app-includes:
+  - com.retoday
 ---
 spring:
   config:
@@ -50,6 +54,8 @@ spring:
       on-profile: local
 frontend:
   uris: http://localhost:3000
+sentry:
+  enabled: false
 ---
 spring:
   config:
@@ -57,6 +63,9 @@ spring:
       on-profile: dev
 frontend:
   uris: ${FRONTEND_URIS}
+sentry:
+  dsn: ${SENTRY_DSN}
+  release: ${SENTRY_RELEASE}
 ---
 spring:
   config:
@@ -69,7 +78,4 @@ frontend:
   uris: ${FRONTEND_URIS}
 sentry:
   dsn: ${SENTRY_DSN}
-  environment: prod
   release: ${SENTRY_RELEASE}
-  in-app-includes:
-  - com.retoday
