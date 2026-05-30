@@ -123,46 +123,16 @@ class RecapTimelineService {
         }
 
         fun build(): UrlSegment {
-            val intervals =
-                sources
-                    .map { it.visitedAt to it.closedAt }
-                    .sortedBy { it.first }
             return UrlSegment(
                 startedAt = sources.minOf { it.visitedAt },
                 endedAt = sources.maxOf { it.closedAt },
-                activeDuration = mergeIntervals(intervals),
+                activeDuration = sources.fold(Duration.ZERO) { acc, source ->
+                    acc + Duration.between(source.visitedAt, source.closedAt)
+                },
                 representativeSource =
                     sources
                         .maxBy { Duration.between(it.visitedAt, it.closedAt) }
             )
-        }
-
-        private fun mergeIntervals(intervals: List<Pair<Instant, Instant>>): Duration {
-            var totalDuration = Duration.ZERO
-            var currentInterval: Pair<Instant, Instant>? = null
-
-            for (interval in intervals) {
-                val current = currentInterval
-
-                if (current == null) {
-                    currentInterval = interval
-                    continue
-                }
-
-                val (currentStartedAt, currentEndedAt) = current
-                val (nextStartedAt, nextEndedAt) = interval
-
-                if (nextStartedAt <= currentEndedAt) {
-                    currentInterval = currentStartedAt to maxOf(currentEndedAt, nextEndedAt)
-                } else {
-                    totalDuration += Duration.between(currentStartedAt, currentEndedAt)
-                    currentInterval = interval
-                }
-            }
-
-            return currentInterval
-                ?.let { (startedAt, endedAt) -> totalDuration + Duration.between(startedAt, endedAt) }
-                ?: totalDuration
         }
     }
 }

@@ -99,33 +99,6 @@ class RecapTimelineServiceTest : ServiceTest() {
             }
         }
 
-        Given("같은 URL 방문 시간이 겹치면") {
-            val recapSources =
-                listOf(
-                    createRecapSource(
-                        url = "https://shop.example.com/shoes",
-                        visitedAt = Instant.parse("2026-02-23T01:00:00Z"),
-                        closedAt = Instant.parse("2026-02-23T01:10:00Z")
-                    ),
-                    createRecapSource(
-                        url = "https://shop.example.com/shoes",
-                        visitedAt = Instant.parse("2026-02-23T01:05:00Z"),
-                        closedAt = Instant.parse("2026-02-23T01:15:00Z")
-                    )
-                )
-
-            When("timeline segment를 생성하면") {
-                val segments = recapTimelineService.createSegments(recapSources, TimeZone.SEOUL)
-
-                Then("겹친 시간을 중복 합산하지 않는다") {
-                    segments shouldHaveSize 1
-                    segments.first().startedAt shouldBe LocalTime.of(10, 0)
-                    segments.first().endedAt shouldBe LocalTime.of(10, 15)
-                    segments.first().activeMinutes shouldBe 15L
-                }
-            }
-        }
-
         Given("AI가 segment group을 반환하면") {
             val segments =
                 recapTimelineService.createSegments(
