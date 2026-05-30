@@ -20,9 +20,9 @@ sealed class RecapClient(
     private val objectMapper: ObjectMapper
 ) {
     private companion object {
-        val GENERATE_RECAP_PROMPT = ClassPathResource("prompt/generate-recap.md")
-        val GENERATE_TIMELINES_PROMPT = ClassPathResource("prompt/generate-timelines.md")
-        val GENERATE_TOPICS_PROMPT = ClassPathResource("prompt/generate-topics.md")
+        val GENERATE_RECAP_PROMPT = ClassPathResource("prompt/1-recap.md")
+        val GENERATE_TIMELINES_PROMPT = ClassPathResource("prompt/2-timelines.md")
+        val GENERATE_TOPICS_PROMPT = ClassPathResource("prompt/3-topics.md")
     }
 
     fun generateRecap(request: GenerateRecapRequest): GenerateRecapResponse =
