@@ -36,6 +36,7 @@ class RecapService(
     private val historyRepository: HistoryRepository,
     private val profileRepository: ProfileRepository,
     private val recapStatisticsService: RecapStatisticsService,
+    private val recapTimelineService: RecapTimelineService,
     private val recapClients: List<RecapClient>
 ) {
     @Transactional(readOnly = true)
@@ -107,12 +108,22 @@ class RecapService(
                     statistics = recapStatistics
                 )
             )
+        val timelineSegments =
+            recapTimelineService.createSegments(
+                recapSources = recapSources,
+                timeZone = profile.timeZone
+            )
         val timelineResponse =
             recapClient.generateTimelines(
                 GenerateTimelinesRequest(
                     language = profile.language,
-                    recapSources = recapSources
+                    segments = timelineSegments
                 )
+            )
+        val generatedTimelines =
+            recapTimelineService.assembleTimelines(
+                response = timelineResponse,
+                segments = timelineSegments
             )
 
         val recapImage =
@@ -160,7 +171,7 @@ class RecapService(
                         .let { topicRepository.saveAll(it) }
 
                 val timelines =
-                    timelineResponse.timelines
+                    generatedTimelines
                         .map {
                             RecapTimeline(
                                 recapId = recap.id!!,

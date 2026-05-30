@@ -5,6 +5,7 @@ import java.time.Duration
 import java.time.Instant
 
 data class RecapSourceProjection(
+    val url: String,
     val title: String?,
     val description: String?,
     val domain: String,

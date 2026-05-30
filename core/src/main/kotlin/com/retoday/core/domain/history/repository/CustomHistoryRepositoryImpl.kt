@@ -152,6 +152,7 @@ class CustomHistoryRepositoryImpl(
 
         return dsl
             .select(
+                PAGE.URL,
                 PAGE.TITLE,
                 PAGE.DESCRIPTION,
                 WEBSITE.DOMAIN,

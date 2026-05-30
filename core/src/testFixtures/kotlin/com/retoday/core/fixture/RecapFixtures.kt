@@ -38,6 +38,7 @@ val RECAP_ENDED_AT: Instant = Instant.parse("2026-02-23T22:00:00Z")
 fun createRecapSources(): List<RecapSourceProjection> =
     listOf(
         RecapSourceProjection(
+            url = WEBSITE_PAGE_URL,
             title = WEBSITE_TITLE,
             description = WEBSITE_DESCRIPTION,
             domain = WEBSITE_DOMAIN,
@@ -63,12 +64,11 @@ fun createGenerateRecapResponse(): GenerateRecapResponse =
 
 fun createGenerateTimelinesResponse(): GenerateTimelinesResponse =
     GenerateTimelinesResponse(
-        timelines =
+        groups =
             listOf(
-                GenerateTimelinesResponse.Timeline(
-                    title = TIMELINE_TITLE,
-                    startedAt = TIMELINE_STARTED_AT,
-                    endedAt = TIMELINE_ENDED_AT
+                GenerateTimelinesResponse.Group(
+                    label = TIMELINE_TITLE,
+                    segmentIds = listOf(1L)
                 )
             )
     )

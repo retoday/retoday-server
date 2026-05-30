@@ -1,13 +1,10 @@
 package com.retoday.core.domain.recap.dto.response
 
-import java.time.LocalTime
-
 data class GenerateTimelinesResponse(
-    val timelines: List<Timeline>
+    val groups: List<Group>
 ) {
-    data class Timeline(
-        val title: String,
-        val startedAt: LocalTime,
-        val endedAt: LocalTime
+    data class Group(
+        val label: String,
+        val segmentIds: List<Long>
     )
 }
