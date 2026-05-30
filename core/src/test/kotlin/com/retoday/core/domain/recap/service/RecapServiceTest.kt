@@ -1,12 +1,14 @@
 package com.retoday.core.domain.recap.service
 
 import com.retoday.core.common.ServiceTest
-import com.retoday.core.domain.history.dto.query.GetMyCategoryAnalysisQuery
 import com.retoday.core.domain.history.repository.HistoryRepository
-import com.retoday.core.domain.history.service.HistoryService
 import com.retoday.core.domain.recap.client.RecapClient
 import com.retoday.core.domain.recap.dto.command.CreateRecapCommand
 import com.retoday.core.domain.recap.dto.query.GetMyRecapQuery
+import com.retoday.core.domain.recap.dto.request.GenerateRecapRequest
+import com.retoday.core.domain.recap.dto.request.GenerateTimelinesRequest
+import com.retoday.core.domain.recap.dto.request.GenerateTopicsRequest
+import com.retoday.core.domain.recap.dto.request.RecapStatisticsInput
 import com.retoday.core.domain.recap.entity.AiProvider
 import com.retoday.core.domain.recap.entity.RecapSection
 import com.retoday.core.domain.recap.entity.RecapTimeline
@@ -23,6 +25,9 @@ import com.retoday.core.fixture.createGenerateRecapResponse
 import com.retoday.core.fixture.createGenerateTimelinesResponse
 import com.retoday.core.fixture.createGenerateTopicsResponse
 import com.retoday.core.fixture.createGetMyCategoryAnalysisResult
+import com.retoday.core.fixture.createGetMyFrequentlyVisitedWebsitesResult
+import com.retoday.core.fixture.createGetMyLongestStayedWebsiteResult
+import com.retoday.core.fixture.createGetMyScreenTimesResult
 import com.retoday.core.fixture.createProfile
 import com.retoday.core.fixture.createRecap
 import com.retoday.core.fixture.createRecapSources
@@ -31,6 +36,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import java.time.LocalDate
 
@@ -41,7 +47,7 @@ class RecapServiceTest : ServiceTest() {
     private val topicRepository = mockk<TopicRepository>()
     private val timelineRepository = mockk<TimelineRepository>()
     private val historyRepository = mockk<HistoryRepository>()
-    private val historyService = mockk<HistoryService>()
+    private val recapStatisticsService = mockk<RecapStatisticsService>()
     private val profileRepository = mockk<ProfileRepository>()
 
     private val recapService =
@@ -52,7 +58,7 @@ class RecapServiceTest : ServiceTest() {
             sectionRepository = sectionRepository,
             historyRepository = historyRepository,
             profileRepository = profileRepository,
-            historyService = historyService,
+            recapStatisticsService = recapStatisticsService,
             recapClients = listOf(recapClient)
         )
 
@@ -90,22 +96,33 @@ class RecapServiceTest : ServiceTest() {
             val profile = createProfile(userId = ID, firstName = "민주")
             val recapSources = createRecapSources()
             val recap = createRecap(userId = ID, recapDate = date).copy(id = ID)
+            val recapStatistics =
+                RecapStatisticsInput(
+                    screenTimes = createGetMyScreenTimesResult(date),
+                    categoryAnalyses = createGetMyCategoryAnalysisResult(),
+                    frequentlyVisitedWebsites = createGetMyFrequentlyVisitedWebsitesResult(),
+                    longestStayedWebsite = createGetMyLongestStayedWebsiteResult()
+                )
 
             every { profileRepository.findByUserId(ID) } returns profile
             every { recapRepository.existsByUserIdAndDate(ID, date) } returns false
             every { historyRepository.findRecapSources(any(), any(), any()) } returns recapSources
             every {
-                historyService.getMyCategoryAnalyses(
+                recapStatisticsService.getStatistics(
                     userId = ID,
-                    query = GetMyCategoryAnalysisQuery(date = date, timeZone = profile.timeZone)
+                    date = date,
+                    timeZone = profile.timeZone
                 )
-            } returns createGetMyCategoryAnalysisResult()
+            } returns recapStatistics
             val recapResponse = createGenerateRecapResponse()
             val topicsResponse = createGenerateTopicsResponse()
             val timelinesResponse = createGenerateTimelinesResponse()
-            every { recapClient.generateRecap(any()) } returns recapResponse
-            every { recapClient.generateTopics(any()) } returns topicsResponse
-            every { recapClient.generateTimelines(any()) } returns timelinesResponse
+            val generateRecapRequest = slot<GenerateRecapRequest>()
+            val generateTopicsRequest = slot<GenerateTopicsRequest>()
+            val generateTimelinesRequest = slot<GenerateTimelinesRequest>()
+            every { recapClient.generateRecap(capture(generateRecapRequest)) } returns recapResponse
+            every { recapClient.generateTopics(capture(generateTopicsRequest)) } returns topicsResponse
+            every { recapClient.generateTimelines(capture(generateTimelinesRequest)) } returns timelinesResponse
             every { recapRepository.save(any()) } returns recap
             every { sectionRepository.saveAll(any<List<RecapSection>>()) } answers { firstArg<List<RecapSection>>() }
             every { topicRepository.saveAll(any<List<RecapTopic>>()) } answers { firstArg<List<RecapTopic>>() }
@@ -123,6 +140,9 @@ class RecapServiceTest : ServiceTest() {
                     result.sections shouldHaveSize recapResponse.sections.size
                     result.topics shouldHaveSize topicsResponse.topics.size
                     result.timelines shouldHaveSize timelinesResponse.timelines.size
+                    generateRecapRequest.captured.language shouldBe profile.language
+                    generateTopicsRequest.captured.language shouldBe profile.language
+                    generateTimelinesRequest.captured.language shouldBe profile.language
                     verify(exactly = 1) { recapRepository.save(any()) }
                 }
             }

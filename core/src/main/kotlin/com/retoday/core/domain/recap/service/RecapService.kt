@@ -1,9 +1,7 @@
 package com.retoday.core.domain.recap.service
 
-import com.retoday.core.domain.history.dto.query.GetMyCategoryAnalysisQuery
 import com.retoday.core.domain.history.dto.result.GetMyCategoryAnalysesResult
 import com.retoday.core.domain.history.repository.HistoryRepository
-import com.retoday.core.domain.history.service.HistoryService
 import com.retoday.core.domain.recap.client.RecapClient
 import com.retoday.core.domain.recap.dto.command.CreateRecapCommand
 import com.retoday.core.domain.recap.dto.projection.RecapSourceProjection
@@ -37,7 +35,7 @@ class RecapService(
     private val sectionRepository: SectionRepository,
     private val historyRepository: HistoryRepository,
     private val profileRepository: ProfileRepository,
-    private val historyService: HistoryService,
+    private val recapStatisticsService: RecapStatisticsService,
     private val recapClients: List<RecapClient>
 ) {
     @Transactional(readOnly = true)
@@ -88,42 +86,39 @@ class RecapService(
         val lastClosedAt = recapSources.maxOf { it.closedAt }
 
         val recapClient = recapClients.first { it.aiProvider == command.aiProvider }
+        val recapStatistics =
+            recapStatisticsService.getStatistics(
+                userId = userId,
+                date = command.date,
+                timeZone = profile.timeZone
+            )
         val recapResponse =
             recapClient.generateRecap(
                 GenerateRecapRequest(
                     name = profile.firstName,
-                    recapSources = recapSources
+                    language = profile.language,
+                    statistics = recapStatistics
                 )
             )
         val topicResponse =
             recapClient.generateTopics(
                 GenerateTopicsRequest(
-                    recapSources = recapSources
+                    language = profile.language,
+                    statistics = recapStatistics
                 )
             )
         val timelineResponse =
             recapClient.generateTimelines(
                 GenerateTimelinesRequest(
+                    language = profile.language,
                     recapSources = recapSources
                 )
             )
 
-        val categoryAnalyses =
-            historyService
-                .getMyCategoryAnalyses(
-                    userId = userId,
-                    query =
-                        GetMyCategoryAnalysisQuery(
-                            date = command.date,
-                            timeZone = profile.timeZone
-                        )
-                )
-                .categoryAnalyses
-
         val recapImage =
             getRecapImage(
                 firstVisitedHour = firstVisitedAt.atZone(profile.timeZone.id).hour,
-                categoryAnalyses = categoryAnalyses,
+                categoryAnalyses = recapStatistics.categoryAnalyses.categoryAnalyses,
                 recapSources = recapSources
             )
 
