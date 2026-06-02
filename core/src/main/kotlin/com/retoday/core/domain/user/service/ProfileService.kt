@@ -1,5 +1,6 @@
 package com.retoday.core.domain.user.service
 
+import com.retoday.core.domain.user.dto.command.UpdateMyProfileCommand
 import com.retoday.core.domain.user.dto.result.GetMyProfileResult
 import com.retoday.core.domain.user.repository.ProfileRepository
 import com.retoday.core.domain.user.repository.UserExcludedWebsiteRepository
@@ -23,6 +24,21 @@ class ProfileService(
         return GetMyProfileResult.of(
             projection = profileWithEmail,
             excludedDomains = excludedDomains
+        )
+    }
+
+    @Transactional
+    fun updateMyProfile(
+        userId: UUID,
+        command: UpdateMyProfileCommand
+    ) {
+        val profile = profileRepository.findByUserId(userId) ?: error("프로필이 존재하지 않습니다.")
+
+        profileRepository.save(
+            profile.copy(
+                timeZone = command.timeZone,
+                language = command.language
+            )
         )
     }
 }
