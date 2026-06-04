@@ -3,6 +3,7 @@ package com.retoday.core.domain.recap.service
 import com.retoday.core.common.ServiceTest
 import com.retoday.core.domain.history.repository.HistoryRepository
 import com.retoday.core.domain.recap.client.RecapClient
+import com.retoday.core.domain.recap.dto.command.AssembleTimelinesCommand
 import com.retoday.core.domain.recap.dto.command.CreateRecapCommand
 import com.retoday.core.domain.recap.dto.query.GetMyRecapQuery
 import com.retoday.core.domain.recap.dto.request.GenerateRecapRequest
@@ -158,8 +159,10 @@ class RecapServiceTest : ServiceTest() {
             every { recapClient.generateTimelines(capture(generateTimelinesRequest)) } returns timelinesResponse
             every {
                 recapTimelineService.assembleTimelines(
-                    response = timelinesResponse,
-                    segments = timelineSegments
+                    AssembleTimelinesCommand(
+                        groups = timelinesResponse.groups,
+                        segments = timelineSegments
+                    )
                 )
             } returns generatedTimelines
             every { recapRepository.save(any()) } returns recap

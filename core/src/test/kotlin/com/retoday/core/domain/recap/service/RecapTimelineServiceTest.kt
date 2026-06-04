@@ -2,9 +2,10 @@ package com.retoday.core.domain.recap.service
 
 import com.retoday.core.common.ServiceTest
 import com.retoday.core.domain.history.entity.WebsiteCategory
+import com.retoday.core.domain.recap.dto.command.AssembleTimelinesCommand
 import com.retoday.core.domain.recap.dto.projection.RecapSourceProjection
 import com.retoday.core.domain.recap.dto.model.TimelineSegment
-import com.retoday.core.domain.recap.dto.response.GenerateTimelinesResponse
+import com.retoday.core.domain.recap.dto.model.TimelineGroup
 import com.retoday.core.domain.user.entity.TimeZone
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -121,23 +122,24 @@ class RecapTimelineServiceTest : ServiceTest() {
                     ),
                     TimeZone.SEOUL
                 )
-            val response =
-                GenerateTimelinesResponse(
+            val command =
+                AssembleTimelinesCommand(
                     groups =
                         listOf(
-                            GenerateTimelinesResponse.Group(
+                            TimelineGroup(
                                 label = "신발 쇼핑하기",
                                 segmentIds = listOf(1L, 2L)
                             ),
-                            GenerateTimelinesResponse.Group(
+                            TimelineGroup(
                                 label = "뉴스 읽기",
                                 segmentIds = listOf(3L)
                             )
-                        )
+                        ),
+                    segments = segments
                 )
 
             When("timeline으로 조립하면") {
-                val timelines = recapTimelineService.assembleTimelines(response, segments)
+                val timelines = recapTimelineService.assembleTimelines(command)
 
                 Then("active time이 30분 이상인 group만 유지하고 시간을 서버에서 계산한다") {
                     timelines shouldHaveSize 1
@@ -155,23 +157,24 @@ class RecapTimelineServiceTest : ServiceTest() {
                     createSegment(id = 2, startedAt = LocalTime.of(10, 20), endedAt = LocalTime.of(10, 40)),
                     createSegment(id = 3, startedAt = LocalTime.of(10, 40), endedAt = LocalTime.of(11, 0))
                 )
-            val response =
-                GenerateTimelinesResponse(
+            val command =
+                AssembleTimelinesCommand(
                     groups =
                         listOf(
-                            GenerateTimelinesResponse.Group(
+                            TimelineGroup(
                                 label = "신발 쇼핑하기",
                                 segmentIds = listOf(1L, 2L)
                             ),
-                            GenerateTimelinesResponse.Group(
+                            TimelineGroup(
                                 label = "상품 비교하기",
                                 segmentIds = listOf(2L, 3L)
                             )
-                        )
+                        ),
+                    segments = segments
                 )
 
             When("timeline으로 조립하면") {
-                val timelines = recapTimelineService.assembleTimelines(response, segments)
+                val timelines = recapTimelineService.assembleTimelines(command)
 
                 Then("먼저 살아남은 group이 segment id 우선권을 가진다") {
                     timelines shouldHaveSize 1
@@ -188,23 +191,24 @@ class RecapTimelineServiceTest : ServiceTest() {
                     createSegment(id = 1, startedAt = LocalTime.of(10, 0), endedAt = LocalTime.of(10, 20)),
                     createSegment(id = 2, startedAt = LocalTime.of(10, 20), endedAt = LocalTime.of(10, 40))
                 )
-            val response =
-                GenerateTimelinesResponse(
+            val command =
+                AssembleTimelinesCommand(
                     groups =
                         listOf(
-                            GenerateTimelinesResponse.Group(
+                            TimelineGroup(
                                 label = "짧은 탐색",
                                 segmentIds = listOf(1L)
                             ),
-                            GenerateTimelinesResponse.Group(
+                            TimelineGroup(
                                 label = "신발 쇼핑하기",
                                 segmentIds = listOf(1L, 2L)
                             )
-                        )
+                        ),
+                    segments = segments
                 )
 
             When("timeline으로 조립하면") {
-                val timelines = recapTimelineService.assembleTimelines(response, segments)
+                val timelines = recapTimelineService.assembleTimelines(command)
 
                 Then("제거된 group은 segment id를 점유하지 않는다") {
                     timelines shouldHaveSize 1

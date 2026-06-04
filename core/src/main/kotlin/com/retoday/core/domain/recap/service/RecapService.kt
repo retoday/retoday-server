@@ -3,6 +3,7 @@ package com.retoday.core.domain.recap.service
 import com.retoday.core.domain.history.dto.result.GetMyCategoryAnalysesResult
 import com.retoday.core.domain.history.repository.HistoryRepository
 import com.retoday.core.domain.recap.client.RecapClient
+import com.retoday.core.domain.recap.dto.command.AssembleTimelinesCommand
 import com.retoday.core.domain.recap.dto.command.CreateRecapCommand
 import com.retoday.core.domain.recap.dto.projection.RecapSourceProjection
 import com.retoday.core.domain.recap.dto.query.GetMyRecapQuery
@@ -124,8 +125,10 @@ class RecapService(
             )
         val generatedTimelines =
             recapTimelineService.assembleTimelines(
-                response = timelineResponse,
-                segments = timelineSegments
+                AssembleTimelinesCommand(
+                    groups = timelineResponse.groups,
+                    segments = timelineSegments
+                )
             )
 
         val recapImage =

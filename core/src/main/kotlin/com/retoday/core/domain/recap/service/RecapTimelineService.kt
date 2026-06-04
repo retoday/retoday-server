@@ -1,8 +1,8 @@
 package com.retoday.core.domain.recap.service
 
+import com.retoday.core.domain.recap.dto.command.AssembleTimelinesCommand
 import com.retoday.core.domain.recap.dto.projection.RecapSourceProjection
 import com.retoday.core.domain.recap.dto.model.TimelineSegment
-import com.retoday.core.domain.recap.dto.response.GenerateTimelinesResponse
 import com.retoday.core.domain.recap.dto.result.AssembledTimelineResult
 import com.retoday.core.domain.user.entity.TimeZone
 import org.springframework.stereotype.Service
@@ -104,17 +104,16 @@ class RecapTimelineService {
         }
     }
 
-    // AI 응답 데이터 후처리 함수
+    // group과 segment를 조립해 저장 직전 timeline 결과를 만든다.
     fun assembleTimelines(
-        response: GenerateTimelinesResponse,
-        segments: List<TimelineSegment>
+        command: AssembleTimelinesCommand
     ): List<AssembledTimelineResult> {
-        val segmentById = segments.associateBy { it.id }
-        // AI가 반환한 group(의미 기반 그룹)은 서버에서 segment id를 다시 해석해 최종 시간과 필터링 조건을 적용한다.
+        val segmentById = command.segments.associateBy { it.id }
+        // group(의미 기반 그룹)은 서버에서 segment id를 다시 해석해 최종 시간과 필터링 조건을 적용한다.
         // 같은 segment가 여러 group에 들어오면 후처리(30분 이상 활동) 후 최종 timeline으로 살아남은 group에 반영한다.
         val usedSegmentIds = mutableSetOf<Long>()
 
-        return response.groups
+        return command.groups
             .mapNotNull { group ->
                 val availableSegmentIds =
                     group.segmentIds

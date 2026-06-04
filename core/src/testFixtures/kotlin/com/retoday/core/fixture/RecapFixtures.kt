@@ -5,6 +5,7 @@ import com.retoday.core.domain.recap.dto.projection.RecapSourceProjection
 import com.retoday.core.domain.recap.dto.response.GenerateRecapResponse
 import com.retoday.core.domain.recap.dto.response.GenerateTimelinesResponse
 import com.retoday.core.domain.recap.dto.response.GenerateTopicsResponse
+import com.retoday.core.domain.recap.dto.model.TimelineGroup
 import com.retoday.core.domain.recap.entity.AiProvider
 import com.retoday.core.domain.recap.entity.Recap
 import java.time.Duration
@@ -66,7 +67,7 @@ fun createGenerateTimelinesResponse(): GenerateTimelinesResponse =
     GenerateTimelinesResponse(
         groups =
             listOf(
-                GenerateTimelinesResponse.Group(
+                TimelineGroup(
                     label = TIMELINE_TITLE,
                     segmentIds = listOf(1L)
                 )
