@@ -22,9 +22,12 @@ CREATE TABLE profile
     first_name   VARCHAR(255)   NOT NULL,
     last_name    VARCHAR(255)   NOT NULL,
     image_url    VARCHAR(255)   NOT NULL,
-    time_zone    ENUM ('SEOUL') NOT NULL,
+    time_zone    ENUM (
+        'UTC',
+        'SEOUL'
+        )                       NOT NULL,
     language     ENUM (
-        'KOREA',
+        'KOREAN',
         'ENGLISH'
         )                       NOT NULL,
     recap_period TIME(6)
