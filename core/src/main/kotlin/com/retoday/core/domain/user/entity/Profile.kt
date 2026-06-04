@@ -14,6 +14,6 @@ data class Profile(
     val lastName: String,
     val imageUrl: String,
     val timeZone: TimeZone = TimeZone.SEOUL,
-    val language: Language = Language.KOREA,
+    val language: Language = Language.KOREAN,
     val recapPeriod: LocalTime? = null
 )
