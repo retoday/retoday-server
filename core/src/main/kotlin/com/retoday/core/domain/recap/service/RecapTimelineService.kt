@@ -1,7 +1,7 @@
 package com.retoday.core.domain.recap.service
 
 import com.retoday.core.domain.recap.dto.projection.RecapSourceProjection
-import com.retoday.core.domain.recap.dto.request.TimelineSegmentRequest
+import com.retoday.core.domain.recap.dto.model.TimelineSegment
 import com.retoday.core.domain.recap.dto.response.GenerateTimelinesResponse
 import com.retoday.core.domain.recap.dto.result.AssembledTimelineResult
 import com.retoday.core.domain.user.entity.TimeZone
@@ -21,7 +21,7 @@ class RecapTimelineService {
     fun createSegments(
         recapSources: List<RecapSourceProjection>,
         timeZone: TimeZone
-    ): List<TimelineSegmentRequest> =
+    ): List<TimelineSegment> =
         recapSources
             // 같은 URL 기록을 먼저 모은 뒤, URL별 방문 간격에 따라 segment를 나눈다.
             .groupBy { it.url }
@@ -33,7 +33,7 @@ class RecapTimelineService {
                 val representativeSource = segment.representativeSource
 
                 // segment id는 AI가 group 결과에서 어떤 입력 segment를 묶었는지 알려주기 위한 임시 번호
-                TimelineSegmentRequest(
+                TimelineSegment(
                     id = index + 1L,
                     startedAt = segment.startedAt.atZone(timeZone.id).toLocalTime(),
                     endedAt = segment.endedAt.atZone(timeZone.id).toLocalTime(),
@@ -107,7 +107,7 @@ class RecapTimelineService {
     // AI 응답 데이터 후처리 함수
     fun assembleTimelines(
         response: GenerateTimelinesResponse,
-        segments: List<TimelineSegmentRequest>
+        segments: List<TimelineSegment>
     ): List<AssembledTimelineResult> {
         val segmentById = segments.associateBy { it.id }
         // AI가 반환한 group(의미 기반 그룹)은 서버에서 segment id를 다시 해석해 최종 시간과 필터링 조건을 적용한다.

@@ -5,7 +5,7 @@ import com.retoday.core.domain.history.dto.query.GetMyFrequentlyVisitedWebsitesQ
 import com.retoday.core.domain.history.dto.query.GetMyLongestStayedWebsiteQuery
 import com.retoday.core.domain.history.dto.query.GetMyScreenTimesQuery
 import com.retoday.core.domain.history.service.HistoryService
-import com.retoday.core.domain.recap.dto.request.RecapStatisticsInput
+import com.retoday.core.domain.recap.dto.model.RecapStatistics
 import com.retoday.core.domain.user.entity.TimeZone
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -25,9 +25,9 @@ class RecapStatisticsService(
         userId: UUID,
         date: LocalDate,
         timeZone: TimeZone
-    ): RecapStatisticsInput =
+    ): RecapStatistics =
         // 1-recap과 3-topic은 원본 history 대신 기존 통계 결과 전달.
-        RecapStatisticsInput(
+        RecapStatistics(
             getMyScreenTimesResult =
                 historyService.getMyScreenTimes(
                     userId = userId,

@@ -3,7 +3,7 @@ package com.retoday.core.domain.recap.service
 import com.retoday.core.common.ServiceTest
 import com.retoday.core.domain.history.entity.WebsiteCategory
 import com.retoday.core.domain.recap.dto.projection.RecapSourceProjection
-import com.retoday.core.domain.recap.dto.request.TimelineSegmentRequest
+import com.retoday.core.domain.recap.dto.model.TimelineSegment
 import com.retoday.core.domain.recap.dto.response.GenerateTimelinesResponse
 import com.retoday.core.domain.user.entity.TimeZone
 import io.kotest.matchers.collections.shouldHaveSize
@@ -221,7 +221,7 @@ class RecapTimelineServiceTest : ServiceTest() {
         startedAt: LocalTime,
         endedAt: LocalTime,
         activeMinutes: Long = 20
-    ) = TimelineSegmentRequest(
+    ) = TimelineSegment(
         id = id,
         startedAt = startedAt,
         endedAt = endedAt,

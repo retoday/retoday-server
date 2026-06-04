@@ -1,5 +1,6 @@
 package com.retoday.core.domain.recap.dto.request
 
+import com.retoday.core.domain.recap.dto.model.TimelineSegment
 import com.retoday.core.domain.user.entity.Language
 
 // 2-Timeline AI 요청.
@@ -8,5 +9,5 @@ import com.retoday.core.domain.user.entity.Language
 
 data class GenerateTimelinesRequest(
     val language: Language,
-    val segments: List<TimelineSegmentRequest>
+    val segments: List<TimelineSegment>
 )

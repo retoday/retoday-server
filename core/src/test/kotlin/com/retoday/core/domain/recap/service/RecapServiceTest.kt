@@ -8,8 +8,8 @@ import com.retoday.core.domain.recap.dto.query.GetMyRecapQuery
 import com.retoday.core.domain.recap.dto.request.GenerateRecapRequest
 import com.retoday.core.domain.recap.dto.request.GenerateTimelinesRequest
 import com.retoday.core.domain.recap.dto.request.GenerateTopicsRequest
-import com.retoday.core.domain.recap.dto.request.RecapStatisticsInput
-import com.retoday.core.domain.recap.dto.request.TimelineSegmentRequest
+import com.retoday.core.domain.recap.dto.model.RecapStatistics
+import com.retoday.core.domain.recap.dto.model.TimelineSegment
 import com.retoday.core.domain.recap.dto.result.AssembledTimelineResult
 import com.retoday.core.domain.recap.entity.AiProvider
 import com.retoday.core.domain.recap.entity.RecapSection
@@ -104,7 +104,7 @@ class RecapServiceTest : ServiceTest() {
             val recap = createRecap(userId = ID, recapDate = date).copy(id = ID)
             val timelineSegments =
                 listOf(
-                    TimelineSegmentRequest(
+                    TimelineSegment(
                         id = 1L,
                         startedAt = LocalTime.of(10, 0),
                         endedAt = LocalTime.of(10, 40),
@@ -124,7 +124,7 @@ class RecapServiceTest : ServiceTest() {
                     )
                 )
             val recapStatistics =
-                RecapStatisticsInput(
+                RecapStatistics(
                     getMyScreenTimesResult = createGetMyScreenTimesResult(date),
                     getMyCategoryAnalysesResult = createGetMyCategoryAnalysisResult(),
                     getMyFrequentlyVisitedWebsitesResult = createGetMyFrequentlyVisitedWebsitesResult(),
