@@ -93,6 +93,8 @@ class RecapService(
                 date = command.date,
                 timeZone = profile.timeZone
             )
+        // 1-Recap, 3-Topic은 통계 결과를 AI 입력으로 사용한다.
+        // 2-Timeline은 서버가 URL 재방문 기록을 segment로 정리한 뒤 AI가 group label을 붙인다.
         val recapResponse =
             recapClient.generateRecap(
                 GenerateRecapRequest(
@@ -129,7 +131,7 @@ class RecapService(
         val recapImage =
             getRecapImage(
                 firstVisitedHour = firstVisitedAt.atZone(profile.timeZone.id).hour,
-                categoryAnalyses = recapStatistics.categoryAnalyses.categoryAnalyses,
+                categoryAnalyses = recapStatistics.getMyCategoryAnalysesResult.categoryAnalyses,
                 recapSources = recapSources
             )
 
