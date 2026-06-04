@@ -6,8 +6,8 @@ import com.retoday.core.domain.history.dto.result.GetMyLongestStayedWebsiteResul
 import com.retoday.core.domain.history.dto.result.GetMyScreenTimesResult
 
 data class RecapStatisticsInput(
-    val screenTimes: GetMyScreenTimesResult,
-    val categoryAnalyses: GetMyCategoryAnalysesResult,
-    val frequentlyVisitedWebsites: GetMyFrequentlyVisitedWebsitesResult,
-    val longestStayedWebsite: GetMyLongestStayedWebsiteResult
+    val getMyScreenTimesResult: GetMyScreenTimesResult,
+    val getMyCategoryAnalysesResult: GetMyCategoryAnalysesResult,
+    val getMyFrequentlyVisitedWebsitesResult: GetMyFrequentlyVisitedWebsitesResult,
+    val getMyLongestStayedWebsiteResult: GetMyLongestStayedWebsiteResult
 )

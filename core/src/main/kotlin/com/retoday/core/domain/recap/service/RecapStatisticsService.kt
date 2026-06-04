@@ -26,8 +26,9 @@ class RecapStatisticsService(
         date: LocalDate,
         timeZone: TimeZone
     ): RecapStatisticsInput =
+        // 1-recap과 3-topic은 원본 history 대신 기존 통계 결과 전달.
         RecapStatisticsInput(
-            screenTimes =
+            getMyScreenTimesResult =
                 historyService.getMyScreenTimes(
                     userId = userId,
                     query =
@@ -37,12 +38,12 @@ class RecapStatisticsService(
                             period = GetMyScreenTimesQuery.Period.DAILY
                         )
                 ),
-            categoryAnalyses =
+            getMyCategoryAnalysesResult =
                 historyService.getMyCategoryAnalyses(
                     userId = userId,
                     query = GetMyCategoryAnalysisQuery(date = date, timeZone = timeZone)
                 ),
-            frequentlyVisitedWebsites =
+            getMyFrequentlyVisitedWebsitesResult =
                 historyService.getMyFrequentlyVisitedWebsites(
                     userId = userId,
                     query =
@@ -52,7 +53,7 @@ class RecapStatisticsService(
                             limit = FREQUENTLY_VISITED_WEBSITE_LIMIT
                         )
                 ),
-            longestStayedWebsite =
+            getMyLongestStayedWebsiteResult =
                 historyService.getMyLongestStayedWebsite(
                     userId = userId,
                     query = GetMyLongestStayedWebsiteQuery(date = date, timeZone = timeZone)

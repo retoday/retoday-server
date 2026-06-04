@@ -74,10 +74,10 @@ class RecapStatisticsServiceTest : ServiceTest() {
                     )
 
                 Then("4개 history 통계 결과를 리캡 통계 input으로 묶는다") {
-                    result.screenTimes shouldBe screenTimes
-                    result.categoryAnalyses shouldBe categoryAnalyses
-                    result.frequentlyVisitedWebsites shouldBe frequentlyVisitedWebsites
-                    result.longestStayedWebsite shouldBe longestStayedWebsite
+                    result.getMyScreenTimesResult shouldBe screenTimes
+                    result.getMyCategoryAnalysesResult shouldBe categoryAnalyses
+                    result.getMyFrequentlyVisitedWebsitesResult shouldBe frequentlyVisitedWebsites
+                    result.getMyLongestStayedWebsiteResult shouldBe longestStayedWebsite
                 }
             }
         }

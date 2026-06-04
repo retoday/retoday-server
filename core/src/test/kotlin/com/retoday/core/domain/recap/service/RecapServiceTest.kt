@@ -10,6 +10,7 @@ import com.retoday.core.domain.recap.dto.request.GenerateTimelinesRequest
 import com.retoday.core.domain.recap.dto.request.GenerateTopicsRequest
 import com.retoday.core.domain.recap.dto.request.RecapStatisticsInput
 import com.retoday.core.domain.recap.dto.request.TimelineSegmentRequest
+import com.retoday.core.domain.recap.dto.result.AssembledTimelineResult
 import com.retoday.core.domain.recap.entity.AiProvider
 import com.retoday.core.domain.recap.entity.RecapSection
 import com.retoday.core.domain.recap.entity.RecapTimeline
@@ -116,7 +117,7 @@ class RecapServiceTest : ServiceTest() {
                 )
             val generatedTimelines =
                 listOf(
-                    RecapTimelineService.Timeline(
+                    AssembledTimelineResult(
                         title = TIMELINE_TITLE,
                         startedAt = LocalTime.of(10, 0),
                         endedAt = LocalTime.of(10, 40)
@@ -124,10 +125,10 @@ class RecapServiceTest : ServiceTest() {
                 )
             val recapStatistics =
                 RecapStatisticsInput(
-                    screenTimes = createGetMyScreenTimesResult(date),
-                    categoryAnalyses = createGetMyCategoryAnalysisResult(),
-                    frequentlyVisitedWebsites = createGetMyFrequentlyVisitedWebsitesResult(),
-                    longestStayedWebsite = createGetMyLongestStayedWebsiteResult()
+                    getMyScreenTimesResult = createGetMyScreenTimesResult(date),
+                    getMyCategoryAnalysesResult = createGetMyCategoryAnalysisResult(),
+                    getMyFrequentlyVisitedWebsitesResult = createGetMyFrequentlyVisitedWebsitesResult(),
+                    getMyLongestStayedWebsiteResult = createGetMyLongestStayedWebsiteResult()
                 )
 
             every { profileRepository.findByUserId(ID) } returns profile
