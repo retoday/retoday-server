@@ -1,13 +1,10 @@
 package com.retoday.core.domain.recap.dto.response
 
-import java.time.LocalTime
+import com.retoday.core.domain.recap.dto.model.TimelineGroup
+
+// 2-Timeline AI 응답.
+// AI는 label과 segment id 목록 반환.
 
 data class GenerateTimelinesResponse(
-    val timelines: List<Timeline>
-) {
-    data class Timeline(
-        val title: String,
-        val startedAt: LocalTime,
-        val endedAt: LocalTime
-    )
-}
+    val groups: List<TimelineGroup>
+)

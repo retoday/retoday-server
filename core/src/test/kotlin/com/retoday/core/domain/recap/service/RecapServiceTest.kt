@@ -1,12 +1,17 @@
 package com.retoday.core.domain.recap.service
 
 import com.retoday.core.common.ServiceTest
-import com.retoday.core.domain.history.dto.query.GetMyCategoryAnalysisQuery
 import com.retoday.core.domain.history.repository.HistoryRepository
-import com.retoday.core.domain.history.service.HistoryService
 import com.retoday.core.domain.recap.client.RecapClient
+import com.retoday.core.domain.recap.dto.command.AssembleTimelinesCommand
 import com.retoday.core.domain.recap.dto.command.CreateRecapCommand
+import com.retoday.core.domain.recap.dto.model.RecapStatistics
+import com.retoday.core.domain.recap.dto.model.TimelineSegment
 import com.retoday.core.domain.recap.dto.query.GetMyRecapQuery
+import com.retoday.core.domain.recap.dto.request.GenerateRecapRequest
+import com.retoday.core.domain.recap.dto.request.GenerateTimelinesRequest
+import com.retoday.core.domain.recap.dto.request.GenerateTopicsRequest
+import com.retoday.core.domain.recap.dto.result.AssembledTimelineResult
 import com.retoday.core.domain.recap.entity.AiProvider
 import com.retoday.core.domain.recap.entity.RecapSection
 import com.retoday.core.domain.recap.entity.RecapTimeline
@@ -19,10 +24,14 @@ import com.retoday.core.domain.recap.repository.TimelineRepository
 import com.retoday.core.domain.recap.repository.TopicRepository
 import com.retoday.core.domain.user.repository.ProfileRepository
 import com.retoday.core.fixture.ID
+import com.retoday.core.fixture.TIMELINE_TITLE
 import com.retoday.core.fixture.createGenerateRecapResponse
 import com.retoday.core.fixture.createGenerateTimelinesResponse
 import com.retoday.core.fixture.createGenerateTopicsResponse
 import com.retoday.core.fixture.createGetMyCategoryAnalysisResult
+import com.retoday.core.fixture.createGetMyFrequentlyVisitedWebsitesResult
+import com.retoday.core.fixture.createGetMyLongestStayedWebsiteResult
+import com.retoday.core.fixture.createGetMyScreenTimesResult
 import com.retoday.core.fixture.createProfile
 import com.retoday.core.fixture.createRecap
 import com.retoday.core.fixture.createRecapSources
@@ -31,8 +40,10 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import java.time.LocalDate
+import java.time.LocalTime
 
 class RecapServiceTest : ServiceTest() {
     private val recapClient = mockk<RecapClient>()
@@ -41,7 +52,8 @@ class RecapServiceTest : ServiceTest() {
     private val topicRepository = mockk<TopicRepository>()
     private val timelineRepository = mockk<TimelineRepository>()
     private val historyRepository = mockk<HistoryRepository>()
-    private val historyService = mockk<HistoryService>()
+    private val recapStatisticsService = mockk<RecapStatisticsService>()
+    private val recapTimelineService = mockk<RecapTimelineService>()
     private val profileRepository = mockk<ProfileRepository>()
 
     private val recapService =
@@ -52,7 +64,8 @@ class RecapServiceTest : ServiceTest() {
             sectionRepository = sectionRepository,
             historyRepository = historyRepository,
             profileRepository = profileRepository,
-            historyService = historyService,
+            recapStatisticsService = recapStatisticsService,
+            recapTimelineService = recapTimelineService,
             recapClients = listOf(recapClient)
         )
 
@@ -90,22 +103,68 @@ class RecapServiceTest : ServiceTest() {
             val profile = createProfile(userId = ID, firstName = "민주")
             val recapSources = createRecapSources()
             val recap = createRecap(userId = ID, recapDate = date).copy(id = ID)
+            val timelineSegments =
+                listOf(
+                    TimelineSegment(
+                        id = 1L,
+                        startedAt = LocalTime.of(10, 0),
+                        endedAt = LocalTime.of(10, 40),
+                        activeMinutes = 40,
+                        domain = recapSources.first().domain,
+                        title = recapSources.first().title,
+                        description = recapSources.first().description,
+                        category = recapSources.first().category
+                    )
+                )
+            val generatedTimelines =
+                listOf(
+                    AssembledTimelineResult(
+                        title = TIMELINE_TITLE,
+                        startedAt = LocalTime.of(10, 0),
+                        endedAt = LocalTime.of(10, 40)
+                    )
+                )
+            val recapStatistics =
+                RecapStatistics(
+                    getMyScreenTimesResult = createGetMyScreenTimesResult(date),
+                    getMyCategoryAnalysesResult = createGetMyCategoryAnalysisResult(),
+                    getMyFrequentlyVisitedWebsitesResult = createGetMyFrequentlyVisitedWebsitesResult(),
+                    getMyLongestStayedWebsiteResult = createGetMyLongestStayedWebsiteResult()
+                )
 
             every { profileRepository.findByUserId(ID) } returns profile
             every { recapRepository.existsByUserIdAndDate(ID, date) } returns false
             every { historyRepository.findRecapSources(any(), any(), any()) } returns recapSources
             every {
-                historyService.getMyCategoryAnalyses(
+                recapStatisticsService.getStatistics(
                     userId = ID,
-                    query = GetMyCategoryAnalysisQuery(date = date, timeZone = profile.timeZone)
+                    date = date,
+                    timeZone = profile.timeZone
                 )
-            } returns createGetMyCategoryAnalysisResult()
+            } returns recapStatistics
+            every {
+                recapTimelineService.createSegments(
+                    recapSources = recapSources,
+                    timeZone = profile.timeZone
+                )
+            } returns timelineSegments
             val recapResponse = createGenerateRecapResponse()
             val topicsResponse = createGenerateTopicsResponse()
             val timelinesResponse = createGenerateTimelinesResponse()
-            every { recapClient.generateRecap(any()) } returns recapResponse
-            every { recapClient.generateTopics(any()) } returns topicsResponse
-            every { recapClient.generateTimelines(any()) } returns timelinesResponse
+            val generateRecapRequest = slot<GenerateRecapRequest>()
+            val generateTopicsRequest = slot<GenerateTopicsRequest>()
+            val generateTimelinesRequest = slot<GenerateTimelinesRequest>()
+            every { recapClient.generateRecap(capture(generateRecapRequest)) } returns recapResponse
+            every { recapClient.generateTopics(capture(generateTopicsRequest)) } returns topicsResponse
+            every { recapClient.generateTimelines(capture(generateTimelinesRequest)) } returns timelinesResponse
+            every {
+                recapTimelineService.assembleTimelines(
+                    AssembleTimelinesCommand(
+                        groups = timelinesResponse.groups,
+                        segments = timelineSegments
+                    )
+                )
+            } returns generatedTimelines
             every { recapRepository.save(any()) } returns recap
             every { sectionRepository.saveAll(any<List<RecapSection>>()) } answers { firstArg<List<RecapSection>>() }
             every { topicRepository.saveAll(any<List<RecapTopic>>()) } answers { firstArg<List<RecapTopic>>() }
@@ -122,7 +181,11 @@ class RecapServiceTest : ServiceTest() {
                     result.recap.userId shouldBe ID
                     result.sections shouldHaveSize recapResponse.sections.size
                     result.topics shouldHaveSize topicsResponse.topics.size
-                    result.timelines shouldHaveSize timelinesResponse.timelines.size
+                    result.timelines shouldHaveSize generatedTimelines.size
+                    generateRecapRequest.captured.language shouldBe profile.language
+                    generateTopicsRequest.captured.language shouldBe profile.language
+                    generateTimelinesRequest.captured.language shouldBe profile.language
+                    generateTimelinesRequest.captured.segments shouldBe timelineSegments
                     verify(exactly = 1) { recapRepository.save(any()) }
                 }
             }

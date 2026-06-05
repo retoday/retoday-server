@@ -1,10 +1,9 @@
 package com.retoday.core.domain.recap.service
 
-import com.retoday.core.domain.history.dto.query.GetMyCategoryAnalysisQuery
 import com.retoday.core.domain.history.dto.result.GetMyCategoryAnalysesResult
 import com.retoday.core.domain.history.repository.HistoryRepository
-import com.retoday.core.domain.history.service.HistoryService
 import com.retoday.core.domain.recap.client.RecapClient
+import com.retoday.core.domain.recap.dto.command.AssembleTimelinesCommand
 import com.retoday.core.domain.recap.dto.command.CreateRecapCommand
 import com.retoday.core.domain.recap.dto.projection.RecapSourceProjection
 import com.retoday.core.domain.recap.dto.query.GetMyRecapQuery
@@ -37,7 +36,8 @@ class RecapService(
     private val sectionRepository: SectionRepository,
     private val historyRepository: HistoryRepository,
     private val profileRepository: ProfileRepository,
-    private val historyService: HistoryService,
+    private val recapStatisticsService: RecapStatisticsService,
+    private val recapTimelineService: RecapTimelineService,
     private val recapClients: List<RecapClient>
 ) {
     @Transactional(readOnly = true)
@@ -88,42 +88,53 @@ class RecapService(
         val lastClosedAt = recapSources.maxOf { it.closedAt }
 
         val recapClient = recapClients.first { it.aiProvider == command.aiProvider }
+        val recapStatistics =
+            recapStatisticsService.getStatistics(
+                userId = userId,
+                date = command.date,
+                timeZone = profile.timeZone
+            )
+        // 1-Recap, 3-Topic은 통계 결과를 AI 입력으로 사용한다.
+        // 2-Timeline은 서버가 URL 재방문 기록을 segment로 정리한 뒤 AI가 group label을 붙인다.
         val recapResponse =
             recapClient.generateRecap(
                 GenerateRecapRequest(
                     name = profile.firstName,
-                    recapSources = recapSources
+                    language = profile.language,
+                    statistics = recapStatistics
                 )
             )
         val topicResponse =
             recapClient.generateTopics(
                 GenerateTopicsRequest(
-                    recapSources = recapSources
+                    language = profile.language,
+                    statistics = recapStatistics
                 )
+            )
+        val timelineSegments =
+            recapTimelineService.createSegments(
+                recapSources = recapSources,
+                timeZone = profile.timeZone
             )
         val timelineResponse =
             recapClient.generateTimelines(
                 GenerateTimelinesRequest(
-                    recapSources = recapSources
+                    language = profile.language,
+                    segments = timelineSegments
                 )
             )
-
-        val categoryAnalyses =
-            historyService
-                .getMyCategoryAnalyses(
-                    userId = userId,
-                    query =
-                        GetMyCategoryAnalysisQuery(
-                            date = command.date,
-                            timeZone = profile.timeZone
-                        )
+        val generatedTimelines =
+            recapTimelineService.assembleTimelines(
+                AssembleTimelinesCommand(
+                    groups = timelineResponse.groups,
+                    segments = timelineSegments
                 )
-                .categoryAnalyses
+            )
 
         val recapImage =
             getRecapImage(
                 firstVisitedHour = firstVisitedAt.atZone(profile.timeZone.id).hour,
-                categoryAnalyses = categoryAnalyses,
+                categoryAnalyses = recapStatistics.getMyCategoryAnalysesResult.categoryAnalyses,
                 recapSources = recapSources
             )
 
@@ -165,7 +176,7 @@ class RecapService(
                         .let { topicRepository.saveAll(it) }
 
                 val timelines =
-                    timelineResponse.timelines
+                    generatedTimelines
                         .map {
                             RecapTimeline(
                                 recapId = recap.id!!,
