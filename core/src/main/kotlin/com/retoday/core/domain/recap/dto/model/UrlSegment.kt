@@ -16,9 +16,10 @@ data class UrlSegment(
             UrlSegment(
                 startedAt = sources.minOf { it.visitedAt },
                 endedAt = sources.maxOf { it.closedAt },
-                activeDuration = sources.fold(Duration.ZERO) { acc, source ->
-                    acc + Duration.between(source.visitedAt, source.closedAt)
-                },
+                activeDuration =
+                    sources.fold(Duration.ZERO) { acc, source ->
+                        acc + Duration.between(source.visitedAt, source.closedAt)
+                    },
                 representativeSource =
                     sources.maxBy { Duration.between(it.visitedAt, it.closedAt) }
             )

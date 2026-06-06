@@ -5,12 +5,12 @@ import com.retoday.core.domain.history.repository.HistoryRepository
 import com.retoday.core.domain.recap.client.RecapClient
 import com.retoday.core.domain.recap.dto.command.AssembleTimelinesCommand
 import com.retoday.core.domain.recap.dto.command.CreateRecapCommand
+import com.retoday.core.domain.recap.dto.model.RecapStatistics
+import com.retoday.core.domain.recap.dto.model.TimelineSegment
 import com.retoday.core.domain.recap.dto.query.GetMyRecapQuery
 import com.retoday.core.domain.recap.dto.request.GenerateRecapRequest
 import com.retoday.core.domain.recap.dto.request.GenerateTimelinesRequest
 import com.retoday.core.domain.recap.dto.request.GenerateTopicsRequest
-import com.retoday.core.domain.recap.dto.model.RecapStatistics
-import com.retoday.core.domain.recap.dto.model.TimelineSegment
 import com.retoday.core.domain.recap.dto.result.AssembledTimelineResult
 import com.retoday.core.domain.recap.entity.AiProvider
 import com.retoday.core.domain.recap.entity.RecapSection

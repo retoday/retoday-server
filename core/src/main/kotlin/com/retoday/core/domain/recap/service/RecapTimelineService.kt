@@ -61,15 +61,13 @@ class RecapTimelineService {
             // gap 초과 => segment 확정
             if (currentSources.isEmpty() || gap == null || gap > SAME_URL_REVISIT_GAP) {
                 if (currentSources.isNotEmpty()) {
-                    segmentSourceGroups += currentSources.toList()  // 확정
+                    segmentSourceGroups += currentSources.toList()
                 }
                 // 현재 source부터 새 segment 후보를 다시 누적
                 currentSources = mutableListOf(source)
                 currentEndedAt = source.closedAt
-
-            }
-            // gap 이하 => 하나의 URL segment로 이어 붙임
-            else {
+            } else {
+                // gap 이하 => 하나의 URL segment로 이어 붙임
                 currentSources += source
                 currentEndedAt = maxOf(currentEndedAt, source.closedAt)
             }
@@ -84,9 +82,7 @@ class RecapTimelineService {
     }
 
     // AI response 후처리 : group과 segment를 조립해 저장 직전 timeline 결과를 만든다
-    fun assembleTimelines(
-        command: AssembleTimelinesCommand
-    ): List<AssembledTimelineResult> {
+    fun assembleTimelines(command: AssembleTimelinesCommand): List<AssembledTimelineResult> {
         val segmentById = command.segments.associateBy { it.id }
         // group(AI가 묶은 의미 기반 그룹)은 서버에서 segment id를 다시 해석해 최종 시간과 필터링 조건을 적용한다.
         // 같은 segment가 여러 group에 들어오면 후처리(30분 이상 활동) 후 최종 timeline으로 살아남은 group에 반영한다.

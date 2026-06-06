@@ -3,9 +3,9 @@ package com.retoday.core.domain.recap.service
 import com.retoday.core.common.ServiceTest
 import com.retoday.core.domain.history.entity.WebsiteCategory
 import com.retoday.core.domain.recap.dto.command.AssembleTimelinesCommand
-import com.retoday.core.domain.recap.dto.projection.RecapSourceProjection
-import com.retoday.core.domain.recap.dto.model.TimelineSegment
 import com.retoday.core.domain.recap.dto.model.TimelineGroup
+import com.retoday.core.domain.recap.dto.model.TimelineSegment
+import com.retoday.core.domain.recap.dto.projection.RecapSourceProjection
 import com.retoday.core.domain.user.entity.TimeZone
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
