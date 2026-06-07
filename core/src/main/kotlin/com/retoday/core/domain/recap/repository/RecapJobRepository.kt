@@ -5,7 +5,9 @@ import com.retoday.core.global.repository.JdbcRepository
 import java.time.LocalDate
 import java.util.*
 
-interface RecapJobRepository : JdbcRepository<RecapJob, UUID> {
+interface RecapJobRepository :
+    JdbcRepository<RecapJob, UUID>,
+    CustomRecapJobRepository {
     fun existsByUserIdAndRecapDate(
         userId: UUID,
         recapDate: LocalDate
