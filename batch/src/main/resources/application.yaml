@@ -3,6 +3,11 @@ spring:
     name: retoday-batch
   main:
     banner-mode: off
+  batch:
+    jdbc:
+      initialize-schema: never
+    job:
+      enabled: false
   profiles:
     include:
     - auth
@@ -34,6 +39,14 @@ management:
       enabled: true
 logging:
   config: classpath:log4j2-${spring.profiles.active}.yaml
+retoday:
+  recap:
+    batch:
+      enqueue-kst-cron: "0 0 0 * * *"
+      enqueue-pacific-cron: "0 0 0 * * *"
+    worker:
+      fixed-delay: 10000
+      parallelism: 2
 ---
 spring:
   config:

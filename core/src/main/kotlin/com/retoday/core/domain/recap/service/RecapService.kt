@@ -27,6 +27,8 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.Duration
 import java.time.temporal.ChronoUnit
 import java.util.*
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executors
 
 @Service
 class RecapService(
@@ -94,35 +96,61 @@ class RecapService(
                 date = command.date,
                 timeZone = profile.timeZone
             )
-        // 1-Recap, 3-Topic은 통계 결과를 AI 입력으로 사용한다.
-        // 2-Timeline은 서버가 URL 재방문 기록을 segment로 정리한 뒤 AI가 group label을 붙인다.
-        val recapResponse =
-            recapClient.generateRecap(
-                GenerateRecapRequest(
-                    name = profile.firstName,
-                    language = profile.language,
-                    statistics = recapStatistics
-                )
-            )
-        val topicResponse =
-            recapClient.generateTopics(
-                GenerateTopicsRequest(
-                    language = profile.language,
-                    statistics = recapStatistics
-                )
-            )
         val timelineSegments =
             recapTimelineService.createSegments(
                 recapSources = recapSources,
                 timeZone = profile.timeZone
             )
-        val timelineResponse =
-            recapClient.generateTimelines(
-                GenerateTimelinesRequest(
-                    language = profile.language,
-                    segments = timelineSegments
+        val (recapResponse, topicResponse, timelineResponse) =
+            Executors.newFixedThreadPool(AI_REQUEST_PARALLELISM).use { executor ->
+                val recapFuture =
+                    CompletableFuture.supplyAsync(
+                        {
+                            recapClient.generateRecap(
+                                GenerateRecapRequest(
+                                    name = profile.firstName,
+                                    language = profile.language,
+                                    statistics = recapStatistics
+                                )
+                            )
+                        },
+                        executor
+                    )
+                val topicFuture =
+                    CompletableFuture.supplyAsync(
+                        {
+                            recapClient.generateTopics(
+                                GenerateTopicsRequest(
+                                    language = profile.language,
+                                    statistics = recapStatistics
+                                )
+                            )
+                        },
+                        executor
+                    )
+                val timelineFuture =
+                    CompletableFuture.supplyAsync(
+                        {
+                            recapClient.generateTimelines(
+                                GenerateTimelinesRequest(
+                                    language = profile.language,
+                                    segments = timelineSegments
+                                )
+                            )
+                        },
+                        executor
+                    )
+
+                // 3개 AI 요청 병렬 호출, 모두 준비되면 일괄 저장
+                CompletableFuture.allOf(recapFuture, topicFuture, timelineFuture).join()
+
+                Triple(
+                    recapFuture.join(),
+                    topicFuture.join(),
+                    timelineFuture.join()
                 )
-            )
+            }
+
         val generatedTimelines =
             recapTimelineService.assembleTimelines(
                 AssembleTimelinesCommand(
@@ -218,4 +246,8 @@ class RecapService(
                     else -> RecapImage.createRandomImage()
                 }
             }
+
+    private companion object {
+        const val AI_REQUEST_PARALLELISM = 3
+    }
 }

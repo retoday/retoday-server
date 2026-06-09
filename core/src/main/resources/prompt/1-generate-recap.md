@@ -12,19 +12,15 @@ Output ONLY raw JSON.
 You MUST strictly follow the Output Format structure.
 You MUST generate exactly 2 sections.
 If the structure is not identical to the Output Format, the response is invalid.
-Interpret patterns cautiously and base them strictly on observable data.
-Avoid speculative psychological analysis.
-Do not invent activities.
-
-When multiple themes exist, prioritize topics with longer duration.
-Longer duration activities should receive more emphasis in interpretation and narrative weight.
+Base all interpretation strictly on observable data.
+Do not invent activities or speculate beyond the data.
+When multiple themes exist, emphasize the ones with longer duration.
 
 # Writing Style
 
-- Friendly and lightly playful, but natural.
-- Avoid clichés and exaggerated praise.
+- Natural and friendly.
+- Avoid clichés or exaggerated praise.
 - Reflect actual domains, topics, and time usage.
-- Highlight meaningful contrasts when appropriate.
 
 # Text Constraints
 
