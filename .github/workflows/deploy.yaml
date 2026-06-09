@@ -12,9 +12,35 @@ jobs:
     environment: ${{ github.ref_name }}
     outputs:
       api-image: ${{ steps.deploy-image.outputs.api-image }}
+      batch-image: ${{ steps.deploy-batch-image.outputs.batch-image }}
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+    - name: Detect changed modules
+      id: changes
+      uses: dorny/paths-filter@v3
+      with:
+        filters: |
+          api:
+          - 'api/**'
+          - 'core/**'
+          - 'build.gradle.kts'
+          - 'settings.gradle.kts'
+          - 'gradle/**'
+          - 'gradlew'
+          - 'gradlew.bat'
+          - 'buildSrc/**'
+          - '.github/workflows/deploy.yaml'
+          batch:
+          - 'batch/**'
+          - 'core/**'
+          - 'build.gradle.kts'
+          - 'settings.gradle.kts'
+          - 'gradle/**'
+          - 'gradlew'
+          - 'gradlew.bat'
+          - 'buildSrc/**'
+          - '.github/workflows/deploy.yaml'
     - name: Set up JDK
       uses: actions/setup-java@v4
       with:
@@ -22,8 +48,9 @@ jobs:
         java-version: 21
         cache: gradle
     - name: Run tests
-      run: ./gradlew :api:test
-    - name: Deploy image to container registry
+      run: ./gradlew test
+    - name: Deploy API image to container registry
+      if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.api == 'true'
       id: deploy-image
       env:
         API_IMAGE: ${{ vars.API_IMAGE_NAME }}:${{ github.sha }}
@@ -34,10 +61,23 @@ jobs:
           -Djib.to.auth.password=${{ secrets.GABIA_PASSWORD }}
 
         echo "api-image=$API_IMAGE" >> "$GITHUB_OUTPUT"
+    - name: Deploy batch image to container registry
+      if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.batch == 'true'
+      id: deploy-batch-image
+      env:
+        BATCH_IMAGE: ${{ vars.BATCH_IMAGE_NAME }}:${{ github.sha }}
+      run: |
+        ./gradlew :batch:jib \
+          -Djib.to.image=${{ env.BATCH_IMAGE }} \
+          -Djib.to.auth.username=${{ secrets.GABIA_USERNAME }} \
+          -Djib.to.auth.password=${{ secrets.GABIA_PASSWORD }}
+
+        echo "batch-image=$BATCH_IMAGE" >> "$GITHUB_OUTPUT"
   update-chart:
     name: Update chart
     runs-on: ubuntu-latest
     needs: deploy-image
+    if: needs.deploy-image.outputs.api-image != '' || needs.deploy-image.outputs.batch-image != ''
     environment: ${{ github.ref_name }}
     steps:
     - name: Checkout
@@ -48,8 +88,15 @@ jobs:
     - name: Update image
       env:
         API_IMAGE: ${{ needs.deploy-image.outputs.api-image }}
+        BATCH_IMAGE: ${{ needs.deploy-image.outputs.batch-image }}
       run: |
-        yq -i '.api.image = "${{ env.API_IMAGE }}"' ./application/values-${{ github.ref_name }}.yaml
+        if [ -n "$API_IMAGE" ]; then
+          yq -i '.api.image = strenv(API_IMAGE)' ./application/values-${{ github.ref_name }}.yaml
+        fi
+
+        if [ -n "$BATCH_IMAGE" ]; then
+          yq -i '.batch.image = strenv(BATCH_IMAGE)' ./application/values-${{ github.ref_name }}.yaml
+        fi
     - name: Commit changes
       run: |
         git config user.name "github-actions"
