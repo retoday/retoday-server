@@ -148,7 +148,15 @@ class CustomHistoryRepositoryImpl(
                     Long::class.java,
                     HISTORY.VISITED_AT,
                     HISTORY.CLOSED_AT
-                ).`as`("stay_duration")
+                )
+                .convertFrom { Duration.ofSeconds(it) }
+                .`as`("stay_duration")
+        val category =
+            WEBSITE.CATEGORY
+                .convertFrom { value ->
+                    value?.let { com.retoday.core.domain.history.entity.WebsiteCategory.valueOf(it.name) }
+                }
+                .`as`("category")
 
         return dsl
             .select(
@@ -156,7 +164,7 @@ class CustomHistoryRepositoryImpl(
                 PAGE.TITLE,
                 PAGE.DESCRIPTION,
                 WEBSITE.DOMAIN,
-                WEBSITE.CATEGORY,
+                category,
                 HISTORY.VISITED_AT,
                 HISTORY.CLOSED_AT,
                 stayDuration
