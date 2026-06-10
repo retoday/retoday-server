@@ -6,11 +6,11 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 
 class InstantConverter : Converter<LocalDateTime, Instant> {
-    override fun from(source: LocalDateTime): Instant =
-        source.atZone(ZoneOffset.UTC)
-            .toInstant()
+    override fun from(source: LocalDateTime?): Instant? =
+        source?.atZone(ZoneOffset.UTC)
+            ?.toInstant()
 
-    override fun to(source: Instant): LocalDateTime = LocalDateTime.ofInstant(source, ZoneOffset.UTC)
+    override fun to(source: Instant?): LocalDateTime? = source?.let { LocalDateTime.ofInstant(it, ZoneOffset.UTC) }
 
     override fun fromType(): Class<LocalDateTime> = LocalDateTime::class.java
 
