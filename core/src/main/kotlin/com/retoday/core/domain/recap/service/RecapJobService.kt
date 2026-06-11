@@ -48,8 +48,7 @@ class RecapJobService(
     }
 
     @Transactional
-    fun claimNext(now: Instant = Instant.now()): RecapJob? =
-        recapJobRepository.claimNext(now)
+    fun claimNext(now: Instant = Instant.now()): RecapJob? = recapJobRepository.claimNext(now)
 
     @Transactional
     fun markSuccess(

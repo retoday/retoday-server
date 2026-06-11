@@ -23,7 +23,7 @@ class CustomHistoryRepositoryTest : RepositoryTest() {
     private lateinit var pageRepository: PageRepository
 
     init {
-        "findTopWebsiteStat()" {
+        "findLongestStayedWebsite()" {
             val userId = UUID.randomUUID()
             val startedAt = Instant.parse("2026-02-13T00:00:00Z")
             val endedAt = Instant.parse("2026-02-14T00:00:00Z")
@@ -114,7 +114,7 @@ class CustomHistoryRepositoryTest : RepositoryTest() {
                 )
         }
 
-        "findWebsiteStatsWithCategory()" {
+        "findWebsitesWithStayDuration()" {
             val userId = UUID.randomUUID()
             val startedAt = Instant.parse("2026-02-13T00:00:00Z")
             val endedAt = Instant.parse("2026-02-14T00:00:00Z")
@@ -162,7 +162,7 @@ class CustomHistoryRepositoryTest : RepositoryTest() {
             stats.first { it.domain == EXCLUDED_WEBSITE_DOMAIN }.category shouldBe null
         }
 
-        "findWebsiteStatsWithVisitCount()" {
+        "findWebsitesWithVisitCountAndStayDuration()" {
             val userId = UUID.randomUUID()
             val startedAt = Instant.parse("2026-02-13T00:00:00Z")
             val endedAt = Instant.parse("2026-02-14T00:00:00Z")
@@ -212,6 +212,60 @@ class CustomHistoryRepositoryTest : RepositoryTest() {
             stats[0].visitCount shouldBe 2L
             stats[1].domain shouldBe WEBSITE_DOMAIN
             stats[1].visitCount shouldBe 1L
+        }
+
+        "findRecapSources()" {
+            val userId = UUID.randomUUID()
+            val startedAt = Instant.parse("2026-02-13T00:00:00Z")
+            val endedAt = Instant.parse("2026-02-14T00:00:00Z")
+            val website =
+                websiteRepository.save(
+                    createWebsite(
+                        domain = WEBSITE_DOMAIN,
+                        category = WebsiteCategory.DEVELOPMENT
+                    )
+                )
+            val websiteId = website.id!!
+            val page =
+                pageRepository.save(
+                    createPage(
+                        websiteId = websiteId,
+                        url = WEBSITE_PAGE_URL,
+                        title = WEBSITE_TITLE,
+                        description = WEBSITE_DESCRIPTION
+                    )
+                )
+            val pageId = page.id!!
+            historyRepository.save(
+                createHistory(
+                    userId = userId,
+                    websiteId = websiteId,
+                    pageId = pageId,
+                    visitedAt = Instant.parse("2026-02-13T10:00:00Z"),
+                    closedAt = Instant.parse("2026-02-13T10:30:00Z")
+                )
+            )
+            historyRepository.save(
+                createHistory(
+                    userId = userId,
+                    websiteId = websiteId,
+                    pageId = pageId,
+                    visitedAt = Instant.parse("2026-02-14T00:00:00Z"),
+                    closedAt = Instant.parse("2026-02-14T00:30:00Z")
+                )
+            )
+
+            val sources = historyRepository.findRecapSources(userId, startedAt, endedAt)
+
+            sources shouldHaveSize 1
+            sources[0].url shouldBe WEBSITE_PAGE_URL
+            sources[0].title shouldBe WEBSITE_TITLE
+            sources[0].description shouldBe WEBSITE_DESCRIPTION
+            sources[0].domain shouldBe WEBSITE_DOMAIN
+            sources[0].category shouldBe WebsiteCategory.DEVELOPMENT
+            sources[0].visitedAt shouldBe Instant.parse("2026-02-13T10:00:00Z")
+            sources[0].closedAt shouldBe Instant.parse("2026-02-13T10:30:00Z")
+            sources[0].stayDuration shouldBe Duration.ofMinutes(30)
         }
     }
 }
