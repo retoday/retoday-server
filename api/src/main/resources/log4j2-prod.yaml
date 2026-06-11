@@ -3,7 +3,7 @@ configuration:
   status: info
   packages: io.sentry.log4j2
   appenders:
-    console:
+    Console:
       name: console
       target: SYSTEM_OUT
       patternLayout:
