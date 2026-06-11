@@ -28,7 +28,7 @@ class RecapEnqueueServiceTest : BehaviorSpec({
         val now = Instant.parse("2026-02-23T15:00:00Z")
         val profile = createProfile(timeZone = TimeZone.SEOUL)
 
-        every { profileRepository.findAllByIsActiveaAndTimeZoneIn(listOf(TimeZone.SEOUL)) } returns listOf(profile)
+        every { profileRepository.findAllByIsActiveAndTimeZoneIn(listOf(TimeZone.SEOUL)) } returns listOf(profile)
         every {
             recapJobService.enqueue(
                 userId = ID,
@@ -52,7 +52,7 @@ class RecapEnqueueServiceTest : BehaviorSpec({
         val now = Instant.parse("2026-02-23T08:00:00Z")
         val profile = createProfile(timeZone = TimeZone.PACIFIC)
 
-        every { profileRepository.findAllByIsActiveaAndTimeZoneIn(listOf(TimeZone.PACIFIC)) } returns listOf(profile)
+        every { profileRepository.findAllByIsActiveAndTimeZoneIn(listOf(TimeZone.PACIFIC)) } returns listOf(profile)
         every {
             recapJobService.enqueue(
                 userId = ID,
@@ -75,7 +75,7 @@ class RecapEnqueueServiceTest : BehaviorSpec({
     Given("대상 timezone에 해당하는 active profile이 없으면") {
         val now = Instant.parse("2026-02-23T15:00:00Z")
 
-        every { profileRepository.findAllByIsActiveaAndTimeZoneIn(listOf(TimeZone.SEOUL)) } returns emptyList()
+        every { profileRepository.findAllByIsActiveAndTimeZoneIn(listOf(TimeZone.SEOUL)) } returns emptyList()
 
         When("enqueueDueJobs를 호출하면") {
             val count = recapEnqueueService.enqueueDueJobs(TimeZone.SEOUL, now)

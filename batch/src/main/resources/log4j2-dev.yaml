@@ -2,7 +2,7 @@ configuration:
   name: dev
   status: info
   appenders:
-    console:
+    Console:
       name: console
       target: SYSTEM_OUT
       patternLayout:

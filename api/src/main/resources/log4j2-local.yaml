@@ -2,7 +2,7 @@ configuration:
   name: local
   status: info
   appenders:
-    console:
+    Console:
       name: console
       target: SYSTEM_OUT
       patternLayout:

@@ -37,12 +37,12 @@ class CustomProfileRepositoryTest : RepositoryTest() {
             projection.email shouldBe user.email
         }
 
-        "findAllByIsActiveaAndTimeZoneIn()" {
+        "findAllByIsActiveAndTimeZoneIn()" {
             val inactiveUser =
                 userRepository.save(createUser(socialId = "inactive", email = "inactive@test.com", isActive = false))
             profileRepository.save(createProfile(userId = inactiveUser.id!!))
 
-            val profiles = profileRepository.findAllByIsActiveaAndTimeZoneIn(listOf(TimeZone.SEOUL))
+            val profiles = profileRepository.findAllByIsActiveAndTimeZoneIn(listOf(TimeZone.SEOUL))
 
             profiles shouldBe listOf(profile)
         }

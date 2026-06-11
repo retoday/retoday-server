@@ -1,13 +1,16 @@
 package com.retoday.core.fixture
 
 import com.retoday.core.domain.history.entity.WebsiteCategory
+import com.retoday.core.domain.recap.dto.model.TimelineGroup
 import com.retoday.core.domain.recap.dto.projection.RecapSourceProjection
 import com.retoday.core.domain.recap.dto.response.GenerateRecapResponse
 import com.retoday.core.domain.recap.dto.response.GenerateTimelinesResponse
 import com.retoday.core.domain.recap.dto.response.GenerateTopicsResponse
-import com.retoday.core.domain.recap.dto.model.TimelineGroup
 import com.retoday.core.domain.recap.entity.AiProvider
 import com.retoday.core.domain.recap.entity.Recap
+import com.retoday.core.domain.recap.entity.RecapJob
+import com.retoday.core.domain.recap.entity.RecapJobStatus
+import com.retoday.core.domain.user.entity.TimeZone
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
@@ -104,4 +107,37 @@ fun createRecap(
         startedAt = startedAt,
         endedAt = endedAt,
         aiProvider = aiProvider
+    )
+
+fun createRecapJob(
+    userId: UUID = ID,
+    recapDate: LocalDate = LocalDate.parse("2026-02-23"),
+    timeZone: TimeZone = TimeZone.SEOUL,
+    aiProvider: AiProvider = AiProvider.GEMINI,
+    status: RecapJobStatus = RecapJobStatus.PENDING,
+    attempts: Int = 0,
+    maxAttempts: Int = 3,
+    nextRetryAt: Instant = Instant.parse("2026-02-23T00:00:00Z"),
+    lockedAt: Instant? = null,
+    startedAt: Instant? = null,
+    completedAt: Instant? = null,
+    failedReason: String? = null,
+    createdAt: Instant = nextRetryAt,
+    updatedAt: Instant = nextRetryAt
+): RecapJob =
+    RecapJob(
+        userId = userId,
+        recapDate = recapDate,
+        timeZone = timeZone,
+        aiProvider = aiProvider,
+        status = status,
+        attempts = attempts,
+        maxAttempts = maxAttempts,
+        nextRetryAt = nextRetryAt,
+        lockedAt = lockedAt,
+        startedAt = startedAt,
+        completedAt = completedAt,
+        failedReason = failedReason,
+        createdAt = createdAt,
+        updatedAt = updatedAt
     )

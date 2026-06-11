@@ -1,14 +1,19 @@
 configuration:
   name: dev
   status: info
+  packages: io.sentry.log4j2
   appenders:
-    console:
+    Console:
       name: console
       target: SYSTEM_OUT
       patternLayout:
         pattern: "%clr{%d{yyyy-MM-dd HH:mm:ss.SSS}{Asia/Seoul}}{faint} %clr{[%p]} %clr{%c{1.}}{cyan}%clr{:}{faint}%equals{ [%X{traceId}]}{ []}{} %m%n%xwEx"
+    Sentry:
+      name: sentry
+      minimumLevel: error
   loggers:
     root:
       level: info
       appenderRef:
       - ref: console
+      - ref: sentry

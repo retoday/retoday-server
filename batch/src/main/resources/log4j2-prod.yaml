@@ -2,7 +2,7 @@ configuration:
   name: prod
   status: info
   appenders:
-    console:
+    Console:
       name: console
       target: SYSTEM_OUT
       patternLayout:
