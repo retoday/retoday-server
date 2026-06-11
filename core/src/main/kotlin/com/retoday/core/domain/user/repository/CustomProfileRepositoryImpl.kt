@@ -28,7 +28,7 @@ class CustomProfileRepositoryImpl(
             .where(USER.ID.equal(userId))
             .fetchOneInto(ProfileWithEmailProjection::class.java)
 
-    override fun findAllByIsActiveaAndTimeZoneIn(timeZones: Collection<TimeZone>): List<Profile> =
+    override fun findAllByIsActiveAndTimeZoneIn(timeZones: Collection<TimeZone>): List<Profile> =
         dsl
             .select(PROFILE)
             .from(PROFILE)

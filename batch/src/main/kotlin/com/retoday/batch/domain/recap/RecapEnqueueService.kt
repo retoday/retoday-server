@@ -16,7 +16,7 @@ class RecapEnqueueService(
         timeZone: TimeZone,
         now: Instant = Instant.now()
     ): Int {
-        val profiles = profileRepository.findAllByIsActiveaAndTimeZoneIn(listOf(timeZone))
+        val profiles = profileRepository.findAllByIsActiveAndTimeZoneIn(listOf(timeZone))
 
         return profiles.count { profile ->
             val recapDate = now.atZone(profile.timeZone.id).toLocalDate().minusDays(1)
