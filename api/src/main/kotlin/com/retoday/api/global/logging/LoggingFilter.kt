@@ -22,7 +22,7 @@ class LoggingFilter : OncePerRequestFilter() {
 
     private val logger = getLogger()
 
-    override fun shouldNotFilter(request: HttpServletRequest): Boolean = request.serverPort != 8080
+    override fun shouldNotFilter(request: HttpServletRequest): Boolean = request.localPort != 8080
 
     override fun doFilterInternal(
         request: HttpServletRequest,
