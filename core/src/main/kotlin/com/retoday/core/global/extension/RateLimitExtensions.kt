@@ -23,7 +23,7 @@ private class RateLimitWrapper {
             window: Duration,
             func: () -> T
         ): T {
-            val (count, ttl) = redisTemplate.execute(SCRIPT, listOf(key), window.seconds)!!
+            val (count, ttl) = redisTemplate.execute(SCRIPT, listOf(key), window.seconds.toString())!!
             val retryAfter = ttl.takeIf { count > limitCount }
 
             if (retryAfter != null) {
