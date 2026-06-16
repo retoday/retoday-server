@@ -12,10 +12,12 @@ class RecapEnqueueService(
     private val profileRepository: ProfileRepository,
     private val recapJobService: RecapJobService
 ) {
+    // Spring Batch가 Enqueue 호출
     fun enqueueDueJobs(
         timeZone: TimeZone,
         now: Instant = Instant.now()
     ): Int {
+        // 특정 타임존의 활성 프로필을 조회
         val profiles = profileRepository.findAllByIsActiveAndTimeZoneIn(listOf(timeZone))
 
         return profiles.count { profile ->

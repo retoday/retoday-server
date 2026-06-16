@@ -8,7 +8,7 @@ import org.springframework.batch.item.ItemProcessor
 import org.springframework.stereotype.Component
 
 @Component
-class RecapGenerateItemProcessor(
+class RecapGenerateItemProcessor(   // 생성
     private val recapGenerationService: RecapGenerationService
 ) : ItemProcessor<RecapJob, RecapProcessResult> {
     override fun process(item: RecapJob): RecapProcessResult =

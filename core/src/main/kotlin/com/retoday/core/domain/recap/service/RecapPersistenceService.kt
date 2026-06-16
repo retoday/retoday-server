@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-class RecapPersistenceService(
+class RecapPersistenceService(  // 저장
     private val recapRepository: RecapRepository,
     private val topicRepository: TopicRepository,
     private val timelineRepository: TimelineRepository,

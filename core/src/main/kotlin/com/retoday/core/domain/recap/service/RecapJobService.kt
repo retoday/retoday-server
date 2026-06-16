@@ -14,7 +14,7 @@ import java.time.LocalDate
 import java.util.*
 
 @Service
-class RecapJobService(
+class RecapJobService(  // recap_job의 상태 관리(PENDING, SUCCESS, retry 시도, FAILED)
     private val recapJobRepository: RecapJobRepository
 ) {
     @Transactional
@@ -109,8 +109,8 @@ class RecapJobService(
     private fun retryDelay(attempts: Int): Duration =
         when (attempts) {
             1 -> Duration.ofMinutes(1)
-            2 -> Duration.ofMinutes(5)
-            else -> Duration.ofMinutes(15)
+            2 -> Duration.ofMinutes(3)
+            else -> Duration.ofMinutes(5)
         }
 
     private companion object {
