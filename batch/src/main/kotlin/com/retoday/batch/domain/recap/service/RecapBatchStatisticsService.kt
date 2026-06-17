@@ -1,4 +1,4 @@
-package com.retoday.core.domain.recap.service
+package com.retoday.batch.domain.recap.service
 
 import com.retoday.core.domain.history.dto.query.GetMyCategoryAnalysisQuery
 import com.retoday.core.domain.history.dto.query.GetMyFrequentlyVisitedWebsitesQuery
@@ -13,7 +13,7 @@ import java.time.LocalDate
 import java.util.*
 
 @Service
-class RecapStatisticsService(
+class RecapBatchStatisticsService(
     private val historyService: HistoryService
 ) {
     private companion object {
@@ -26,7 +26,6 @@ class RecapStatisticsService(
         date: LocalDate,
         timeZone: TimeZone
     ): RecapStatistics =
-        // 1-recap과 3-topic은 원본 history 대신 기존 통계 결과 전달.
         RecapStatistics(
             getMyScreenTimesResult =
                 historyService.getMyScreenTimes(

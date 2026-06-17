@@ -1,4 +1,4 @@
-package com.retoday.core.domain.recap.service
+package com.retoday.batch.domain.recap.service
 
 import com.retoday.core.common.ServiceTest
 import com.retoday.core.domain.history.dto.query.GetMyCategoryAnalysisQuery
@@ -17,9 +17,9 @@ import io.mockk.every
 import io.mockk.mockk
 import java.time.LocalDate
 
-class RecapStatisticsServiceTest : ServiceTest() {
+class RecapBatchStatisticsServiceTest : ServiceTest() {
     private val historyService = mockk<HistoryService>()
-    private val recapStatisticsService = RecapStatisticsService(historyService)
+    private val recapBatchStatisticsService = RecapBatchStatisticsService(historyService)
 
     init {
         Given("리캡 통계 생성을 요청하면") {
@@ -67,7 +67,7 @@ class RecapStatisticsServiceTest : ServiceTest() {
 
             When("getStatistics를 호출하면") {
                 val result =
-                    recapStatisticsService.getStatistics(
+                    recapBatchStatisticsService.getStatistics(
                         userId = ID,
                         date = date,
                         timeZone = timeZone
