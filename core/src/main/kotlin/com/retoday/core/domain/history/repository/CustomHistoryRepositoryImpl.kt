@@ -4,6 +4,7 @@ import com.retoday.core.domain.history.dto.projection.HourlyHistoryCountProjecti
 import com.retoday.core.domain.history.dto.projection.LogestStayedWebsiteProjection
 import com.retoday.core.domain.history.dto.projection.WebsiteWithStayDurationProjection
 import com.retoday.core.domain.history.dto.projection.WebsiteWithStayDurationVisitCountProjection
+import com.retoday.core.domain.history.entity.WebsiteCategory
 import com.retoday.core.domain.recap.dto.projection.RecapSourceProjection
 import com.retoday.core.domain.user.entity.TimeZone
 import com.retoday.core.global.jooq.tables.History.Companion.HISTORY
@@ -151,6 +152,12 @@ class CustomHistoryRepositoryImpl(
                 )
                 .convertFrom { Duration.ofSeconds(it) }
                 .`as`("stay_duration")
+        val category =
+            WEBSITE.CATEGORY
+                .convertFrom { value ->
+                    value?.let { WebsiteCategory.valueOf(it.literal) }
+                }
+                .`as`("category")
 
         return dsl
             .select(
@@ -158,7 +165,7 @@ class CustomHistoryRepositoryImpl(
                 PAGE.TITLE,
                 PAGE.DESCRIPTION,
                 WEBSITE.DOMAIN,
-                WEBSITE.CATEGORY,
+                category,
                 HISTORY.VISITED_AT,
                 HISTORY.CLOSED_AT,
                 stayDuration
