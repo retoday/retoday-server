@@ -1,6 +1,6 @@
 package com.retoday.batch.domain.recap
 
-import com.retoday.batch.domain.recap.dto.RecapGenerateItem
+import com.retoday.batch.domain.recap.dto.GenerateRecapItem
 import com.retoday.core.domain.user.entity.Profile
 import com.retoday.core.domain.user.entity.TimeZone
 import com.retoday.core.domain.user.repository.ProfileRepository
@@ -12,18 +12,18 @@ import java.time.Instant
 
 @Component
 @StepScope
-class RecapGenerateItemReader(
+class GenerateRecapItemReader(
     private val profileRepository: ProfileRepository,
     @Value("#{jobParameters['timeZone']}") private val timeZone: String
-) : ItemReader<RecapGenerateItem> {
+) : ItemReader<GenerateRecapItem> {
     private var profiles: Iterator<Profile>? = null
 
-    override fun read(): RecapGenerateItem? {
+    override fun read(): GenerateRecapItem? {
         val iterator = profiles ?: loadProfiles()
 
         return if (iterator.hasNext()) {
             val profile = iterator.next()
-            RecapGenerateItem(
+            GenerateRecapItem(
                 profile = profile,
                 recapDate = Instant.now().atZone(profile.timeZone.id).toLocalDate().minusDays(1)
             )

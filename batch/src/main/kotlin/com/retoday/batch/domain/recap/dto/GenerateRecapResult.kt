@@ -9,7 +9,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.util.*
 
-data class GeneratedRecap(
+data class GenerateRecapResult(
     val userId: UUID,
     val date: LocalDate,
     val aiProvider: AiProvider,

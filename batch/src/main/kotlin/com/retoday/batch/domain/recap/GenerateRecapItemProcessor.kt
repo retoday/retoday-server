@@ -1,9 +1,9 @@
 package com.retoday.batch.domain.recap
 
-import com.retoday.batch.domain.recap.dto.GeneratedRecap
-import com.retoday.batch.domain.recap.dto.RecapGenerateItem
-import com.retoday.batch.domain.recap.service.RecapBatchStatisticsService
-import com.retoday.batch.domain.recap.service.RecapBatchTimelineService
+import com.retoday.batch.domain.recap.dto.GenerateRecapResult
+import com.retoday.batch.domain.recap.dto.GenerateRecapItem
+import com.retoday.batch.domain.recap.service.GenerateRecapStatisticsService
+import com.retoday.batch.domain.recap.service.GenerateRecapTimelineService
 import com.retoday.core.domain.history.dto.result.GetMyCategoryAnalysesResult
 import com.retoday.core.domain.history.repository.HistoryRepository
 import com.retoday.core.domain.recap.client.RecapClient
@@ -22,14 +22,14 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 
 @Component
-class RecapGenerateItemProcessor(
+class GenerateRecapItemProcessor(
     private val recapRepository: RecapRepository,
     private val historyRepository: HistoryRepository,
-    private val recapBatchStatisticsService: RecapBatchStatisticsService,
-    private val recapBatchTimelineService: RecapBatchTimelineService,
+    private val generateRecapStatisticsService: GenerateRecapStatisticsService,
+    private val generateRecapTimelineService: GenerateRecapTimelineService,
     private val recapClients: List<RecapClient>
-) : ItemProcessor<RecapGenerateItem, GeneratedRecap> {
-    override fun process(item: RecapGenerateItem): GeneratedRecap? {
+) : ItemProcessor<GenerateRecapItem, GenerateRecapResult> {
+    override fun process(item: GenerateRecapItem): GenerateRecapResult? {
         val profile = item.profile
 
         if (recapRepository.existsByUserIdAndDate(profile.userId, item.recapDate)) {
@@ -50,13 +50,13 @@ class RecapGenerateItemProcessor(
         val firstVisitedAt = recapSources.minOf { it.visitedAt }
         val lastClosedAt = recapSources.maxOf { it.closedAt }
         val recapStatistics =
-            recapBatchStatisticsService.getStatistics(
+            generateRecapStatisticsService.getStatistics(
                 userId = profile.userId,
                 date = item.recapDate,
                 timeZone = profile.timeZone
             )
         val timelineSegments =
-            recapBatchTimelineService.createSegments(
+            generateRecapTimelineService.createSegments(
                 recapSources = recapSources,
                 timeZone = profile.timeZone
             )
@@ -110,14 +110,14 @@ class RecapGenerateItemProcessor(
                 )
             }
         val generatedTimelines =
-            recapBatchTimelineService.assembleTimelines(
+            generateRecapTimelineService.assembleTimelines(
                 AssembleTimelinesCommand(
                     groups = timelineResponse.groups,
                     segments = timelineSegments
                 )
             )
 
-        return GeneratedRecap(
+        return GenerateRecapResult(
             userId = profile.userId,
             date = item.recapDate,
             aiProvider = item.aiProvider,

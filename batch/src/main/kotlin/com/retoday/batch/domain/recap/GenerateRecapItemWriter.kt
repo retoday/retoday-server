@@ -1,6 +1,6 @@
 package com.retoday.batch.domain.recap
 
-import com.retoday.batch.domain.recap.dto.GeneratedRecap
+import com.retoday.batch.domain.recap.dto.GenerateRecapResult
 import com.retoday.core.domain.recap.entity.Recap
 import com.retoday.core.domain.recap.entity.RecapSection
 import com.retoday.core.domain.recap.entity.RecapTimeline
@@ -15,13 +15,13 @@ import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Component
 
 @Component
-class RecapGenerateItemWriter(
+class GenerateRecapItemWriter(
     private val recapRepository: RecapRepository,
     private val topicRepository: TopicRepository,
     private val timelineRepository: TimelineRepository,
     private val sectionRepository: SectionRepository
-) : ItemWriter<GeneratedRecap> {
-    override fun write(chunk: Chunk<out GeneratedRecap>) {
+) : ItemWriter<GenerateRecapResult> {
+    override fun write(chunk: Chunk<out GenerateRecapResult>) {
         chunk.items.forEach { generated ->
             if (recapRepository.existsByUserIdAndDate(generated.userId, generated.date)) {
                 return@forEach

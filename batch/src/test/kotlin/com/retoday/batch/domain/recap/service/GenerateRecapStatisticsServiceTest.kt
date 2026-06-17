@@ -17,9 +17,9 @@ import io.mockk.every
 import io.mockk.mockk
 import java.time.LocalDate
 
-class RecapBatchStatisticsServiceTest : ServiceTest() {
+class GenerateRecapStatisticsServiceTest : ServiceTest() {
     private val historyService = mockk<HistoryService>()
-    private val recapBatchStatisticsService = RecapBatchStatisticsService(historyService)
+    private val generateRecapStatisticsService = GenerateRecapStatisticsService(historyService)
 
     init {
         Given("리캡 통계 생성을 요청하면") {
@@ -67,7 +67,7 @@ class RecapBatchStatisticsServiceTest : ServiceTest() {
 
             When("getStatistics를 호출하면") {
                 val result =
-                    recapBatchStatisticsService.getStatistics(
+                    generateRecapStatisticsService.getStatistics(
                         userId = ID,
                         date = date,
                         timeZone = timeZone
