@@ -1,42 +1,79 @@
 package com.retoday.batch.domain.recap
 
-import com.retoday.core.domain.recap.exception.RecapAlreadyExistsException
-import com.retoday.core.domain.recap.service.RecapJobService
-import com.retoday.core.domain.recap.service.RecapPersistenceService
+import com.retoday.batch.domain.recap.dto.GeneratedRecap
+import com.retoday.core.domain.recap.entity.Recap
+import com.retoday.core.domain.recap.entity.RecapSection
+import com.retoday.core.domain.recap.entity.RecapTimeline
+import com.retoday.core.domain.recap.entity.RecapTopic
+import com.retoday.core.domain.recap.repository.RecapRepository
+import com.retoday.core.domain.recap.repository.SectionRepository
+import com.retoday.core.domain.recap.repository.TimelineRepository
+import com.retoday.core.domain.recap.repository.TopicRepository
 import org.springframework.batch.item.Chunk
 import org.springframework.batch.item.ItemWriter
+import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Component
 
 @Component
 class RecapGenerateItemWriter(
-    private val recapPersistenceService: RecapPersistenceService,
-    private val recapJobService: RecapJobService
-) : ItemWriter<RecapProcessResult> {
-    override fun write(chunk: Chunk<out RecapProcessResult>) {
-        chunk.items.forEach { result ->
-            val jobId = requireNotNull(result.job.id) { "Recap job id가 없습니다." }
+    private val recapRepository: RecapRepository,
+    private val topicRepository: TopicRepository,
+    private val timelineRepository: TimelineRepository,
+    private val sectionRepository: SectionRepository
+) : ItemWriter<GeneratedRecap> {
+    override fun write(chunk: Chunk<out GeneratedRecap>) {
+        chunk.items.forEach { generated ->
+            if (recapRepository.existsByUserIdAndDate(generated.userId, generated.date)) {
+                return@forEach
+            }
 
-            when (result) {
-                is RecapProcessResult.Generated -> {
-                    try {
-                        recapPersistenceService.save(result.generatedRecap)
-                    } catch (_: RecapAlreadyExistsException) {
-                        // 목표 상태(사용자/날짜 리캡 존재)가 이미 충족된 경우 job만 성공 처리한다.
-                    }
-                    recapJobService.markSuccess(jobId)
+            val recap =
+                try {
+                    Recap(
+                        userId = generated.userId,
+                        date = generated.date,
+                        title = generated.recap.title,
+                        summary = generated.recap.summary,
+                        image = generated.image,
+                        aiProvider = generated.aiProvider,
+                        startedAt = generated.startedAt,
+                        endedAt = generated.endedAt
+                    ).let { recapRepository.save(it) }
+                } catch (_: DuplicateKeyException) {
+                    return@forEach
                 }
 
-                is RecapProcessResult.AlreadyCreated -> {
-                    recapJobService.markSuccess(jobId)
-                }
-
-                is RecapProcessResult.Failed -> {
-                    recapJobService.markRetryOrFailed(
-                        jobId = jobId,
-                        failureReason = result.failureReason
+            generated.recap.sections
+                .map {
+                    RecapSection(
+                        recapId = recap.id!!,
+                        title = it.title,
+                        content = it.content
                     )
                 }
-            }
+                .let { sectionRepository.saveAll(it) }
+
+            generated.topics.topics
+                .map {
+                    RecapTopic(
+                        recapId = recap.id!!,
+                        keyword = it.keyword,
+                        title = it.title,
+                        content = it.content
+                    )
+                }
+                .let { topicRepository.saveAll(it) }
+
+            generated.timelines
+                .map {
+                    RecapTimeline(
+                        recapId = recap.id!!,
+                        startedAt = it.startedAt,
+                        endedAt = it.endedAt,
+                        title = it.title
+                    )
+                }
+                .let { timelineRepository.saveAll(it) }
         }
     }
 }
