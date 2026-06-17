@@ -15,11 +15,11 @@ import com.retoday.core.domain.recap.dto.request.GenerateTopicsRequest
 import com.retoday.core.domain.recap.entity.RecapImage
 import com.retoday.core.domain.recap.repository.RecapRepository
 import org.springframework.batch.item.ItemProcessor
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import org.springframework.stereotype.Component
 import java.time.Duration
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Executors
 
 @Component
 class GenerateRecapItemProcessor(
@@ -27,7 +27,8 @@ class GenerateRecapItemProcessor(
     private val historyRepository: HistoryRepository,
     private val generateRecapStatisticsService: GenerateRecapStatisticsService,
     private val generateRecapTimelineService: GenerateRecapTimelineService,
-    private val recapClients: List<RecapClient>
+    private val recapClients: List<RecapClient>,
+    private val generateRecapAiTaskExecutor: ThreadPoolTaskExecutor
 ) : ItemProcessor<GenerateRecapItem, GenerateRecapResult> {
     override fun process(item: GenerateRecapItem): GenerateRecapResult? {
         val profile = item.profile
@@ -47,6 +48,10 @@ class GenerateRecapItemProcessor(
                 startedAt = startedAt,
                 endedAt = endedAt
             )
+        if (recapSources.isEmpty()) {
+            return null
+        }
+
         val firstVisitedAt = recapSources.minOf { it.visitedAt }
         val lastClosedAt = recapSources.maxOf { it.closedAt }
         val recapStatistics =
@@ -61,54 +66,55 @@ class GenerateRecapItemProcessor(
                 timeZone = profile.timeZone
             )
         val recapClient = recapClients.first { it.aiProvider == item.aiProvider }
-        val (recapResponse, topicResponse, timelineResponse) =
-            Executors.newFixedThreadPool(AI_REQUEST_PARALLELISM).use { executor ->
-                val recapFuture =
-                    CompletableFuture.supplyAsync(
-                        {
-                            recapClient.generateRecap(
-                                GenerateRecapRequest(
-                                    name = profile.firstName,
-                                    language = profile.language,
-                                    statistics = recapStatistics
-                                )
+        val recapFuture =
+            CompletableFuture.supplyAsync(
+                {
+                    executeAiRequestWithRetry {
+                        recapClient.generateRecap(
+                            GenerateRecapRequest(
+                                name = profile.firstName,
+                                language = profile.language,
+                                statistics = recapStatistics
                             )
-                        },
-                        executor
-                    )
-                val topicFuture =
-                    CompletableFuture.supplyAsync(
-                        {
-                            recapClient.generateTopics(
-                                GenerateTopicsRequest(
-                                    language = profile.language,
-                                    statistics = recapStatistics
-                                )
+                        )
+                    }
+                },
+                generateRecapAiTaskExecutor
+            )
+        val topicFuture =
+            CompletableFuture.supplyAsync(
+                {
+                    executeAiRequestWithRetry {
+                        recapClient.generateTopics(
+                            GenerateTopicsRequest(
+                                language = profile.language,
+                                statistics = recapStatistics
                             )
-                        },
-                        executor
-                    )
-                val timelineFuture =
-                    CompletableFuture.supplyAsync(
-                        {
-                            recapClient.generateTimelines(
-                                GenerateTimelinesRequest(
-                                    language = profile.language,
-                                    segments = timelineSegments
-                                )
+                        )
+                    }
+                },
+                generateRecapAiTaskExecutor
+            )
+        val timelineFuture =
+            CompletableFuture.supplyAsync(
+                {
+                    executeAiRequestWithRetry {
+                        recapClient.generateTimelines(
+                            GenerateTimelinesRequest(
+                                language = profile.language,
+                                segments = timelineSegments
                             )
-                        },
-                        executor
-                    )
+                        )
+                    }
+                },
+                generateRecapAiTaskExecutor
+            )
 
-                CompletableFuture.allOf(recapFuture, topicFuture, timelineFuture).join()
+        CompletableFuture.allOf(recapFuture, topicFuture, timelineFuture).join()
 
-                Triple(
-                    recapFuture.join(),
-                    topicFuture.join(),
-                    timelineFuture.join()
-                )
-            }
+        val recapResponse = recapFuture.join()
+        val topicResponse = topicFuture.join()
+        val timelineResponse = timelineFuture.join()
         val generatedTimelines =
             generateRecapTimelineService.assembleTimelines(
                 AssembleTimelinesCommand(
@@ -156,7 +162,24 @@ class GenerateRecapItemProcessor(
                 }
             }
 
+    private fun <T> executeAiRequestWithRetry(request: () -> T): T {    // 재시도
+        for (attempt in 1..AI_REQUEST_MAX_ATTEMPTS) {
+            try {
+                return request()
+            } catch (e: Exception) {
+                if (attempt == AI_REQUEST_MAX_ATTEMPTS) {
+                    throw e
+                }
+
+                Thread.sleep(AI_REQUEST_RETRY_BACKOFFS[attempt - 1].toMillis())
+            }
+        }
+
+        error("Unreachable AI request retry state")
+    }
+
     private companion object {
-        const val AI_REQUEST_PARALLELISM = 3
+        const val AI_REQUEST_MAX_ATTEMPTS = 3
+        val AI_REQUEST_RETRY_BACKOFFS: List<Duration> = listOf(Duration.ofSeconds(4), Duration.ofSeconds(10))
     }
 }
