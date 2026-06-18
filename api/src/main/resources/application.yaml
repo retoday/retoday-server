@@ -47,7 +47,6 @@ sentry:
   environment: ${spring.profiles.active}
   in-app-includes:
   - com.retoday
-  exception-resolver-order: -2147483647
 ---
 spring:
   config:
