@@ -16,7 +16,7 @@ data class RetodayAuthentication(
 
     override fun getAuthorities(): Set<GrantedAuthority> = setOf(SimpleGrantedAuthority(AUTHORITY_PREFIX + role.name))
 
-    override fun getName(): String? = null
+    override fun getName(): String = id.toString()
 
     override fun getCredentials(): Any? = null
 

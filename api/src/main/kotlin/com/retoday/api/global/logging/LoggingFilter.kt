@@ -1,6 +1,7 @@
 package com.retoday.api.global.logging
 
 import com.retoday.core.global.extension.getLogger
+import io.sentry.Sentry
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -35,6 +36,7 @@ class LoggingFilter : OncePerRequestFilter() {
                 .substring(0, 8)
 
         MDC.put(TRACE_ID_FIELD, traceId)
+        Sentry.configureScope { it.setTag(TRACE_ID_FIELD, traceId) }
 
         request.log()
 
@@ -42,6 +44,7 @@ class LoggingFilter : OncePerRequestFilter() {
             filterChain.doFilter(request, response)
         } finally {
             response.log()
+            Sentry.configureScope { it.removeTag(TRACE_ID_FIELD) }
             MDC.remove(TRACE_ID_FIELD)
         }
     }

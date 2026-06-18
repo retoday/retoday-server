@@ -47,6 +47,7 @@ sentry:
   environment: ${spring.profiles.active}
   in-app-includes:
   - com.retoday
+  send-default-pii: true
 ---
 spring:
   config:
