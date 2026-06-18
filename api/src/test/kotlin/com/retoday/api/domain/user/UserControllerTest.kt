@@ -5,12 +5,13 @@ import com.retoday.api.common.ControllerTest
 import com.retoday.api.domain.user.controller.UserController
 import com.retoday.api.domain.user.dto.request.AddMyExcludedDomainRequest
 import com.retoday.api.domain.user.dto.request.DeleteMyExcludedDomainRequest
+import com.retoday.api.domain.user.dto.request.WithdrawRequest
 import com.retoday.api.extension.document
-import com.retoday.api.extension.expectBody
 import com.retoday.api.extension.expectError
 import com.retoday.api.extension.expectStatus
 import com.retoday.api.extension.withAuthentication
 import com.retoday.api.snippet.addMyExcludedDomainRequestFields
+import com.retoday.api.snippet.deleteMyAccountRequestFields
 import com.retoday.api.snippet.deleteMyExcludedDomainRequestFields
 import com.retoday.api.snippet.errorResponseFields
 import com.retoday.core.domain.user.entity.UserExcludedWebsiteDomain
@@ -20,6 +21,7 @@ import com.retoday.core.fixture.ID
 import io.mockk.every
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.http.HttpMethod
+import org.springframework.test.web.reactive.server.expectBody
 
 @WebMvcTest(UserController::class)
 class UserControllerTest : ControllerTest() {
@@ -27,6 +29,29 @@ class UserControllerTest : ControllerTest() {
     private lateinit var userService: UserService
 
     init {
+        describe("deleteMyAccount()") {
+            val request =
+                webClient
+                    .method(HttpMethod.DELETE)
+                    .uri("/users/me")
+                    .bodyValue(WithdrawRequest(oAuthToken = "oauth-token"))
+                    .withAuthentication()
+
+            context("유효한 요청") {
+                every { userService.withdraw(any(), any()) } returns Unit
+
+                it("200을 반환한다") {
+                    request
+                        .exchange()
+                        .expectStatus(200)
+                        .expectBody<Void>()
+                        .document("회원 탈퇴 성공(200)") {
+                            requestBody(deleteMyAccountRequestFields)
+                        }
+                }
+            }
+        }
+
         describe("addMyExcludedDomain()") {
             val request =
                 webClient
@@ -43,7 +68,7 @@ class UserControllerTest : ControllerTest() {
                     request
                         .exchange()
                         .expectStatus(200)
-                        .expectBody(Void::class.java)
+                        .expectBody<Void>()
                         .document("내 예외 도메인 추가 성공(200)") {
                             requestBody(addMyExcludedDomainRequestFields)
                         }
@@ -81,7 +106,7 @@ class UserControllerTest : ControllerTest() {
                     request
                         .exchange()
                         .expectStatus(200)
-                        .expectBody(Void::class.java)
+                        .expectBody<Void>()
                         .document("내 예외 도메인 삭제 성공(200)") {
                             requestBody(deleteMyExcludedDomainRequestFields)
                         }

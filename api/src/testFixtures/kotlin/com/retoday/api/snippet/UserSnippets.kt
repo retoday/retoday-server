@@ -3,6 +3,7 @@ package com.retoday.api.snippet
 import com.retoday.api.domain.user.dto.request.AddMyExcludedDomainRequest
 import com.retoday.api.domain.user.dto.request.DeleteMyExcludedDomainRequest
 import com.retoday.api.domain.user.dto.request.UpdateMyProfileRequest
+import com.retoday.api.domain.user.dto.request.WithdrawRequest
 import com.retoday.api.domain.user.dto.response.GetMyProfileResponse
 import com.retoday.api.extension.desc
 import com.retoday.api.extension.fieldsOf
@@ -15,6 +16,11 @@ val addMyExcludedDomainRequestFields =
 val deleteMyExcludedDomainRequestFields =
     fieldsOf(
         DeleteMyExcludedDomainRequest::domain desc "예외 처리에서 제거할 도메인"
+    )
+
+val deleteMyAccountRequestFields =
+    fieldsOf(
+        WithdrawRequest::oAuthToken desc "연결을 해제할 OAuth2 토큰"
     )
 
 val updateMyProfileRequestFields =

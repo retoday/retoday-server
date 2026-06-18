@@ -151,5 +151,17 @@ class HistoryServiceTest : ServiceTest() {
                 }
             }
         }
+
+        Given("히스토리 전체 삭제 요청이 들어오면") {
+            every { historyRepository.deleteAllByUserId(ID) } returns Unit
+
+            When("deleteMyHistories를 호출하면") {
+                historyService.deleteMyHistories(ID)
+
+                Then("사용자의 모든 히스토리를 삭제한다") {
+                    verify(exactly = 1) { historyRepository.deleteAllByUserId(ID) }
+                }
+            }
+        }
     }
 }

@@ -40,6 +40,7 @@ import com.retoday.core.fixture.createGetMyWorkPatternResult
 import com.retoday.core.fixture.createHistoryRecordResult
 import io.mockk.every
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.test.web.reactive.server.expectBody
 import java.time.LocalDate
 
 @WebMvcTest(HistoryController::class)
@@ -94,7 +95,7 @@ class HistoryControllerTest : ControllerTest() {
                     request
                         .exchange()
                         .expectStatus(204)
-                        .expectBody(Void::class.java)
+                        .expectBody<Void>()
                         .document("히스토리 기록 제외 도메인(204)") {
                             requestBody(recordHistoryRequestFields)
                         }

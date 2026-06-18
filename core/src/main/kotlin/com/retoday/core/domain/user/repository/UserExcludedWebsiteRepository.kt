@@ -18,4 +18,6 @@ interface UserExcludedWebsiteRepository : JdbcRepository<UserExcludedWebsiteDoma
         userId: UUID,
         domain: String
     ): Long
+
+    fun deleteAllByUserId(userId: UUID)
 }

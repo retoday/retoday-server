@@ -1,7 +1,7 @@
 package com.retoday.batch.domain.recap
 
-import com.retoday.batch.domain.recap.dto.GenerateRecapResult
 import com.retoday.batch.domain.recap.dto.GenerateRecapItem
+import com.retoday.batch.domain.recap.dto.GenerateRecapResult
 import com.retoday.batch.domain.recap.service.GenerateRecapStatisticsService
 import com.retoday.batch.domain.recap.service.GenerateRecapTimelineService
 import com.retoday.core.domain.history.dto.result.GetMyCategoryAnalysesResult
@@ -69,43 +69,37 @@ class GenerateRecapItemProcessor(
         val recapFuture =
             CompletableFuture.supplyAsync(
                 {
-                    executeAiRequestWithRetry {
-                        recapClient.generateRecap(
-                            GenerateRecapRequest(
-                                name = profile.firstName,
-                                language = profile.language,
-                                statistics = recapStatistics
-                            )
+                    recapClient.generateRecap(
+                        GenerateRecapRequest(
+                            name = profile.firstName,
+                            language = profile.language,
+                            statistics = recapStatistics
                         )
-                    }
+                    )
                 },
                 generateRecapAiTaskExecutor
             )
         val topicFuture =
             CompletableFuture.supplyAsync(
                 {
-                    executeAiRequestWithRetry {
-                        recapClient.generateTopics(
-                            GenerateTopicsRequest(
-                                language = profile.language,
-                                statistics = recapStatistics
-                            )
+                    recapClient.generateTopics(
+                        GenerateTopicsRequest(
+                            language = profile.language,
+                            statistics = recapStatistics
                         )
-                    }
+                    )
                 },
                 generateRecapAiTaskExecutor
             )
         val timelineFuture =
             CompletableFuture.supplyAsync(
                 {
-                    executeAiRequestWithRetry {
-                        recapClient.generateTimelines(
-                            GenerateTimelinesRequest(
-                                language = profile.language,
-                                segments = timelineSegments
-                            )
+                    recapClient.generateTimelines(
+                        GenerateTimelinesRequest(
+                            language = profile.language,
+                            segments = timelineSegments
                         )
-                    }
+                    )
                 },
                 generateRecapAiTaskExecutor
             )
@@ -158,28 +152,7 @@ class GenerateRecapItemProcessor(
                     categoryCount == 1 -> RecapImage.CATEGORY_ONLY_1
                     firstVisitedHour >= 21 -> RecapImage.START_AFTER_9PM
                     firstVisitedHour < 9 -> RecapImage.START_BEFORE_9AM
-                    else -> RecapImage.createRandomImage()
+                    else -> RecapImage.RANDOM
                 }
             }
-
-    private fun <T> executeAiRequestWithRetry(request: () -> T): T {    // 재시도
-        for (attempt in 1..AI_REQUEST_MAX_ATTEMPTS) {
-            try {
-                return request()
-            } catch (e: Exception) {
-                if (attempt == AI_REQUEST_MAX_ATTEMPTS) {
-                    throw e
-                }
-
-                Thread.sleep(AI_REQUEST_RETRY_BACKOFFS[attempt - 1].toMillis())
-            }
-        }
-
-        error("Unreachable AI request retry state")
-    }
-
-    private companion object {
-        const val AI_REQUEST_MAX_ATTEMPTS = 3
-        val AI_REQUEST_RETRY_BACKOFFS: List<Duration> = listOf(Duration.ofSeconds(4), Duration.ofSeconds(10))
-    }
 }
