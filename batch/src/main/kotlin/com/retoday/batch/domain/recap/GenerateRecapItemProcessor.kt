@@ -1,7 +1,7 @@
 package com.retoday.batch.domain.recap
 
-import com.retoday.batch.domain.recap.dto.GenerateRecapResult
 import com.retoday.batch.domain.recap.dto.GenerateRecapItem
+import com.retoday.batch.domain.recap.dto.GenerateRecapResult
 import com.retoday.batch.domain.recap.service.GenerateRecapStatisticsService
 import com.retoday.batch.domain.recap.service.GenerateRecapTimelineService
 import com.retoday.core.domain.history.dto.result.GetMyCategoryAnalysesResult
@@ -162,7 +162,7 @@ class GenerateRecapItemProcessor(
                 }
             }
 
-    private fun <T> executeAiRequestWithRetry(request: () -> T): T {    // 재시도
+    private fun <T> executeAiRequestWithRetry(request: () -> T): T { // 재시도
         for (attempt in 1..AI_REQUEST_MAX_ATTEMPTS) {
             try {
                 return request()

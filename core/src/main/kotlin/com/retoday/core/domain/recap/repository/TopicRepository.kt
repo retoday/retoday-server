@@ -8,4 +8,6 @@ import java.util.*
 @Repository
 interface TopicRepository : JdbcRepository<RecapTopic, UUID> {
     fun findAllByRecapId(recapId: UUID): List<RecapTopic>
+
+    fun deleteAllByRecapIdIn(recapIds: Collection<UUID>)
 }

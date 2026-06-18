@@ -3,6 +3,7 @@ package com.retoday.batch.domain.recap
 import com.retoday.batch.domain.recap.dto.GenerateRecapItem
 import com.retoday.core.domain.user.entity.Profile
 import com.retoday.core.domain.user.entity.TimeZone
+import com.retoday.core.domain.user.entity.UserStatus
 import com.retoday.core.domain.user.repository.ProfileRepository
 import org.springframework.batch.core.configuration.annotation.StepScope
 import org.springframework.batch.item.ItemReader
@@ -34,7 +35,10 @@ class GenerateRecapItemReader(
 
     private fun loadProfiles(): Iterator<Profile> =
         profileRepository
-            .findAllByIsActiveAndTimeZoneIn(listOf(TimeZone.valueOf(timeZone)))
+            .findAllByStatusAndTimeZoneIn(
+                status = UserStatus.ACTIVE,
+                timeZones = listOf(TimeZone.valueOf(timeZone))
+            )
             .iterator()
             .also { profiles = it }
 }

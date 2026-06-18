@@ -1,7 +1,7 @@
 package com.retoday.batch.domain.recap
 
-import com.retoday.batch.domain.recap.dto.GenerateRecapResult
 import com.retoday.batch.domain.recap.dto.GenerateRecapItem
+import com.retoday.batch.domain.recap.dto.GenerateRecapResult
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.builder.JobBuilder

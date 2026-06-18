@@ -8,7 +8,9 @@ CREATE TABLE `user`
         'ADMIN',
         'MEMBER'
         )                           NOT NULL,
-    is_active       BIT(1)          NOT NULL
+    status          ENUM (
+        'ACTIVE'
+        )                           NOT NULL DEFAULT 'ACTIVE'
 );
 
 CREATE UNIQUE INDEX uk_user_social_provider_social_id
@@ -18,18 +20,20 @@ CREATE UNIQUE INDEX uk_user_social_provider_social_id
 CREATE TABLE profile
 (
     id           BINARY(16) PRIMARY KEY,
-    user_id      BINARY(16)     NOT NULL,
-    first_name   VARCHAR(255)   NOT NULL,
-    last_name    VARCHAR(255)   NOT NULL,
-    image_url    VARCHAR(255)   NOT NULL,
+    user_id      BINARY(16)   NOT NULL,
+    first_name   VARCHAR(255) NOT NULL,
+    last_name    VARCHAR(255) NOT NULL,
+    image_url    VARCHAR(255) NOT NULL,
     time_zone    ENUM (
         'UTC',
-        'SEOUL'
-        )                       NOT NULL,
+        'SEOUL',
+        'PACIFIC'
+        )                     NOT NULL,
     language     ENUM (
         'KOREAN',
-        'ENGLISH'
-        )                       NOT NULL,
+        'ENGLISH',
+        'JAPANESE'
+        )                     NOT NULL,
     recap_period TIME(6)
 );
 
@@ -100,9 +104,9 @@ CREATE INDEX idx_history_user_id_page_id_visited_at
 
 CREATE TABLE user_excluded_website_domain
 (
-    id         BINARY(16) PRIMARY KEY,
-    user_id    BINARY(16)   NOT NULL,
-    domain     VARCHAR(255) NOT NULL
+    id      BINARY(16) PRIMARY KEY,
+    user_id BINARY(16)   NOT NULL,
+    domain  VARCHAR(255) NOT NULL
 );
 
 CREATE UNIQUE INDEX uk_user_excluded_website_domain_user_id_domain
@@ -150,10 +154,10 @@ CREATE UNIQUE INDEX uk_recap_user_id_date
 
 CREATE TABLE recap_section
 (
-    id         BINARY(16) PRIMARY KEY,
-    recap_id   BINARY(16)   NOT NULL,
-    title      VARCHAR(255) NOT NULL,
-    content    TEXT         NOT NULL
+    id       BINARY(16) PRIMARY KEY,
+    recap_id BINARY(16)   NOT NULL,
+    title    VARCHAR(255) NOT NULL,
+    content  TEXT         NOT NULL
 );
 
 CREATE INDEX idx_recap_section_recap_id
@@ -175,11 +179,11 @@ CREATE INDEX idx_recap_timeline_recap_id
 
 CREATE TABLE recap_topic
 (
-    id         BINARY(16) PRIMARY KEY,
-    recap_id   BINARY(16)   NOT NULL,
-    keyword    VARCHAR(255) NOT NULL,
-    title      VARCHAR(255) NOT NULL,
-    content    TEXT         NOT NULL
+    id       BINARY(16) PRIMARY KEY,
+    recap_id BINARY(16)   NOT NULL,
+    keyword  VARCHAR(255) NOT NULL,
+    title    VARCHAR(255) NOT NULL,
+    content  TEXT         NOT NULL
 );
 
 CREATE INDEX idx_recap_topic_recap_id

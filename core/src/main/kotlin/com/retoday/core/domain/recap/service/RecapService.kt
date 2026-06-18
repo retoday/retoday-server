@@ -38,4 +38,19 @@ class RecapService(
                 )
             }
             ?: throw RecapNotFoundException()
+
+    @Transactional
+    fun deleteMyRecaps(userId: UUID) {
+        val recapIds =
+            recapRepository.findAllByUserId(userId)
+                .map { it.id!! }
+
+        if (recapIds.isNotEmpty()) {
+            sectionRepository.deleteAllByRecapIdIn(recapIds)
+            topicRepository.deleteAllByRecapIdIn(recapIds)
+            timelineRepository.deleteAllByRecapIdIn(recapIds)
+        }
+
+        recapRepository.deleteAllByUserId(userId)
+    }
 }

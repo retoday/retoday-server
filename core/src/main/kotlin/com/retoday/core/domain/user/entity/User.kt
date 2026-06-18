@@ -12,5 +12,5 @@ data class User(
     val email: String,
     val socialProvider: SocialProvider,
     val role: Role = Role.MEMBER,
-    val isActive: Boolean = true
+    val status: UserStatus = UserStatus.ACTIVE
 )

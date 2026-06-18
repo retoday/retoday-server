@@ -8,4 +8,6 @@ import java.util.*
 @Repository
 interface SectionRepository : JdbcRepository<RecapSection, UUID> {
     fun findAllByRecapId(recapId: UUID): List<RecapSection>
+
+    fun deleteAllByRecapIdIn(recapIds: Collection<UUID>)
 }

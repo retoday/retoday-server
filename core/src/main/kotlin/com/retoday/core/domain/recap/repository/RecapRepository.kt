@@ -6,6 +6,8 @@ import java.time.LocalDate
 import java.util.*
 
 interface RecapRepository : JdbcRepository<Recap, UUID> {
+    fun findAllByUserId(userId: UUID): List<Recap>
+
     fun findByUserIdAndDate(
         userId: UUID,
         recapDate: LocalDate
@@ -15,4 +17,6 @@ interface RecapRepository : JdbcRepository<Recap, UUID> {
         userId: UUID,
         recapDate: LocalDate
     ): Boolean
+
+    fun deleteAllByUserId(userId: UUID)
 }

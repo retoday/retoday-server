@@ -4,6 +4,7 @@ import com.retoday.core.common.RepositoryTest
 import com.retoday.core.domain.user.entity.Profile
 import com.retoday.core.domain.user.entity.TimeZone
 import com.retoday.core.domain.user.entity.User
+import com.retoday.core.domain.user.entity.UserStatus
 import com.retoday.core.fixture.createProfile
 import com.retoday.core.fixture.createProfileWithEmailProjection
 import com.retoday.core.fixture.createUser
@@ -37,12 +38,12 @@ class CustomProfileRepositoryTest : RepositoryTest() {
             projection.email shouldBe user.email
         }
 
-        "findAllByIsActiveAndTimeZoneIn()" {
-            val inactiveUser =
-                userRepository.save(createUser(socialId = "inactive", email = "inactive@test.com", isActive = false))
-            profileRepository.save(createProfile(userId = inactiveUser.id!!))
-
-            val profiles = profileRepository.findAllByIsActiveAndTimeZoneIn(listOf(TimeZone.SEOUL))
+        "findAllByStatusAndTimeZoneIn()" {
+            val profiles =
+                profileRepository.findAllByStatusAndTimeZoneIn(
+                    status = UserStatus.ACTIVE,
+                    timeZones = listOf(TimeZone.SEOUL)
+                )
 
             profiles shouldBe listOf(profile)
         }
