@@ -21,6 +21,7 @@ import com.retoday.core.fixture.ID
 import io.mockk.every
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.http.HttpMethod
+import org.springframework.test.web.reactive.server.expectBody
 
 @WebMvcTest(UserController::class)
 class UserControllerTest : ControllerTest() {
@@ -43,7 +44,7 @@ class UserControllerTest : ControllerTest() {
                     request
                         .exchange()
                         .expectStatus(200)
-                        .expectBody(Void::class.java)
+                        .expectBody<Void>()
                         .document("회원 탈퇴 성공(200)") {
                             requestBody(deleteMyAccountRequestFields)
                         }
@@ -67,7 +68,7 @@ class UserControllerTest : ControllerTest() {
                     request
                         .exchange()
                         .expectStatus(200)
-                        .expectBody(Void::class.java)
+                        .expectBody<Void>()
                         .document("내 예외 도메인 추가 성공(200)") {
                             requestBody(addMyExcludedDomainRequestFields)
                         }
@@ -105,7 +106,7 @@ class UserControllerTest : ControllerTest() {
                     request
                         .exchange()
                         .expectStatus(200)
-                        .expectBody(Void::class.java)
+                        .expectBody<Void>()
                         .document("내 예외 도메인 삭제 성공(200)") {
                             requestBody(deleteMyExcludedDomainRequestFields)
                         }

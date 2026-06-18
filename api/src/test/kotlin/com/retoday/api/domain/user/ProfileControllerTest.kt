@@ -17,6 +17,7 @@ import com.retoday.core.domain.user.service.ProfileService
 import com.retoday.core.fixture.createGetMyProfileResult
 import io.mockk.every
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.test.web.reactive.server.expectBody
 
 @WebMvcTest(ProfileController::class)
 class ProfileControllerTest : ControllerTest() {
@@ -62,7 +63,7 @@ class ProfileControllerTest : ControllerTest() {
                         .withAuthentication()
                         .exchange()
                         .expectStatus(200)
-                        .expectBody(Void::class.java)
+                        .expectBody<Void>()
                         .document("내 프로필 수정 성공(200)") {
                             requestBody(updateMyProfileRequestFields)
                         }
