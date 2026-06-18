@@ -158,7 +158,7 @@ class GenerateRecapItemProcessor(
                     categoryCount == 1 -> RecapImage.CATEGORY_ONLY_1
                     firstVisitedHour >= 21 -> RecapImage.START_AFTER_9PM
                     firstVisitedHour < 9 -> RecapImage.START_BEFORE_9AM
-                    else -> RecapImage.createRandomImage()
+                    else -> RecapImage.RANDOM
                 }
             }
 

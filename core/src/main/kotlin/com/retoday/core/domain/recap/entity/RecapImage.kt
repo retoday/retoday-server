@@ -21,15 +21,9 @@ enum class RecapImage {
     CATEGORY_ONLY_1,
     START_AFTER_9PM,
     START_BEFORE_9AM,
-    RANDOM_1,
-    RANDOM_2,
-    RANDOM_3;
+    RANDOM;
 
     companion object {
         fun from(category: WebsiteCategory): RecapImage? = entries.firstOrNull { it.name == category.name }
-
-        fun createRandomImage() =
-            listOf(RANDOM_1, RANDOM_2, RANDOM_3)
-                .random()
     }
 }
