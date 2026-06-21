@@ -28,7 +28,7 @@ class RecapControllerTest : ControllerTest() {
     private lateinit var recapService: RecapService
 
     init {
-        describe("getMyRecap()") {
+        describe("${RecapController::getMyRecap.name}()") {
             val date = LocalDate.parse("2026-02-21")
             val recap = createRecap(userId = ID, recapDate = date).copy(id = ID)
             val recapId = recap.id!!

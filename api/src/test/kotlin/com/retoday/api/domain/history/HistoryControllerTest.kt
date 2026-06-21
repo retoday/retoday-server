@@ -49,7 +49,7 @@ class HistoryControllerTest : ControllerTest() {
     private lateinit var historyService: HistoryService
 
     init {
-        describe("recordHistory()") {
+        describe("${HistoryController::recordHistory.name}()") {
             val request =
                 webClient
                     .post()
@@ -118,7 +118,7 @@ class HistoryControllerTest : ControllerTest() {
             }
         }
 
-        describe("getMyScreenTimes()") {
+        describe("${HistoryController::getMyScreenTimes.name}()") {
             val date = LocalDate.parse("2026-02-13")
             val request =
                 webClient
@@ -143,7 +143,7 @@ class HistoryControllerTest : ControllerTest() {
             }
         }
 
-        describe("getMyCategoryAnalyses()") {
+        describe("${HistoryController::getMyCategoryAnalyses.name}()") {
             val date = LocalDate.parse("2026-02-13")
             val request =
                 webClient
@@ -168,7 +168,7 @@ class HistoryControllerTest : ControllerTest() {
             }
         }
 
-        describe("getMyFrequentlyVisitedWebsites()") {
+        describe("${HistoryController::getMyFrequentlyVisitedWebsites.name}()") {
             val date = LocalDate.parse("2026-02-13")
             val request =
                 webClient
@@ -193,7 +193,7 @@ class HistoryControllerTest : ControllerTest() {
             }
         }
 
-        describe("getMyWorkPattern()") {
+        describe("${HistoryController::getMyWorkPattern.name}()") {
             val date = LocalDate.parse("2026-02-13")
             val request =
                 webClient
@@ -218,7 +218,7 @@ class HistoryControllerTest : ControllerTest() {
             }
         }
 
-        describe("getMyLongestStayedWebsite()") {
+        describe("${HistoryController::getMyLongestStayedWebsite.name}()") {
             val date = LocalDate.parse("2026-02-13")
             val request =
                 webClient

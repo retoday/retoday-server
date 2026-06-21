@@ -2,6 +2,7 @@ package com.retoday.core.domain.auth.service
 
 import com.retoday.core.common.ServiceTest
 import com.retoday.core.domain.auth.client.OAuthClient
+import com.retoday.core.domain.auth.dto.result.LoginResult
 import com.retoday.core.domain.auth.exception.InvalidAuthenticationException
 import com.retoday.core.domain.auth.exception.RefreshTokenNotFoundException
 import com.retoday.core.domain.auth.repository.RefreshTokenRepository
@@ -71,14 +72,18 @@ class AuthServiceTest : ServiceTest() {
             every { profileRepository.save(capture(savedProfile)) } answers { firstArg() }
             every { refreshTokenRepository.save(any()) } returns createRefreshToken(user.id!!)
 
-            When("login을 호출하면") {
+            When("로그인을 요청하면") {
                 val result = authService.login(command)
 
                 Then("사용자/프로필 동기화 후 토큰을 반환한다") {
-                    savedUser.captured.email shouldBe "new@re-today.com"
-                    savedProfile.captured.firstName shouldBe "New"
-                    result.accessToken shouldBe TOKEN
-                    result.refreshToken shouldBe TOKEN
+                    savedUser.captured shouldBe user.copy(email = response.email)
+                    savedProfile.captured shouldBe
+                        profile.copy(
+                            firstName = response.firstName,
+                            lastName = response.lastName,
+                            imageUrl = response.imageUrl
+                        )
+                    result shouldBe LoginResult(accessToken = TOKEN, refreshToken = TOKEN)
                 }
             }
         }
@@ -92,7 +97,7 @@ class AuthServiceTest : ServiceTest() {
                 )
             every { refreshTokenRepository.deleteById(ID) } returns Unit
 
-            When("refresh를 호출하면") {
+            When("토큰 갱신을 요청하면") {
                 Then("토큰이 삭제되고 예외가 발생한다") {
                     shouldThrow<InvalidAuthenticationException> {
                         authService.refresh(command)
@@ -105,7 +110,7 @@ class AuthServiceTest : ServiceTest() {
         Given("저장된 리프레시 토큰이 없으면") {
             every { refreshTokenRepository.findByIdOrNull(ID) } returns null
 
-            When("refresh를 호출하면") {
+            When("토큰 갱신을 요청하면") {
                 Then("RefreshTokenNotFoundException이 발생한다") {
                     shouldThrow<RefreshTokenNotFoundException> {
                         authService.refresh(createRefreshCommand())
@@ -118,7 +123,7 @@ class AuthServiceTest : ServiceTest() {
             every { refreshTokenRepository.findByIdOrNull(ID) } returns createRefreshToken(ID)
             every { userRepository.findByIdOrNull(ID) } returns null
 
-            When("refresh를 호출하면") {
+            When("토큰 갱신을 요청하면") {
                 Then("UserNotFoundException이 발생한다") {
                     shouldThrow<UserNotFoundException> {
                         authService.refresh(createRefreshCommand())

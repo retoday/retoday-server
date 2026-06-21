@@ -6,8 +6,8 @@ import com.retoday.core.domain.recap.dto.command.AssembleTimelinesCommand
 import com.retoday.core.domain.recap.dto.model.TimelineGroup
 import com.retoday.core.domain.recap.dto.model.TimelineSegment
 import com.retoday.core.domain.recap.dto.projection.RecapSourceProjection
+import com.retoday.core.domain.recap.dto.result.AssembledTimelineResult
 import com.retoday.core.domain.user.entity.TimeZone
-import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import java.time.Duration
 import java.time.Instant
@@ -32,15 +32,19 @@ class GenerateRecapTimelineServiceTest : ServiceTest() {
                     )
                 )
 
-            When("timeline segment를 생성하면") {
+            When("타임라인 구간을 생성하면") {
                 val segments = generateRecapTimelineService.createSegments(recapSources, TimeZone.SEOUL)
 
                 Then("1분 이하 기록은 제외하고 시작 시각 기준으로 정렬한다") {
-                    segments shouldHaveSize 1
-                    segments.first().id shouldBe 1L
-                    segments.first().startedAt shouldBe LocalTime.of(10, 30)
-                    segments.first().endedAt shouldBe LocalTime.of(11, 10)
-                    segments.first().activeMinutes shouldBe 40L
+                    segments shouldBe
+                        listOf(
+                            createSegment(
+                                id = 1,
+                                startedAt = LocalTime.of(10, 30),
+                                endedAt = LocalTime.of(11, 10),
+                                activeMinutes = 40
+                            )
+                        )
                 }
             }
         }
@@ -60,14 +64,18 @@ class GenerateRecapTimelineServiceTest : ServiceTest() {
                     )
                 )
 
-            When("timeline segment를 생성하면") {
+            When("타임라인 구간을 생성하면") {
                 val segments = generateRecapTimelineService.createSegments(recapSources, TimeZone.SEOUL)
 
                 Then("하나의 URL segment로 묶고 active time을 합산한다") {
-                    segments shouldHaveSize 1
-                    segments.first().startedAt shouldBe LocalTime.of(10, 0)
-                    segments.first().endedAt shouldBe LocalTime.of(10, 25)
-                    segments.first().activeMinutes shouldBe 20L
+                    segments shouldBe
+                        listOf(
+                            createSegment(
+                                id = 1,
+                                startedAt = LocalTime.of(10, 0),
+                                endedAt = LocalTime.of(10, 25)
+                            )
+                        )
                 }
             }
         }
@@ -87,15 +95,25 @@ class GenerateRecapTimelineServiceTest : ServiceTest() {
                     )
                 )
 
-            When("timeline segment를 생성하면") {
+            When("타임라인 구간을 생성하면") {
                 val segments = generateRecapTimelineService.createSegments(recapSources, TimeZone.SEOUL)
 
                 Then("서로 다른 URL segment로 분리한다") {
-                    segments shouldHaveSize 2
-                    segments[0].startedAt shouldBe LocalTime.of(10, 0)
-                    segments[0].endedAt shouldBe LocalTime.of(10, 10)
-                    segments[1].startedAt shouldBe LocalTime.of(10, 21)
-                    segments[1].endedAt shouldBe LocalTime.of(10, 31)
+                    segments shouldBe
+                        listOf(
+                            createSegment(
+                                id = 1,
+                                startedAt = LocalTime.of(10, 0),
+                                endedAt = LocalTime.of(10, 10),
+                                activeMinutes = 10
+                            ),
+                            createSegment(
+                                id = 2,
+                                startedAt = LocalTime.of(10, 21),
+                                endedAt = LocalTime.of(10, 31),
+                                activeMinutes = 10
+                            )
+                        )
                 }
             }
         }
@@ -138,14 +156,18 @@ class GenerateRecapTimelineServiceTest : ServiceTest() {
                     segments = segments
                 )
 
-            When("timeline으로 조립하면") {
+            When("타임라인을 조립하면") {
                 val timelines = generateRecapTimelineService.assembleTimelines(command)
 
                 Then("active time이 30분 이상인 group만 유지하고 시간을 서버에서 계산한다") {
-                    timelines shouldHaveSize 1
-                    timelines.first().title shouldBe "신발 쇼핑하기"
-                    timelines.first().startedAt shouldBe LocalTime.of(10, 0)
-                    timelines.first().endedAt shouldBe LocalTime.of(10, 40)
+                    timelines shouldBe
+                        listOf(
+                            AssembledTimelineResult(
+                                title = "신발 쇼핑하기",
+                                startedAt = LocalTime.of(10, 0),
+                                endedAt = LocalTime.of(10, 40)
+                            )
+                        )
                 }
             }
         }
@@ -173,14 +195,18 @@ class GenerateRecapTimelineServiceTest : ServiceTest() {
                     segments = segments
                 )
 
-            When("timeline으로 조립하면") {
+            When("타임라인을 조립하면") {
                 val timelines = generateRecapTimelineService.assembleTimelines(command)
 
                 Then("먼저 살아남은 group이 segment id 우선권을 가진다") {
-                    timelines shouldHaveSize 1
-                    timelines.first().title shouldBe "신발 쇼핑하기"
-                    timelines.first().startedAt shouldBe LocalTime.of(10, 0)
-                    timelines.first().endedAt shouldBe LocalTime.of(10, 40)
+                    timelines shouldBe
+                        listOf(
+                            AssembledTimelineResult(
+                                title = "신발 쇼핑하기",
+                                startedAt = LocalTime.of(10, 0),
+                                endedAt = LocalTime.of(10, 40)
+                            )
+                        )
                 }
             }
         }
@@ -207,14 +233,18 @@ class GenerateRecapTimelineServiceTest : ServiceTest() {
                     segments = segments
                 )
 
-            When("timeline으로 조립하면") {
+            When("타임라인을 조립하면") {
                 val timelines = generateRecapTimelineService.assembleTimelines(command)
 
                 Then("제거된 group은 segment id를 점유하지 않는다") {
-                    timelines shouldHaveSize 1
-                    timelines.first().title shouldBe "신발 쇼핑하기"
-                    timelines.first().startedAt shouldBe LocalTime.of(10, 0)
-                    timelines.first().endedAt shouldBe LocalTime.of(10, 40)
+                    timelines shouldBe
+                        listOf(
+                            AssembledTimelineResult(
+                                title = "신발 쇼핑하기",
+                                startedAt = LocalTime.of(10, 0),
+                                endedAt = LocalTime.of(10, 40)
+                            )
+                        )
                 }
             }
         }

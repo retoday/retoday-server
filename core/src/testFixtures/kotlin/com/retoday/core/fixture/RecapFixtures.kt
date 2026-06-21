@@ -8,6 +8,7 @@ import com.retoday.core.domain.recap.dto.response.GenerateTimelinesResponse
 import com.retoday.core.domain.recap.dto.response.GenerateTopicsResponse
 import com.retoday.core.domain.recap.entity.AiProvider
 import com.retoday.core.domain.recap.entity.Recap
+import com.retoday.core.domain.recap.entity.RecapImage
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
@@ -36,71 +37,95 @@ const val RECAP_SUMMARY = "오늘은 주로 개발 업무와 기술 블로그 �
 val RECAP_STARTED_AT: Instant = Instant.parse("2026-02-23T10:00:00Z")
 val RECAP_ENDED_AT: Instant = Instant.parse("2026-02-23T22:00:00Z")
 
-fun createRecapSources(): List<RecapSourceProjection> =
+fun createRecapSources(
+    url: String = WEBSITE_PAGE_URL,
+    title: String? = WEBSITE_TITLE,
+    description: String? = WEBSITE_DESCRIPTION,
+    domain: String = WEBSITE_DOMAIN,
+    category: WebsiteCategory? = WebsiteCategory.DEVELOPMENT,
+    visitedAt: Instant = SOURCE_VISITED_AT,
+    closedAt: Instant = SOURCE_CLOSED_AT,
+    stayDuration: Duration = SOURCE_STAY_DURATION
+): List<RecapSourceProjection> =
     listOf(
         RecapSourceProjection(
-            url = WEBSITE_PAGE_URL,
-            title = WEBSITE_TITLE,
-            description = WEBSITE_DESCRIPTION,
-            domain = WEBSITE_DOMAIN,
-            category = WebsiteCategory.DEVELOPMENT,
-            visitedAt = SOURCE_VISITED_AT,
-            closedAt = SOURCE_CLOSED_AT,
-            stayDuration = SOURCE_STAY_DURATION
+            url = url,
+            title = title,
+            description = description,
+            domain = domain,
+            category = category,
+            visitedAt = visitedAt,
+            closedAt = closedAt,
+            stayDuration = stayDuration
         )
     )
 
-fun createGenerateRecapResponse(): GenerateRecapResponse =
+fun createGenerateRecapResponse(
+    title: String = GENERATED_RECAP_TITLE,
+    summary: String = GENERATED_RECAP_SUMMARY,
+    sectionTitle: String = SECTION_TITLE,
+    sectionContent: String = SECTION_CONTENT
+): GenerateRecapResponse =
     GenerateRecapResponse(
-        title = GENERATED_RECAP_TITLE,
-        summary = GENERATED_RECAP_SUMMARY,
+        title = title,
+        summary = summary,
         sections =
             listOf(
                 GenerateRecapResponse.Section(
-                    title = SECTION_TITLE,
-                    content = SECTION_CONTENT
+                    title = sectionTitle,
+                    content = sectionContent
                 )
             )
     )
 
-fun createGenerateTimelinesResponse(): GenerateTimelinesResponse =
+fun createGenerateTimelinesResponse(
+    label: String = TIMELINE_TITLE,
+    segmentIds: List<Long> = listOf(1L)
+): GenerateTimelinesResponse =
     GenerateTimelinesResponse(
         groups =
             listOf(
                 TimelineGroup(
-                    label = TIMELINE_TITLE,
-                    segmentIds = listOf(1L)
+                    label = label,
+                    segmentIds = segmentIds
                 )
             )
     )
 
-fun createGenerateTopicsResponse(): GenerateTopicsResponse =
+fun createGenerateTopicsResponse(
+    keyword: String = TOPIC_KEYWORD,
+    title: String = TOPIC_TITLE,
+    content: String = TOPIC_CONTENT
+): GenerateTopicsResponse =
     GenerateTopicsResponse(
         topics =
             listOf(
                 GenerateTopicsResponse.Topic(
-                    keyword = TOPIC_KEYWORD,
-                    title = TOPIC_TITLE,
-                    content = TOPIC_CONTENT
+                    keyword = keyword,
+                    title = title,
+                    content = content
                 )
             )
     )
 
 fun createRecap(
+    id: UUID? = null,
     userId: UUID = ID,
     recapDate: LocalDate = LocalDate.now(),
     title: String = RECAP_TITLE,
     summary: String = RECAP_SUMMARY,
+    image: RecapImage? = null,
     startedAt: Instant = RECAP_STARTED_AT,
     endedAt: Instant = RECAP_ENDED_AT,
     aiProvider: AiProvider = AiProvider.GEMINI
 ): Recap =
     Recap(
+        id = id,
         userId = userId,
         date = recapDate,
         title = title,
         summary = summary,
-        image = null,
+        image = image,
         startedAt = startedAt,
         endedAt = endedAt,
         aiProvider = aiProvider

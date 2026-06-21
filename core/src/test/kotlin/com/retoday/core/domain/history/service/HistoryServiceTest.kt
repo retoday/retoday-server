@@ -5,6 +5,7 @@ import com.retoday.core.domain.history.dto.command.RecordHistoryCommand
 import com.retoday.core.domain.history.dto.projection.HourlyHistoryCountProjection
 import com.retoday.core.domain.history.dto.query.GetMyWorkPatternQuery
 import com.retoday.core.domain.history.dto.result.GetMyWorkPatternResult
+import com.retoday.core.domain.history.dto.result.RecordHistoryResult
 import com.retoday.core.domain.history.entity.WebsiteCategory
 import com.retoday.core.domain.history.exception.DuplicateHistoryException
 import com.retoday.core.domain.history.exception.InvalidTimeRangeException
@@ -54,14 +55,17 @@ class HistoryServiceTest : ServiceTest() {
             } returns false
             every { historyRepository.save(any()) } returns history
 
-            When("recordHistory를 호출하면") {
+            When("히스토리 기록을 요청하면") {
                 val result = historyService.recordHistory(ID, command)
 
                 Then("히스토리가 저장된다") {
-                    result.historyId shouldBe history.id!!
-                    result.websiteId shouldBe website.id!!
-                    result.pageId shouldBe page.id!!
-                    result.recordedAt shouldBe command.closedAt
+                    result shouldBe
+                        RecordHistoryResult(
+                            historyId = history.id!!,
+                            websiteId = website.id!!,
+                            pageId = page.id!!,
+                            recordedAt = command.closedAt
+                        )
                     verify(exactly = 1) { historyRepository.save(any()) }
                 }
             }
@@ -77,7 +81,7 @@ class HistoryServiceTest : ServiceTest() {
             every { pageService.upsertPage(any()) } returns page
             every { historyRepository.existsByUserIdAndPageIdAndVisitedAtAfter(any(), any(), any()) } returns true
 
-            When("recordHistory를 호출하면") {
+            When("중복 히스토리 기록을 요청하면") {
                 Then("DuplicateHistoryException이 발생한다") {
                     shouldThrow<DuplicateHistoryException> {
                         historyService.recordHistory(ID, command)
@@ -101,7 +105,7 @@ class HistoryServiceTest : ServiceTest() {
                     scrollDepth = 10
                 )
 
-            When("recordHistory를 호출하면") {
+            When("유효하지 않은 시간 범위의 기록을 요청하면") {
                 Then("InvalidTimeRangeException이 발생한다") {
                     shouldThrow<InvalidTimeRangeException> {
                         historyService.recordHistory(ID, command)
@@ -120,7 +124,7 @@ class HistoryServiceTest : ServiceTest() {
                     )
                 )
 
-            When("recordHistory를 호출하면") {
+            When("제외 도메인의 기록을 요청하면") {
                 Then("WebsiteExcludedByUserException이 발생한다") {
                     shouldThrow<WebsiteExcludedByUserException> {
                         historyService.recordHistory(ID, command)
@@ -140,7 +144,7 @@ class HistoryServiceTest : ServiceTest() {
                     HourlyHistoryCountProjection(hour = 21, count = 4)
                 )
 
-            When("getMyWorkPattern을 호출하면") {
+            When("작업 패턴을 조회하면") {
                 val result = historyService.getMyWorkPattern(ID, query)
 
                 Then("시간대별 집계가 계산된다") {
@@ -155,7 +159,7 @@ class HistoryServiceTest : ServiceTest() {
         Given("히스토리 전체 삭제 요청이 들어오면") {
             every { historyRepository.deleteAllByUserId(ID) } returns Unit
 
-            When("deleteMyHistories를 호출하면") {
+            When("사용자의 모든 히스토리 삭제를 요청하면") {
                 historyService.deleteMyHistories(ID)
 
                 Then("사용자의 모든 히스토리를 삭제한다") {

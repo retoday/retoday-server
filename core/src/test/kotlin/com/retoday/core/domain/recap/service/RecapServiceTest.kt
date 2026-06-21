@@ -2,6 +2,7 @@ package com.retoday.core.domain.recap.service
 
 import com.retoday.core.common.ServiceTest
 import com.retoday.core.domain.recap.dto.query.GetMyRecapQuery
+import com.retoday.core.domain.recap.dto.result.GetMyRecapResult
 import com.retoday.core.domain.recap.exception.RecapNotFoundException
 import com.retoday.core.domain.recap.repository.RecapRepository
 import com.retoday.core.domain.recap.repository.SectionRepository
@@ -34,7 +35,7 @@ class RecapServiceTest : ServiceTest() {
         Given("리캡이 없는 날짜를 조회하면") {
             every { recapRepository.findByUserIdAndDate(ID, any()) } returns null
 
-            When("getMyRecap을 호출하면") {
+            When("해당 날짜의 리캡을 조회하면") {
                 Then("RecapNotFoundException이 발생한다") {
                     shouldThrow<RecapNotFoundException> {
                         recapService.getMyRecap(ID, GetMyRecapQuery(LocalDate.parse("2026-02-23")))
@@ -52,14 +53,17 @@ class RecapServiceTest : ServiceTest() {
             every { topicRepository.findAllByRecapId(ID) } returns emptyList()
             every { timelineRepository.findAllByRecapId(ID) } returns emptyList()
 
-            When("getMyRecap을 호출하면") {
+            When("해당 날짜의 리캡을 조회하면") {
                 val result = recapService.getMyRecap(ID, GetMyRecapQuery(date))
 
                 Then("리캡과 하위 데이터를 반환한다") {
-                    result.recap shouldBe recap
-                    result.sections shouldBe emptyList()
-                    result.topics shouldBe emptyList()
-                    result.timelines shouldBe emptyList()
+                    result shouldBe
+                        GetMyRecapResult(
+                            recap = recap,
+                            sections = emptyList(),
+                            topics = emptyList(),
+                            timelines = emptyList()
+                        )
                 }
             }
         }
@@ -72,7 +76,7 @@ class RecapServiceTest : ServiceTest() {
             every { timelineRepository.deleteAllByRecapIdIn(listOf(ID)) } returns Unit
             every { recapRepository.deleteAllByUserId(ID) } returns Unit
 
-            When("deleteMyRecaps를 호출하면") {
+            When("사용자의 모든 리캡 삭제를 요청하면") {
                 recapService.deleteMyRecaps(ID)
 
                 Then("리캡 하위 데이터와 리캡을 삭제한다") {

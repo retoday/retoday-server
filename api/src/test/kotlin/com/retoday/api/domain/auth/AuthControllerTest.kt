@@ -28,7 +28,7 @@ class AuthControllerTest : ControllerTest() {
     private lateinit var authService: AuthService
 
     init {
-        describe("login()은") {
+        describe("${AuthController::login.name}()") {
             val request =
                 webClient
                     .post()
@@ -68,7 +68,7 @@ class AuthControllerTest : ControllerTest() {
             }
         }
 
-        describe("refresh()는") {
+        describe("${AuthController::refresh.name}()") {
             val request =
                 webClient
                     .post()
@@ -138,7 +138,7 @@ class AuthControllerTest : ControllerTest() {
             }
         }
 
-        describe("logout()은") {
+        describe("${AuthController::logout.name}()") {
             val request =
                 webClient
                     .post()

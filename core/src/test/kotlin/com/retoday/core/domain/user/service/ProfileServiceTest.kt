@@ -34,7 +34,7 @@ class ProfileServiceTest : BehaviorSpec() {
             every { profileRepository.findByUserId(ID) } returns profile
             every { profileRepository.save(capture(savedProfile)) } answers { firstArg() }
 
-            When("timeZone과 language를 변경하면") {
+            When("프로필의 시간대와 언어를 변경하면") {
                 profileService.updateMyProfile(
                     userId = ID,
                     command =
@@ -45,12 +45,11 @@ class ProfileServiceTest : BehaviorSpec() {
                 )
 
                 Then("timeZone과 language만 변경되어 저장된다") {
-                    savedProfile.captured.timeZone shouldBe TimeZone.UTC
-                    savedProfile.captured.language shouldBe Language.ENGLISH
-                    savedProfile.captured.firstName shouldBe profile.firstName
-                    savedProfile.captured.lastName shouldBe profile.lastName
-                    savedProfile.captured.imageUrl shouldBe profile.imageUrl
-                    savedProfile.captured.recapPeriod shouldBe profile.recapPeriod
+                    savedProfile.captured shouldBe
+                        profile.copy(
+                            timeZone = TimeZone.UTC,
+                            language = Language.ENGLISH
+                        )
                 }
             }
         }
