@@ -1,4 +1,4 @@
-package com.retoday.batch.domain.recap.dto
+package com.retoday.batch.domain.recap.dto.result
 
 import com.retoday.core.domain.recap.dto.response.GenerateRecapResponse
 import com.retoday.core.domain.recap.dto.response.GenerateTopicsResponse

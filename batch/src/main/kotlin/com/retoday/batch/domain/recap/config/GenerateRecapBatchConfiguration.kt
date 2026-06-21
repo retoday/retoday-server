@@ -1,7 +1,7 @@
-package com.retoday.batch.domain.recap
+package com.retoday.batch.domain.recap.config
 
-import com.retoday.batch.domain.recap.dto.GenerateRecapItem
-import com.retoday.batch.domain.recap.dto.GenerateRecapResult
+import com.retoday.batch.domain.recap.dto.item.GenerateRecapItem
+import com.retoday.batch.domain.recap.dto.result.GenerateRecapResult
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.builder.JobBuilder
@@ -19,9 +19,13 @@ class GenerateRecapBatchConfiguration(
     private val jobRepository: JobRepository,
     private val transactionManager: PlatformTransactionManager
 ) {
+    private companion object {
+        const val GENERATE_RECAP_CHUNK_SIZE = 1
+    }
+
     @Bean
     fun generateRecapJob(generateRecapStep: Step): Job =
-        JobBuilder(GENERATE_RECAP_JOB_NAME, jobRepository)
+        JobBuilder(::generateRecapJob.name, jobRepository)
             .start(generateRecapStep)
             .build()
 
@@ -31,16 +35,10 @@ class GenerateRecapBatchConfiguration(
         generateRecapItemProcessor: ItemProcessor<GenerateRecapItem, GenerateRecapResult>,
         generateRecapItemWriter: ItemWriter<GenerateRecapResult>
     ): Step =
-        StepBuilder(GENERATE_RECAP_STEP_NAME, jobRepository)
+        StepBuilder(::generateRecapStep.name, jobRepository)
             .chunk<GenerateRecapItem, GenerateRecapResult>(GENERATE_RECAP_CHUNK_SIZE, transactionManager)
             .reader(generateRecapItemReader)
             .processor(generateRecapItemProcessor)
             .writer(generateRecapItemWriter)
             .build()
-
-    companion object {
-        const val GENERATE_RECAP_JOB_NAME = "generateRecapJob"
-        private const val GENERATE_RECAP_STEP_NAME = "generateRecapStep"
-        private const val GENERATE_RECAP_CHUNK_SIZE = 1
-    }
 }
