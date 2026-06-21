@@ -1,6 +1,9 @@
 datasource:
   main:
     driver-class-name: com.mysql.cj.jdbc.Driver
+    data-source-properties:
+      connectionTimeZone: UTC
+      useAffectedRows: true
 ---
 spring:
   config:
@@ -11,7 +14,7 @@ spring:
       password: root
 datasource:
   main:
-    jdbc-url: jdbc:mysql://localhost:3306/retoday?connectionTimeZone=UTC
+    jdbc-url: jdbc:mysql://localhost:3306/retoday
     username: root
     password: root
 ---
