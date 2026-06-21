@@ -15,7 +15,7 @@ import com.retoday.core.domain.recap.dto.request.GenerateTopicsRequest
 import com.retoday.core.domain.recap.entity.RecapImage
 import com.retoday.core.domain.recap.repository.RecapRepository
 import org.springframework.batch.item.ItemProcessor
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
+import org.springframework.core.task.TaskExecutor
 import org.springframework.stereotype.Component
 import java.time.Duration
 import java.time.temporal.ChronoUnit
@@ -28,7 +28,7 @@ class GenerateRecapItemProcessor(
     private val recapStatisticsService: RecapStatisticsService,
     private val recapTimelineService: RecapTimelineService,
     private val recapClients: List<RecapClient>,
-    private val generateRecapAiTaskExecutor: ThreadPoolTaskExecutor
+    private val generateRecapAiTaskExecutor: TaskExecutor
 ) : ItemProcessor<GenerateRecapItem, GenerateRecapResult> {
     override fun process(item: GenerateRecapItem): GenerateRecapResult? {
         val profile = item.profile
