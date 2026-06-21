@@ -26,35 +26,6 @@ const val WEBSITE_DESCRIPTION = "GitHub is where people build software."
 
 private val DEFAULT_DATE: LocalDate = LocalDate.parse("2026-02-13")
 
-val SCREEN_TIME: GetMyScreenTimesResult.ScreenTime =
-    GetMyScreenTimesResult.ScreenTime(
-        startedAt = DEFAULT_DATE.atStartOfDay(),
-        endedAt = DEFAULT_DATE.atStartOfDay().plusHours(2),
-        stayDuration = Duration.ofHours(1)
-    )
-
-val CATEGORY_WEBSITE_ANALYSIS: GetMyCategoryAnalysesResult.WebsiteAnalysis =
-    GetMyCategoryAnalysesResult.WebsiteAnalysis(
-        domain = WEBSITE_DOMAIN,
-        faviconUrl = WEBSITE_FAVICON_URL,
-        stayDuration = Duration.ofMinutes(90)
-    )
-
-val CATEGORY_ANALYSIS: GetMyCategoryAnalysesResult.CategoryAnalysis =
-    GetMyCategoryAnalysesResult.CategoryAnalysis(
-        category = WEBSITE_CATEGORY,
-        stayDuration = Duration.ofMinutes(90),
-        websiteAnalyses = listOf(CATEGORY_WEBSITE_ANALYSIS)
-    )
-
-val FREQUENTLY_VISITED_WEBSITE_ANALYSIS: GetMyFrequentlyVisitedWebsitesResult.WebsiteAnalysis =
-    GetMyFrequentlyVisitedWebsitesResult.WebsiteAnalysis(
-        domain = WEBSITE_DOMAIN,
-        faviconUrl = WEBSITE_FAVICON_URL,
-        visitCount = 1L,
-        stayDuration = Duration.ofMinutes(90)
-    )
-
 fun createGetMyLongestStayedWebsiteResult(
     domain: String? = WEBSITE_DOMAIN,
     faviconUrl: String? = WEBSITE_FAVICON_URL,
@@ -67,10 +38,10 @@ fun createGetMyLongestStayedWebsiteResult(
     )
 
 fun createWebsiteStatWithCategoryProjection(
-    domain: String,
+    domain: String = WEBSITE_DOMAIN,
     faviconUrl: String? = WEBSITE_FAVICON_URL,
     category: WebsiteCategory? = null,
-    stayDuration: Duration
+    stayDuration: Duration = Duration.ofMinutes(90)
 ): WebsiteWithStayDurationProjection =
     WebsiteWithStayDurationProjection(
         domain = domain,
@@ -80,11 +51,11 @@ fun createWebsiteStatWithCategoryProjection(
     )
 
 fun createWebsiteStatWithVisitCountProjection(
-    domain: String,
+    domain: String = WEBSITE_DOMAIN,
     category: WebsiteCategory? = WEBSITE_CATEGORY,
     faviconUrl: String? = WEBSITE_FAVICON_URL,
-    visitCount: Long,
-    stayDuration: Duration
+    visitCount: Long = 1,
+    stayDuration: Duration = Duration.ofMinutes(90)
 ): WebsiteWithStayDurationVisitCountProjection =
     WebsiteWithStayDurationVisitCountProjection(
         domain = domain,
@@ -95,11 +66,13 @@ fun createWebsiteStatWithVisitCountProjection(
     )
 
 fun createWebsite(
+    id: UUID? = null,
     domain: String = WEBSITE_DOMAIN,
     category: WebsiteCategory? = WEBSITE_CATEGORY,
     faviconUrl: String? = WEBSITE_FAVICON_URL
 ): Website =
     Website(
+        id = id,
         domain = domain,
         category = category,
         faviconUrl = faviconUrl
@@ -108,12 +81,14 @@ fun createWebsite(
 fun createWebsiteCategory(code: WebsiteCategory = WebsiteCategory.DEVELOPMENT): WebsiteCategory = code
 
 fun createPage(
+    id: UUID? = null,
     websiteId: UUID = ID,
     url: String = WEBSITE_PAGE_URL,
     title: String? = WEBSITE_TITLE,
     description: String? = WEBSITE_DESCRIPTION
 ): Page =
     Page(
+        id = id,
         websiteId = websiteId,
         url = url,
         title = title,
@@ -133,50 +108,78 @@ fun createHistoryRecordResult(
         recordedAt = recordedAt
     )
 
-fun createGetMyScreenTimesResult(date: LocalDate = DEFAULT_DATE): GetMyScreenTimesResult =
-    createGetMyScreenTimesResult(
-        screenTime =
-            SCREEN_TIME.copy(
-                startedAt = date.atStartOfDay(),
-                endedAt = date.atStartOfDay().plusHours(2)
-            )
-    )
-
-fun createGetMyScreenTimesResult(screenTime: GetMyScreenTimesResult.ScreenTime = SCREEN_TIME): GetMyScreenTimesResult =
-    createGetMyScreenTimesResult(screenTimes = listOf(screenTime))
-
-fun createGetMyScreenTimesResult(screenTimes: List<GetMyScreenTimesResult.ScreenTime>): GetMyScreenTimesResult =
+fun createGetMyScreenTimesResult(
+    date: LocalDate = DEFAULT_DATE,
+    startedAt: java.time.LocalDateTime = date.atStartOfDay(),
+    endedAt: java.time.LocalDateTime = date.atStartOfDay().plusHours(2),
+    stayDuration: Duration = Duration.ofHours(1)
+): GetMyScreenTimesResult =
     GetMyScreenTimesResult(
-        totalStayDuration = screenTimes.fold(Duration.ZERO) { acc, item -> acc + item.stayDuration },
-        screenTimes = screenTimes
-    )
-
-fun createGetMyWeeklyScreenTimesResult(): GetMyScreenTimesResult =
-    createGetMyScreenTimesResult(
-        screenTime =
-            SCREEN_TIME.copy(
-                startedAt = LocalDate.parse("2026-02-08").atStartOfDay(),
-                endedAt = LocalDate.parse("2026-02-08").atStartOfDay().plusDays(1)
+        totalStayDuration = stayDuration,
+        screenTimes =
+            listOf(
+                GetMyScreenTimesResult.ScreenTime(
+                    startedAt = startedAt,
+                    endedAt = endedAt,
+                    stayDuration = stayDuration
+                )
             )
     )
 
-fun createGetMyCategoryAnalysisResult(): GetMyCategoryAnalysesResult =
-    createGetMyCategoryAnalysisResult(categoryAnalyses = listOf(CATEGORY_ANALYSIS))
+fun createGetMyWeeklyScreenTimesResult(
+    date: LocalDate = LocalDate.parse("2026-02-08"),
+    stayDuration: Duration = Duration.ofHours(1)
+): GetMyScreenTimesResult =
+    createGetMyScreenTimesResult(
+        date = date,
+        startedAt = date.atStartOfDay(),
+        endedAt = date.atStartOfDay().plusDays(1),
+        stayDuration = stayDuration
+    )
 
 fun createGetMyCategoryAnalysisResult(
-    categoryAnalyses: List<GetMyCategoryAnalysesResult.CategoryAnalysis>
+    category: WebsiteCategory = WEBSITE_CATEGORY,
+    categoryStayDuration: Duration = Duration.ofMinutes(90),
+    domain: String = WEBSITE_DOMAIN,
+    faviconUrl: String? = WEBSITE_FAVICON_URL,
+    websiteStayDuration: Duration = Duration.ofMinutes(90)
 ): GetMyCategoryAnalysesResult =
     GetMyCategoryAnalysesResult(
-        totalStayDuration = categoryAnalyses.fold(Duration.ZERO) { acc, item -> acc + item.stayDuration },
-        categoryAnalyses = categoryAnalyses
+        totalStayDuration = categoryStayDuration,
+        categoryAnalyses =
+            listOf(
+                GetMyCategoryAnalysesResult.CategoryAnalysis(
+                    category = category,
+                    stayDuration = categoryStayDuration,
+                    websiteAnalyses =
+                        listOf(
+                            GetMyCategoryAnalysesResult.WebsiteAnalysis(
+                                domain = domain,
+                                faviconUrl = faviconUrl,
+                                stayDuration = websiteStayDuration
+                            )
+                        )
+                )
+            )
     )
 
 fun createGetMyFrequentlyVisitedWebsitesResult(
-    websiteAnalyses: List<GetMyFrequentlyVisitedWebsitesResult.WebsiteAnalysis> =
-        listOf(
-            FREQUENTLY_VISITED_WEBSITE_ANALYSIS
-        )
-): GetMyFrequentlyVisitedWebsitesResult = GetMyFrequentlyVisitedWebsitesResult(websiteAnalyses = websiteAnalyses)
+    domain: String = WEBSITE_DOMAIN,
+    faviconUrl: String? = WEBSITE_FAVICON_URL,
+    visitCount: Long = 1,
+    stayDuration: Duration = Duration.ofMinutes(90)
+): GetMyFrequentlyVisitedWebsitesResult =
+    GetMyFrequentlyVisitedWebsitesResult(
+        websiteAnalyses =
+            listOf(
+                GetMyFrequentlyVisitedWebsitesResult.WebsiteAnalysis(
+                    domain = domain,
+                    faviconUrl = faviconUrl,
+                    visitCount = visitCount,
+                    stayDuration = stayDuration
+                )
+            )
+    )
 
 fun createGetMyWorkPatternResult(
     dawnCount: Int = 2,
@@ -195,6 +198,7 @@ fun createGetMyWorkPatternResult(
     )
 
 fun createHistory(
+    id: UUID? = null,
     userId: UUID = ID,
     websiteId: UUID = ID,
     pageId: UUID = ID,
@@ -204,6 +208,7 @@ fun createHistory(
     scrollDepth: Int? = SCROLL_DEPTH
 ): History =
     History(
+        id = id,
         userId = userId,
         websiteId = websiteId,
         pageId = pageId,

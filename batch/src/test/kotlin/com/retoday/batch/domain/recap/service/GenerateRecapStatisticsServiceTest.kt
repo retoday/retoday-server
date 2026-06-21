@@ -6,6 +6,7 @@ import com.retoday.core.domain.history.dto.query.GetMyFrequentlyVisitedWebsitesQ
 import com.retoday.core.domain.history.dto.query.GetMyLongestStayedWebsiteQuery
 import com.retoday.core.domain.history.dto.query.GetMyScreenTimesQuery
 import com.retoday.core.domain.history.service.HistoryService
+import com.retoday.core.domain.recap.dto.model.RecapStatistics
 import com.retoday.core.domain.user.entity.TimeZone
 import com.retoday.core.fixture.ID
 import com.retoday.core.fixture.createGetMyCategoryAnalysisResult
@@ -65,7 +66,7 @@ class GenerateRecapStatisticsServiceTest : ServiceTest() {
                 )
             } returns longestStayedWebsite
 
-            When("getStatistics를 호출하면") {
+            When("리캡 통계를 생성하면") {
                 val result =
                     generateRecapStatisticsService.getStatistics(
                         userId = ID,
@@ -74,10 +75,13 @@ class GenerateRecapStatisticsServiceTest : ServiceTest() {
                     )
 
                 Then("4개 history 통계 결과를 리캡 통계 input으로 묶는다") {
-                    result.getMyScreenTimesResult shouldBe screenTimes
-                    result.getMyCategoryAnalysesResult shouldBe categoryAnalyses
-                    result.getMyFrequentlyVisitedWebsitesResult shouldBe frequentlyVisitedWebsites
-                    result.getMyLongestStayedWebsiteResult shouldBe longestStayedWebsite
+                    result shouldBe
+                        RecapStatistics(
+                            getMyScreenTimesResult = screenTimes,
+                            getMyCategoryAnalysesResult = categoryAnalyses,
+                            getMyFrequentlyVisitedWebsitesResult = frequentlyVisitedWebsites,
+                            getMyLongestStayedWebsiteResult = longestStayedWebsite
+                        )
                 }
             }
         }

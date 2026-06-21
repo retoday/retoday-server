@@ -15,7 +15,6 @@ import com.retoday.core.domain.user.repository.UserExcludedWebsiteRepository
 import com.retoday.core.domain.user.repository.UserRepository
 import com.retoday.core.fixture.*
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -43,14 +42,14 @@ class UserServiceTest : ServiceTest() {
 
     init {
         Given("예외 도메인 조회 시") {
-            every { userExcludedWebsiteRepository.findAllByUserId(ID) } returns
-                listOf(createUserExcludedWebsite(userId = ID, domain = "github.com"))
+            val excludedDomains = listOf(createUserExcludedWebsite(userId = ID, domain = "github.com"))
+            every { userExcludedWebsiteRepository.findAllByUserId(ID) } returns excludedDomains
 
             When("사용자의 예외 도메인을 조회하면") {
                 val result = userService.getExcludedDomains(ID)
 
                 Then("저장된 값이 반환된다") {
-                    result.map { it.domain } shouldContainExactly listOf("github.com")
+                    result shouldBe excludedDomains
                 }
             }
         }
@@ -58,7 +57,7 @@ class UserServiceTest : ServiceTest() {
         Given("정규화가 필요한 도메인 추가 요청 시") {
             every { userExcludedWebsiteRepository.save(any()) } answers { firstArg() }
 
-            When("addMyExcludedDomain을 호출하면") {
+            When("예외 도메인 추가를 요청하면") {
                 val saved =
                     userService.addMyExcludedDomain(
                         ID,
@@ -66,7 +65,7 @@ class UserServiceTest : ServiceTest() {
                     )
 
                 Then("소문자/trim 처리되어 저장된다") {
-                    saved.domain shouldBe "github.com"
+                    saved shouldBe createUserExcludedWebsite(userId = ID, domain = "github.com")
                     verify(exactly = 1) {
                         userExcludedWebsiteRepository.save(
                             match { it.userId == ID && it.domain == "github.com" }
@@ -80,7 +79,7 @@ class UserServiceTest : ServiceTest() {
             every { userExcludedWebsiteRepository.save(any()) } throws DataIntegrityViolationException("duplicate")
             every { userExcludedWebsiteRepository.existsByUserIdAndDomain(ID, "github.com") } returns true
 
-            When("addMyExcludedDomain을 호출하면") {
+            When("중복된 예외 도메인 추가를 요청하면") {
                 Then("중복 예외가 발생한다") {
                     shouldThrow<ExcludedDomainAlreadyExistsException> {
                         userService.addMyExcludedDomain(
@@ -95,7 +94,7 @@ class UserServiceTest : ServiceTest() {
         Given("도메인 삭제 요청 시") {
             every { userExcludedWebsiteRepository.deleteByUserIdAndDomain(ID, "github.com") } returns 1L
 
-            When("deleteMyExcludedDomain을 호출하면") {
+            When("예외 도메인 삭제를 요청하면") {
                 userService.deleteMyExcludedDomain(
                     ID,
                     DeleteMyExcludedDomainCommand(domain = " GitHub.com ")

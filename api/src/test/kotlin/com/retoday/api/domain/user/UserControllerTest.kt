@@ -29,7 +29,7 @@ class UserControllerTest : ControllerTest() {
     private lateinit var userService: UserService
 
     init {
-        describe("deleteMyAccount()") {
+        describe("${UserController::withdraw.name}()") {
             val request =
                 webClient
                     .method(HttpMethod.DELETE)
@@ -52,7 +52,7 @@ class UserControllerTest : ControllerTest() {
             }
         }
 
-        describe("addMyExcludedDomain()") {
+        describe("${UserController::addMyExcludedDomain.name}()") {
             val request =
                 webClient
                     .post()
@@ -91,7 +91,7 @@ class UserControllerTest : ControllerTest() {
             }
         }
 
-        describe("deleteMyExcludedDomain()") {
+        describe("${UserController::deleteMyExcludedDomain.name}()") {
             val request =
                 webClient
                     .method(HttpMethod.DELETE)

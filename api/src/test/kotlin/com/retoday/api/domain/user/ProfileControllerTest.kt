@@ -25,7 +25,7 @@ class ProfileControllerTest : ControllerTest() {
     private lateinit var profileService: ProfileService
 
     init {
-        describe("getMyProfile()") {
+        describe("${ProfileController::getMyProfile.name}()") {
             context("유효한 요청") {
                 val result = createGetMyProfileResult()
                 every { profileService.getMyProfile(any()) } returns result
@@ -45,7 +45,7 @@ class ProfileControllerTest : ControllerTest() {
             }
         }
 
-        describe("updateMyProfile()") {
+        describe("${ProfileController::updateMyProfile.name}()") {
             val request =
                 UpdateMyProfileRequest(
                     timeZone = TimeZone.UTC,
