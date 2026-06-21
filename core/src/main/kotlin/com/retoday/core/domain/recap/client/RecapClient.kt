@@ -8,12 +8,10 @@ import com.retoday.core.domain.recap.dto.response.GenerateRecapResponse
 import com.retoday.core.domain.recap.dto.response.GenerateTimelinesResponse
 import com.retoday.core.domain.recap.dto.response.GenerateTopicsResponse
 import com.retoday.core.domain.recap.entity.AiProvider
-import com.retoday.core.global.annotation.WithoutTransaction
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.client.entity
 import org.springframework.core.io.ClassPathResource
 
-@WithoutTransaction
 sealed class RecapClient(
     val aiProvider: AiProvider,
     private val chatClient: ChatClient,
