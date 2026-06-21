@@ -11,7 +11,7 @@ import java.time.Duration
 import java.time.Instant
 
 @Service
-class GenerateRecapTimelineService {
+class RecapTimelineService {
     private companion object {
         val MIN_SEGMENT_ACTIVE_DURATION: Duration = Duration.ofMinutes(1)
         val MIN_TIMELINE_ACTIVE_DURATION: Duration = Duration.ofMinutes(30)

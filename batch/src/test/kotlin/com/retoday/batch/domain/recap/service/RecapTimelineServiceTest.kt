@@ -13,8 +13,8 @@ import java.time.Duration
 import java.time.Instant
 import java.time.LocalTime
 
-class GenerateRecapTimelineServiceTest : ServiceTest() {
-    private val generateRecapTimelineService = GenerateRecapTimelineService()
+class RecapTimelineServiceTest : ServiceTest() {
+    private val recapTimelineService = RecapTimelineService()
 
     init {
         Given("리캡 소스가 주어지면") {
@@ -33,7 +33,7 @@ class GenerateRecapTimelineServiceTest : ServiceTest() {
                 )
 
             When("타임라인 구간을 생성하면") {
-                val segments = generateRecapTimelineService.createSegments(recapSources, TimeZone.SEOUL)
+                val segments = recapTimelineService.createSegments(recapSources, TimeZone.SEOUL)
 
                 Then("1분 이하 기록은 제외하고 시작 시각 기준으로 정렬한다") {
                     segments shouldBe
@@ -65,7 +65,7 @@ class GenerateRecapTimelineServiceTest : ServiceTest() {
                 )
 
             When("타임라인 구간을 생성하면") {
-                val segments = generateRecapTimelineService.createSegments(recapSources, TimeZone.SEOUL)
+                val segments = recapTimelineService.createSegments(recapSources, TimeZone.SEOUL)
 
                 Then("하나의 URL segment로 묶고 active time을 합산한다") {
                     segments shouldBe
@@ -96,7 +96,7 @@ class GenerateRecapTimelineServiceTest : ServiceTest() {
                 )
 
             When("타임라인 구간을 생성하면") {
-                val segments = generateRecapTimelineService.createSegments(recapSources, TimeZone.SEOUL)
+                val segments = recapTimelineService.createSegments(recapSources, TimeZone.SEOUL)
 
                 Then("서로 다른 URL segment로 분리한다") {
                     segments shouldBe
@@ -120,7 +120,7 @@ class GenerateRecapTimelineServiceTest : ServiceTest() {
 
         Given("AI가 segment group을 반환하면") {
             val segments =
-                generateRecapTimelineService.createSegments(
+                recapTimelineService.createSegments(
                     listOf(
                         createRecapSource(
                             url = "https://shop.example.com/shoes",
@@ -157,7 +157,7 @@ class GenerateRecapTimelineServiceTest : ServiceTest() {
                 )
 
             When("타임라인을 조립하면") {
-                val timelines = generateRecapTimelineService.assembleTimelines(command)
+                val timelines = recapTimelineService.assembleTimelines(command)
 
                 Then("active time이 30분 이상인 group만 유지하고 시간을 서버에서 계산한다") {
                     timelines shouldBe
@@ -196,7 +196,7 @@ class GenerateRecapTimelineServiceTest : ServiceTest() {
                 )
 
             When("타임라인을 조립하면") {
-                val timelines = generateRecapTimelineService.assembleTimelines(command)
+                val timelines = recapTimelineService.assembleTimelines(command)
 
                 Then("먼저 살아남은 group이 segment id 우선권을 가진다") {
                     timelines shouldBe
@@ -234,7 +234,7 @@ class GenerateRecapTimelineServiceTest : ServiceTest() {
                 )
 
             When("타임라인을 조립하면") {
-                val timelines = generateRecapTimelineService.assembleTimelines(command)
+                val timelines = recapTimelineService.assembleTimelines(command)
 
                 Then("제거된 group은 segment id를 점유하지 않는다") {
                     timelines shouldBe

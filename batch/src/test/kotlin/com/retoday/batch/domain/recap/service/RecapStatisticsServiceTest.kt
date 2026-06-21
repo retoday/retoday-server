@@ -8,19 +8,15 @@ import com.retoday.core.domain.history.dto.query.GetMyScreenTimesQuery
 import com.retoday.core.domain.history.service.HistoryService
 import com.retoday.core.domain.recap.dto.model.RecapStatistics
 import com.retoday.core.domain.user.entity.TimeZone
-import com.retoday.core.fixture.ID
-import com.retoday.core.fixture.createGetMyCategoryAnalysisResult
-import com.retoday.core.fixture.createGetMyFrequentlyVisitedWebsitesResult
-import com.retoday.core.fixture.createGetMyLongestStayedWebsiteResult
-import com.retoday.core.fixture.createGetMyScreenTimesResult
+import com.retoday.core.fixture.*
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import java.time.LocalDate
 
-class GenerateRecapStatisticsServiceTest : ServiceTest() {
+class RecapStatisticsServiceTest : ServiceTest() {
     private val historyService = mockk<HistoryService>()
-    private val generateRecapStatisticsService = GenerateRecapStatisticsService(historyService)
+    private val recapStatisticsService = RecapStatisticsService(historyService)
 
     init {
         Given("리캡 통계 생성을 요청하면") {
@@ -68,7 +64,7 @@ class GenerateRecapStatisticsServiceTest : ServiceTest() {
 
             When("리캡 통계를 생성하면") {
                 val result =
-                    generateRecapStatisticsService.getStatistics(
+                    recapStatisticsService.getStatistics(
                         userId = ID,
                         date = date,
                         timeZone = timeZone

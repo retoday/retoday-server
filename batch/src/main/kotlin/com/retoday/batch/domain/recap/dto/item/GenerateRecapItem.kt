@@ -1,4 +1,4 @@
-package com.retoday.batch.domain.recap.dto
+package com.retoday.batch.domain.recap.dto.item
 
 import com.retoday.core.domain.recap.entity.AiProvider
 import com.retoday.core.domain.user.entity.Profile

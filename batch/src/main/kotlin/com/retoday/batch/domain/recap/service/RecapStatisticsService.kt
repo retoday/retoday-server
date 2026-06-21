@@ -13,7 +13,7 @@ import java.time.LocalDate
 import java.util.*
 
 @Service
-class GenerateRecapStatisticsService(
+class RecapStatisticsService(
     private val historyService: HistoryService
 ) {
     private companion object {

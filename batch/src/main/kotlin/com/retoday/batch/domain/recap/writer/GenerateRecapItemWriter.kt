@@ -1,6 +1,6 @@
-package com.retoday.batch.domain.recap
+package com.retoday.batch.domain.recap.writer
 
-import com.retoday.batch.domain.recap.dto.GenerateRecapResult
+import com.retoday.batch.domain.recap.dto.result.GenerateRecapResult
 import com.retoday.core.domain.recap.entity.Recap
 import com.retoday.core.domain.recap.entity.RecapSection
 import com.retoday.core.domain.recap.entity.RecapTimeline
