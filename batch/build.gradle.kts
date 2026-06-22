@@ -7,8 +7,11 @@ dependencies {
     implementation(libs.spring.batch)
     implementation(libs.spring.actuator)
     implementation(libs.prometheus)
+    implementation(libs.prometheus.pushgateway)
 
     testImplementation(testFixtures(project(":core")))
+    testImplementation(libs.spring.ai.gemini)
+    testImplementation(libs.jackson.kotlin)
     testImplementation(libs.bundles.test)
 
     testFixturesImplementation(testFixtures(project(":core")))

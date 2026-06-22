@@ -1,7 +1,7 @@
 package com.retoday.core.common
 
 import com.retoday.core.global.config.JdbcConfiguration
-import io.kotest.core.spec.style.StringSpec
+import io.kotest.core.spec.style.DescribeSpec
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
@@ -18,7 +18,7 @@ import org.testcontainers.junit.jupiter.Testcontainers as EnableTestContainers
 @AutoConfigureJooq
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ContextConfiguration(classes = [JdbcConfiguration::class])
-abstract class RepositoryTest : StringSpec() {
+abstract class RepositoryTest : DescribeSpec() {
     @Autowired
     protected lateinit var jdbcTemplate: JdbcTemplate
 
@@ -29,5 +29,6 @@ abstract class RepositoryTest : StringSpec() {
         private val mysql =
             MySQLContainer("mysql:8.0")
                 .withUrlParam("connectionTimeZone", "UTC")
+                .withUrlParam("useAffectedRows", "true")
     }
 }

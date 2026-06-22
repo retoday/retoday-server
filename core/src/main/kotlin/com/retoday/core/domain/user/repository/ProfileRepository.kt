@@ -10,4 +10,6 @@ interface ProfileRepository :
     JdbcRepository<Profile, UUID>,
     CustomProfileRepository {
     fun findByUserId(userId: UUID): Profile?
+
+    fun deleteByUserId(userId: UUID)
 }

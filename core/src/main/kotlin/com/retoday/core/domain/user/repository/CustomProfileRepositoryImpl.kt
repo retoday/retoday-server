@@ -3,10 +3,12 @@ package com.retoday.core.domain.user.repository
 import com.retoday.core.domain.user.dto.projection.ProfileWithEmailProjection
 import com.retoday.core.domain.user.entity.Profile
 import com.retoday.core.domain.user.entity.TimeZone
+import com.retoday.core.domain.user.entity.UserStatus
 import com.retoday.core.global.jooq.tables.Profile.Companion.PROFILE
 import com.retoday.core.global.jooq.tables.User.Companion.USER
 import org.jooq.DSLContext
 import java.util.*
+import com.retoday.core.global.jooq.enums.UserStatus as JooqUserStatus
 
 class CustomProfileRepositoryImpl(
     private val dsl: DSLContext
@@ -28,7 +30,10 @@ class CustomProfileRepositoryImpl(
             .where(USER.ID.equal(userId))
             .fetchOneInto(ProfileWithEmailProjection::class.java)
 
-    override fun findAllByIsActiveaAndTimeZoneIn(timeZones: Collection<TimeZone>): List<Profile> =
+    override fun findAllByStatusAndTimeZoneIn(
+        status: UserStatus,
+        timeZones: Collection<TimeZone>
+    ): List<Profile> =
         dsl
             .select(PROFILE)
             .from(PROFILE)
@@ -36,7 +41,7 @@ class CustomProfileRepositoryImpl(
             .on(USER.ID.equal(PROFILE.USER_ID))
             .where(
                 (PROFILE.TIME_ZONE.`in`(timeZones))
-                    .and(USER.IS_ACTIVE.equal(true))
+                    .and(USER.STATUS.equal(JooqUserStatus.valueOf(status.name)))
             )
             .fetchInto(Profile::class.java)
 }

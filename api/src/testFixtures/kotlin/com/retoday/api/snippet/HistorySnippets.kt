@@ -1,17 +1,7 @@
 package com.retoday.api.snippet
 
-import com.retoday.api.domain.history.dto.request.GetMyCategoryAnalysesRequest
-import com.retoday.api.domain.history.dto.request.GetMyFrequentlyVisitedWebsitesRequest
-import com.retoday.api.domain.history.dto.request.GetMyLongestStayedWebsiteRequest
-import com.retoday.api.domain.history.dto.request.GetMyScreenTimesRequest
-import com.retoday.api.domain.history.dto.request.GetMyWorkPatternRequest
-import com.retoday.api.domain.history.dto.request.RecordHistoryRequest
-import com.retoday.api.domain.history.dto.response.GetMyCategoryAnalysesResponse
-import com.retoday.api.domain.history.dto.response.GetMyFrequentlyVisitedWebsitesResponse
-import com.retoday.api.domain.history.dto.response.GetMyLongestStayedWebsiteResponse
-import com.retoday.api.domain.history.dto.response.GetMyScreenTimesResponse
-import com.retoday.api.domain.history.dto.response.GetMyWorkPatternResponse
-import com.retoday.api.domain.history.dto.response.RecordHistoryResponse
+import com.retoday.api.domain.history.dto.request.*
+import com.retoday.api.domain.history.dto.response.*
 import com.retoday.api.extension.desc
 import com.retoday.api.extension.fieldsOf
 import com.retoday.api.extension.listFieldsOf
@@ -66,10 +56,17 @@ val getMyCategoryAnalysisQueryFields =
 
 val getMyCategoryAnalysesResponseFields =
     fieldsOf(
+        GetMyCategoryAnalysesResponse::totalStayDuration desc "총 체류 시간",
         *listFieldsOf(
             listField = GetMyCategoryAnalysesResponse::categoryAnalyses desc "카테고리 분석",
             GetMyCategoryAnalysesResult.CategoryAnalysis::category desc "카테고리",
-            GetMyCategoryAnalysesResult.CategoryAnalysis::stayDuration desc "카테고리 체류 시간"
+            GetMyCategoryAnalysesResult.CategoryAnalysis::stayDuration desc "카테고리 체류 시간",
+            *listFieldsOf(
+                listField = GetMyCategoryAnalysesResult.CategoryAnalysis::websiteAnalyses desc "카테고리 내 웹사이트 분석",
+                GetMyCategoryAnalysesResult.WebsiteAnalysis::domain desc "도메인",
+                GetMyCategoryAnalysesResult.WebsiteAnalysis::faviconUrl desc "아이콘",
+                GetMyCategoryAnalysesResult.WebsiteAnalysis::stayDuration desc "웹사이트 체류시간"
+            )
         )
     )
 

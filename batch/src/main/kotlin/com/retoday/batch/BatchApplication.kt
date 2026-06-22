@@ -1,11 +1,16 @@
 package com.retoday.batch
 
+import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
+import kotlin.system.exitProcess
 
-@SpringBootApplication(scanBasePackages = ["com.retoday.batch", "com.retoday.core"])
+@SpringBootApplication
 class BatchApplication
 
 fun main(args: Array<String>) {
-    runApplication<BatchApplication>(*args)
+    val context = runApplication<BatchApplication>(*args)
+    val exitCode = SpringApplication.exit(context)
+
+    exitProcess(exitCode)
 }

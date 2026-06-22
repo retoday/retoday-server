@@ -18,11 +18,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 class SecurityConfiguration {
     private companion object {
         const val API_DOCS_ENDPOINT = "/docs/**"
-        const val ADMIN_ENDPOINT_PREFIX = "/api/v1/admin"
+        const val ADMIN_ENDPOINT_PREFIX = "/v1/admin"
         val PERMITTED_AUTH_ENDPOINTS =
             arrayOf(
-                "/api/v1/auth/login",
-                "/api/v1/auth/refresh"
+                "/v1/auth/login",
+                "/v1/auth/refresh"
             )
         val PERMITTED_ACTUATOR_ENDPOINTS =
             arrayOf(

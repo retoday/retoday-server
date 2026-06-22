@@ -32,70 +32,6 @@ class HistoryService(
         const val WWW_PREFIX = "www."
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    fun recordHistory(
-        userId: UUID,
-        command: RecordHistoryCommand
-    ): RecordHistoryResult =
-        with(command) {
-            if (!closedAt.isAfter(visitedAt)) {
-                throw InvalidTimeRangeException()
-            }
-
-            val domain = URI(url).host.removePrefix(WWW_PREFIX)
-            val userExcludedWebsiteDomains = userService.getExcludedDomains(userId)
-
-            if (userExcludedWebsiteDomains.any { it.includes(domain) }) {
-                throw WebsiteExcludedByUserException()
-            }
-
-            val website =
-                websiteService.upsertWebsite(
-                    UpsertWebsiteCommand(
-                        domain = domain,
-                        faviconUrl = faviconUrl
-                    )
-                )
-            val page =
-                pageService.upsertPage(
-                    UpsertPageCommand(
-                        websiteId = website.id!!,
-                        url = url,
-                        title = title,
-                        description = description
-                    )
-                )
-
-            if (historyRepository.existsByUserIdAndPageIdAndVisitedAtAfter(
-                    userId,
-                    page.id!!,
-                    visitedAt.minusSeconds(10)
-                )
-            ) {
-                throw DuplicateHistoryException()
-            }
-
-            val history =
-                historyRepository.save(
-                    History(
-                        userId = userId,
-                        websiteId = website.id,
-                        pageId = page.id,
-                        visitedAt = visitedAt,
-                        closedAt = closedAt,
-                        isClosed = isClosed,
-                        scrollDepth = scrollDepth
-                    )
-                )
-
-            RecordHistoryResult(
-                historyId = history.id!!,
-                pageId = page.id,
-                websiteId = website.id,
-                recordedAt = closedAt
-            )
-        }
-
     @Transactional(readOnly = true)
     fun getMyScreenTimes(
         userId: UUID,
@@ -319,5 +255,74 @@ class HistoryService(
             faviconUrl = logestStayedWebsite.faviconUrl,
             stayDuration = logestStayedWebsite.stayDuration
         )
+    }
+
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    fun recordHistory(
+        userId: UUID,
+        command: RecordHistoryCommand
+    ): RecordHistoryResult =
+        with(command) {
+            if (!closedAt.isAfter(visitedAt)) {
+                throw InvalidTimeRangeException()
+            }
+
+            val domain = URI(url).host.removePrefix(WWW_PREFIX)
+            val userExcludedWebsiteDomains = userService.getExcludedDomains(userId)
+
+            if (userExcludedWebsiteDomains.any { it.includes(domain) }) {
+                throw WebsiteExcludedByUserException()
+            }
+
+            val website =
+                websiteService.upsertWebsite(
+                    UpsertWebsiteCommand(
+                        domain = domain,
+                        faviconUrl = faviconUrl
+                    )
+                )
+            val page =
+                pageService.upsertPage(
+                    UpsertPageCommand(
+                        websiteId = website.id!!,
+                        url = url,
+                        title = title,
+                        description = description
+                    )
+                )
+
+            if (historyRepository.existsByUserIdAndPageIdAndVisitedAtAfter(
+                    userId,
+                    page.id!!,
+                    visitedAt.minusSeconds(10)
+                )
+            ) {
+                throw DuplicateHistoryException()
+            }
+
+            val history =
+                historyRepository.save(
+                    History(
+                        userId = userId,
+                        websiteId = website.id,
+                        pageId = page.id,
+                        visitedAt = visitedAt,
+                        closedAt = closedAt,
+                        isClosed = isClosed,
+                        scrollDepth = scrollDepth
+                    )
+                )
+
+            RecordHistoryResult(
+                historyId = history.id!!,
+                pageId = page.id,
+                websiteId = website.id,
+                recordedAt = closedAt
+            )
+        }
+
+    @Transactional
+    fun deleteMyHistories(userId: UUID) {
+        historyRepository.deleteAllByUserId(userId)
     }
 }

@@ -2,11 +2,11 @@ configuration:
   name: local
   status: info
   appenders:
-    console:
+    Console:
       name: console
       target: SYSTEM_OUT
       patternLayout:
-        pattern: "%clr{%d{yyyy-MM-dd HH:mm:ss.SSS}}{faint} %clr{[%p]} %clr{%c{1.}}{cyan}%clr{:}{faint}%equals{ [%X{traceId}]}{ []}{} %m%n%xwEx"
+        pattern: "%clr{%d{yyyy-MM-dd HH:mm:ss.SSS}{Asia/Seoul}}{faint} %clr{[%p]} %clr{%c{1.}}{cyan}%clr{:}{faint}%equals{ [%X{traceId}]}{ []}{} %m%n%xwEx"
   loggers:
     root:
       level: info

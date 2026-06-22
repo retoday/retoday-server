@@ -41,6 +41,13 @@ management:
       enabled: true
 logging:
   config: classpath:log4j2-${spring.profiles.active}.yaml
+frontend:
+  uris: https://localhost:3000
+sentry:
+  environment: ${spring.profiles.active}
+  in-app-includes:
+  - com.retoday
+  send-default-pii: true
 ---
 spring:
   config:
@@ -48,13 +55,18 @@ spring:
       on-profile: local
 frontend:
   uris: http://localhost:3000
+sentry:
+  enabled: false
 ---
 spring:
   config:
     activate:
       on-profile: dev
 frontend:
-  uris: ${WEB_URI},${EXTENSION_URI}
+  uris: ${FRONTEND_URIS}
+sentry:
+  dsn: ${SENTRY_DSN}
+  release: ${SENTRY_RELEASE}
 ---
 spring:
   config:
@@ -64,4 +76,7 @@ spring:
     resources:
       add-mappings: false
 frontend:
-  uris: ${WEB_URI},${EXTENSION_URI}
+  uris: ${FRONTEND_URIS}
+sentry:
+  dsn: ${SENTRY_DSN}
+  release: ${SENTRY_RELEASE}

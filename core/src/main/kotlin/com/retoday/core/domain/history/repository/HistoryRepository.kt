@@ -21,4 +21,6 @@ interface HistoryRepository :
         visitedAt: Instant,
         closedAt: Instant
     ): List<History>
+
+    fun deleteAllByUserId(userId: UUID)
 }
