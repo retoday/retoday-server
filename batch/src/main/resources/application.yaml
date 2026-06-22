@@ -45,13 +45,30 @@ spring:
   config:
     activate:
       on-profile: local
+management:
+  prometheus:
+    metrics:
+      export:
+        pushgateway:
+          enabled: false
 ---
 spring:
   config:
     activate:
-      on-profile: dev
----
-spring:
-  config:
-    activate:
-      on-profile: prod
+      on-profile:
+      - dev
+      - prod
+management:
+  prometheus:
+    metrics:
+      export:
+        pushgateway:
+          enabled: true
+          address: ${PROMETHEUS_PUSHGATEWAY_ADDRESS}
+          format: text
+          push-rate: 1m
+          job: ${spring.application.name}
+          shutdown-operation: put
+          grouping-key:
+            environment: ${spring.profiles.active}
+            cronjob: ${BATCH_CRONJOB_NAME}
