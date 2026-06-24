@@ -3,7 +3,6 @@ datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     data-source-properties:
       connectionTimeZone: UTC
-      useAffectedRows: true
 ---
 spring:
   config:
