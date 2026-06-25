@@ -57,6 +57,7 @@ jooq {
 
             database {
                 name = "org.jooq.meta.extensions.ddl.DDLDatabase"
+                excludes = "BATCH_.*"
 
                 properties {
                     property {

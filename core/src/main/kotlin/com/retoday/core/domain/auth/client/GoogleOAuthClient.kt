@@ -40,9 +40,9 @@ class GoogleOAuthClient(
                     id = getValue(ID_FIELD),
                     provider = socialProvider,
                     email = getValue(EMAIL_FIELD),
-                    firstName = getValue(FIRST_NAME_FIELD),
-                    lastName = getValue(LAST_NAME_FIELD),
-                    imageUrl = getValue(IMAGE_URL_FIELD)
+                    firstName = get(FIRST_NAME_FIELD),
+                    lastName = get(LAST_NAME_FIELD),
+                    imageUrl = get(IMAGE_URL_FIELD)
                 )
             }
 
