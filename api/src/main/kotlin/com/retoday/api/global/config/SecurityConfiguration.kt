@@ -71,12 +71,6 @@ class SecurityConfiguration {
         SecurityExceptionHandler(objectMapper = objectMapper)
 
     @Bean
-    fun jwtAuthenticationFilter(
-        jwtProvider: JwtProvider,
-        objectMapper: ObjectMapper
-    ): JwtAuthenticationFilter =
-        JwtAuthenticationFilter(
-            jwtProvider = jwtProvider,
-            objectMapper = objectMapper
-        )
+    fun jwtAuthenticationFilter(jwtProvider: JwtProvider): JwtAuthenticationFilter =
+        JwtAuthenticationFilter(jwtProvider = jwtProvider)
 }
