@@ -7,6 +7,8 @@ import com.retoday.core.domain.history.dto.projection.WebsiteWithStayDurationVis
 import com.retoday.core.domain.history.entity.WebsiteCategory
 import com.retoday.core.domain.recap.dto.projection.RecapSourceProjection
 import com.retoday.core.domain.user.entity.TimeZone
+import com.retoday.core.global.extension.fetchInto
+import com.retoday.core.global.extension.fetchOneInto
 import com.retoday.core.global.jooq.tables.History.Companion.HISTORY
 import com.retoday.core.global.jooq.tables.Page.Companion.PAGE
 import com.retoday.core.global.jooq.tables.Website.Companion.WEBSITE
@@ -44,7 +46,7 @@ class CustomHistoryRepositoryImpl(
             )
             .groupBy(HISTORY.WEBSITE_ID)
             .orderBy(stayDuration.desc())
-            .fetchInto(WebsiteWithStayDurationProjection::class.java)
+            .fetchInto()
     }
 
     override fun findWebsitesWithVisitCountAndStayDuration(
@@ -75,7 +77,7 @@ class CustomHistoryRepositoryImpl(
             .groupBy(HISTORY.WEBSITE_ID)
             .orderBy(visitCount.desc(), stayDuration.desc())
             .limit(limit)
-            .fetchInto(WebsiteWithStayDurationVisitCountProjection::class.java)
+            .fetchInto()
     }
 
     override fun findHourlyHistoryCounts(
@@ -107,7 +109,7 @@ class CustomHistoryRepositoryImpl(
             )
             .groupBy(hour)
             .orderBy(hour)
-            .fetchInto(HourlyHistoryCountProjection::class.java)
+            .fetchInto()
     }
 
     override fun findLongestStayedWebsite(
@@ -134,7 +136,7 @@ class CustomHistoryRepositoryImpl(
             .groupBy(HISTORY.WEBSITE_ID)
             .orderBy(stayDuration.desc())
             .limit(1)
-            .fetchOneInto(LogestStayedWebsiteProjection::class.java)
+            .fetchOneInto()
     }
 
     override fun findRecapSources(
@@ -179,7 +181,7 @@ class CustomHistoryRepositoryImpl(
             .and(HISTORY.VISITED_AT.greaterOrEqual(startedAt))
             .and(HISTORY.VISITED_AT.lessThan(endedAt))
             .orderBy(HISTORY.VISITED_AT)
-            .fetchInto(RecapSourceProjection::class.java)
+            .fetchInto()
     }
 
     private fun stayDuration(
@@ -198,9 +200,9 @@ class CustomHistoryRepositoryImpl(
                     """,
                     Long::class.java,
                     HISTORY.VISITED_AT,
-                    DSL.value(startedAt, HISTORY.VISITED_AT),
+                    startedAt,
                     HISTORY.CLOSED_AT,
-                    DSL.value(endedAt, HISTORY.CLOSED_AT)
+                    endedAt
                 )
             )
             .coerce(Long::class.java)
