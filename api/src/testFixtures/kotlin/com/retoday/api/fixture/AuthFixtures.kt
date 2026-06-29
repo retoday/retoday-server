@@ -15,7 +15,7 @@ fun createRetodayAuthentication(
     role: Role = Role.MEMBER
 ): RetodayAuthentication =
     RetodayAuthentication(
-        id = id,
+        userId = id,
         role = role
     )
 

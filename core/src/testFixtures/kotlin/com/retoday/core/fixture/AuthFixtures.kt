@@ -16,7 +16,7 @@ val EXPIRATION = Duration.ofHours(1)!!
 fun createRefreshToken(
     userId: UUID = ID,
     content: String = TOKEN,
-    expiration: Long = EXPIRATION.seconds
+    expiration: Duration = EXPIRATION
 ): RefreshToken =
     RefreshToken(
         userId = userId,

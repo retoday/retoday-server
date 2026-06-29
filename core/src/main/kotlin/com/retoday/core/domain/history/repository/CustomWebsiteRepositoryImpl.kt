@@ -33,7 +33,7 @@ class CustomWebsiteRepositoryImpl(
             dsl
                 .select(WEBSITE.ID)
                 .from(WEBSITE)
-                .where(WEBSITE.DOMAIN.eq(website.domain))
+                .where(WEBSITE.DOMAIN.equal(website.domain))
                 .fetchOne(WEBSITE.ID)
 
         return persistedId == websiteId
