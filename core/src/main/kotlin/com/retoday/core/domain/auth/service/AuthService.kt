@@ -139,7 +139,7 @@ class AuthService(
             RefreshToken(
                 userId = id!!,
                 content = refreshToken,
-                expiration = refreshTokenExpiration
+                expiration = refreshTokenExpiration.seconds
             )
         )
 
