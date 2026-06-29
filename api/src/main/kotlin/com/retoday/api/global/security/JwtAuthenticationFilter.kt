@@ -29,13 +29,15 @@ class JwtAuthenticationFilter(
         if (header?.startsWith(AUTHORIZATION_HEADER_PREFIX) == true) {
             val token = header.removePrefix(AUTHORIZATION_HEADER_PREFIX)
 
-            try {
-                val payload = jwtProvider.extractPayload<AuthenticationTokenPayload>(token)
+            if (token.isNotEmpty()) {
+                try {
+                    val payload = jwtProvider.extractPayload<AuthenticationTokenPayload>(token)
 
-                if (payload.tokenType == TokenType.ACCESS) {
-                    SecurityContextHolder.getContext().authentication = RetodayAuthentication.from(payload)
+                    if (payload.tokenType == TokenType.ACCESS) {
+                        SecurityContextHolder.getContext().authentication = RetodayAuthentication.from(payload)
+                    }
+                } catch (_: JwtException) {
                 }
-            } catch (_: JwtException) {
             }
         }
 
