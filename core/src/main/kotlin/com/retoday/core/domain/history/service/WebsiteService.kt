@@ -26,7 +26,7 @@ class WebsiteService(
     @Transactional
     fun upsertWebsite(command: UpsertWebsiteCommand): Website =
         with(command) {
-            val rows =
+            val inserted =
                 websiteRepository.upsertByDomain(
                     Website(
                         domain = domain,
@@ -37,7 +37,7 @@ class WebsiteService(
             websiteRepository
                 .getByDomain(domain)
                 .apply {
-                    if (rows == 1) {
+                    if (inserted) {
                         eventPublisher.publishEvent(
                             RecordHistoryEvent(
                                 websiteId = id!!

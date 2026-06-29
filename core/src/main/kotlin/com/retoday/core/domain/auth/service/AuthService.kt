@@ -3,6 +3,8 @@ package com.retoday.core.domain.auth.service
 import com.retoday.core.domain.auth.client.OAuthClient
 import com.retoday.core.domain.auth.dto.command.LoginCommand
 import com.retoday.core.domain.auth.dto.command.RefreshCommand
+import com.retoday.core.domain.auth.dto.model.AuthenticationTokenPayload
+import com.retoday.core.domain.auth.dto.model.TokenType
 import com.retoday.core.domain.auth.dto.request.GetOAuthUserRequest
 import com.retoday.core.domain.auth.dto.result.LoginResult
 import com.retoday.core.domain.auth.dto.result.RefreshResult
@@ -15,13 +17,16 @@ import com.retoday.core.domain.user.entity.User
 import com.retoday.core.domain.user.exception.UserNotFoundException
 import com.retoday.core.domain.user.repository.ProfileRepository
 import com.retoday.core.domain.user.repository.UserRepository
+import com.retoday.core.global.extension.extractPayload
 import com.retoday.core.global.extension.transaction
-import com.retoday.core.global.jwt.JwtProperties
 import com.retoday.core.global.jwt.JwtProvider
+import io.jsonwebtoken.JwtException
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
+import java.time.Duration
 import java.util.*
 
 @Service
@@ -31,7 +36,10 @@ class AuthService(
     private val refreshTokenRepository: RefreshTokenRepository,
     private val oAuthClients: List<OAuthClient>,
     private val jwtProvider: JwtProvider,
-    private val jwtProperties: JwtProperties
+    @Value($$"${jwt.access-token-expiration}")
+    private val accessTokenExpiration: Duration,
+    @Value($$"${jwt.refresh-token-expiration}")
+    private val refreshTokenExpiration: Duration
 ) {
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     fun login(command: LoginCommand): LoginResult {
@@ -85,18 +93,28 @@ class AuthService(
 
     @Transactional
     fun refresh(command: RefreshCommand): RefreshResult {
-        val userId = jwtProvider.extractUserId(command.refreshToken)
+        val payload =
+            try {
+                jwtProvider.extractPayload<AuthenticationTokenPayload>(command.refreshToken)
+            } catch (_: JwtException) {
+                throw InvalidAuthenticationException()
+            }
+
+        if (payload.tokenType != TokenType.REFRESH) {
+            throw InvalidAuthenticationException()
+        }
+
         val refreshToken =
-            refreshTokenRepository.findByIdOrNull(userId)
+            refreshTokenRepository.findByIdOrNull(payload.userId)
                 ?: throw RefreshTokenNotFoundException()
 
         if (refreshToken.content != command.refreshToken) {
-            refreshTokenRepository.deleteById(userId)
+            refreshTokenRepository.deleteById(payload.userId)
 
             throw InvalidAuthenticationException()
         }
 
-        val user = userRepository.findByIdOrNull(userId) ?: throw UserNotFoundException()
+        val user = userRepository.findByIdOrNull(payload.userId) ?: throw UserNotFoundException()
         val (newAccessToken, newRefreshToken) = user.createTokens()
 
         return RefreshResult(
@@ -105,20 +123,25 @@ class AuthService(
         )
     }
 
+    /**
+     * 사용자의 액세스 토큰과 리프레시 토큰을 생성하고, 생성한 리프레시 토큰을 저장한다.
+     *
+     * @receiver 토큰을 생성할 사용자
+     * @return 액세스 토큰과 리프레시 토큰
+     */
     private fun User.createTokens(): Pair<String, String> {
-        val accessToken = jwtProvider.createToken(jwtProperties.accessTokenExpiration, this)
+        val accessToken =
+            jwtProvider.createToken(accessTokenExpiration, AuthenticationTokenPayload.of(this, TokenType.ACCESS))
         val refreshToken =
-            jwtProvider
-                .createToken(jwtProperties.refreshTokenExpiration, this)
-                .also {
-                    refreshTokenRepository.save(
-                        RefreshToken(
-                            userId = id!!,
-                            content = it,
-                            expiration = jwtProperties.refreshTokenExpiration.seconds
-                        )
-                    )
-                }
+            jwtProvider.createToken(refreshTokenExpiration, AuthenticationTokenPayload.of(this, TokenType.REFRESH))
+
+        refreshTokenRepository.save(
+            RefreshToken(
+                userId = id!!,
+                content = refreshToken,
+                expiration = refreshTokenExpiration.seconds
+            )
+        )
 
         return accessToken to refreshToken
     }

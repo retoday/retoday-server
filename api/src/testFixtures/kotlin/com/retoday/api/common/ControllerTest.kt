@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs
 import org.springframework.restdocs.RestDocumentationContextProvider
 import org.springframework.restdocs.webtestclient.WebTestClientRestDocumentation
+import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.servlet.client.MockMvcWebTestClient
 import org.springframework.web.context.WebApplicationContext
 
@@ -26,13 +27,13 @@ abstract class ControllerTest(
     @Autowired
     private lateinit var restDocumentationContextProvider: RestDocumentationContextProvider
 
-    protected val webClient by lazy {
+    protected val webClient: WebTestClient by lazy {
         MockMvcWebTestClient
             .bindToApplicationContext(webApplicationContext)
             .configureClient()
             .baseUrl("/v$version")
             .filter(WebTestClientRestDocumentation.documentationConfiguration(restDocumentationContextProvider))
-            .build()!!
+            .build()
     }
 
     override suspend fun beforeSpec(spec: Spec) {

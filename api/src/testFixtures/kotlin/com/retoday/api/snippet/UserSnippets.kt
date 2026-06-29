@@ -7,6 +7,7 @@ import com.retoday.api.domain.user.dto.request.WithdrawRequest
 import com.retoday.api.domain.user.dto.response.GetMyProfileResponse
 import com.retoday.api.extension.desc
 import com.retoday.api.extension.fieldsOf
+import com.retoday.api.extension.optional
 
 val addMyExcludedDomainRequestFields =
     fieldsOf(
@@ -32,9 +33,9 @@ val updateMyProfileRequestFields =
 val getMyProfileResponseFields =
     fieldsOf(
         GetMyProfileResponse::email desc "이메일",
-        GetMyProfileResponse::firstName desc "이름",
-        GetMyProfileResponse::lastName desc "성",
-        GetMyProfileResponse::imageUrl desc "프로필 이미지 URL",
+        optional(GetMyProfileResponse::firstName desc "이름"),
+        optional(GetMyProfileResponse::lastName desc "성"),
+        optional(GetMyProfileResponse::imageUrl desc "프로필 이미지 URL"),
         GetMyProfileResponse::timeZone desc "타임존",
         GetMyProfileResponse::language desc "언어",
         GetMyProfileResponse::recapPeriod desc "리캡 생성 주기",

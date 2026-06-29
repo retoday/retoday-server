@@ -29,6 +29,5 @@ abstract class RepositoryTest : DescribeSpec() {
         private val mysql =
             MySQLContainer("mysql:8.0")
                 .withUrlParam("connectionTimeZone", "UTC")
-                .withUrlParam("useAffectedRows", "true")
     }
 }

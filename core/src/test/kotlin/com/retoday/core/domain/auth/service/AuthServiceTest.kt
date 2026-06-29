@@ -2,17 +2,19 @@ package com.retoday.core.domain.auth.service
 
 import com.retoday.core.common.ServiceTest
 import com.retoday.core.domain.auth.client.OAuthClient
+import com.retoday.core.domain.auth.dto.model.AuthenticationTokenPayload
+import com.retoday.core.domain.auth.dto.model.TokenType
 import com.retoday.core.domain.auth.dto.result.LoginResult
 import com.retoday.core.domain.auth.exception.InvalidAuthenticationException
 import com.retoday.core.domain.auth.exception.RefreshTokenNotFoundException
 import com.retoday.core.domain.auth.repository.RefreshTokenRepository
+import com.retoday.core.domain.user.entity.Role
 import com.retoday.core.domain.user.entity.SocialProvider
 import com.retoday.core.domain.user.entity.User
 import com.retoday.core.domain.user.exception.UserNotFoundException
 import com.retoday.core.domain.user.repository.ProfileRepository
 import com.retoday.core.domain.user.repository.UserRepository
 import com.retoday.core.fixture.*
-import com.retoday.core.global.jwt.JwtProperties
 import com.retoday.core.global.jwt.JwtProvider
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -28,7 +30,6 @@ class AuthServiceTest : ServiceTest() {
     private val refreshTokenRepository = mockk<RefreshTokenRepository>()
     private val oAuthClient = mockk<OAuthClient>()
     private val jwtProvider = mockk<JwtProvider>()
-    private val jwtProperties = mockk<JwtProperties>()
 
     private val authService =
         AuthService(
@@ -37,19 +38,18 @@ class AuthServiceTest : ServiceTest() {
             refreshTokenRepository = refreshTokenRepository,
             oAuthClients = listOf(oAuthClient),
             jwtProvider = jwtProvider,
-            jwtProperties = jwtProperties
+            accessTokenExpiration = EXPIRATION,
+            refreshTokenExpiration = EXPIRATION
         )
 
     init {
-        every {
-            jwtProvider.createToken(
-                any<java.time.Duration>(),
-                any<User>()
+        every { jwtProvider.createToken(any(), any<AuthenticationTokenPayload>()) } returns TOKEN
+        every { jwtProvider.extractPayload(any(), AuthenticationTokenPayload::class) } returns
+            AuthenticationTokenPayload(
+                userId = ID,
+                role = Role.MEMBER,
+                tokenType = TokenType.REFRESH
             )
-        } returns TOKEN
-        every { jwtProvider.extractUserId(any()) } returns ID
-        every { jwtProperties.accessTokenExpiration } returns EXPIRATION
-        every { jwtProperties.refreshTokenExpiration } returns EXPIRATION
         every { oAuthClient.socialProvider } returns SocialProvider.GOOGLE
 
         Given("기존 사용자가 로그인하면") {

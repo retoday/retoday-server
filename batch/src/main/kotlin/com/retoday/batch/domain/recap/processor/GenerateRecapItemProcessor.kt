@@ -71,7 +71,6 @@ class GenerateRecapItemProcessor(
                 {
                     recapClient.generateRecap(
                         GenerateRecapRequest(
-                            name = profile.firstName,
                             language = profile.language,
                             statistics = recapStatistics
                         )

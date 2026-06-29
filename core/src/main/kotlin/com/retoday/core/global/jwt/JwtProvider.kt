@@ -1,67 +1,50 @@
 package com.retoday.core.global.jwt
 
-import com.retoday.core.domain.auth.exception.InvalidAuthenticationException
-import com.retoday.core.domain.user.entity.User
-import io.jsonwebtoken.JwtException
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.convertValue
 import io.jsonwebtoken.Jwts
+import io.jsonwebtoken.security.Keys
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.time.Duration
 import java.util.*
+import kotlin.reflect.KClass
 
 @Component
 class JwtProvider(
-    private val jwtProperties: JwtProperties
+    private val objectMapper: ObjectMapper,
+    @Value($$"${jwt.secret}")
+    secret: String
 ) {
-    companion object {
-        private const val TOKEN_ISSUER = "retoday"
-        const val USER_ID_CLAIM = "id"
-        const val USER_ROLE_CLAIM = "role"
-    }
+    private val secretKey =
+        Base64
+            .getDecoder()
+            .decode(secret)
+            .let { Keys.hmacShaKeyFor(it) }
 
-    fun createToken(
+    fun <T> createToken(
         expiration: Duration,
-        user: User
-    ): String =
-        with(user) {
-            createToken(
-                expiration,
-                mapOf(
-                    USER_ID_CLAIM to id.toString(),
-                    USER_ROLE_CLAIM to role
-                )
-            )
-        }
-
-    fun extractUserId(token: String): UUID =
-        try {
-            extractPayload(token)
-                .run { get(USER_ID_CLAIM) as String }
-                .let(UUID::fromString)
-        } catch (exception: JwtException) {
-            throw InvalidAuthenticationException()
-        }
-
-    fun createToken(
-        expiration: Duration,
-        payload: Map<String, *>
+        payload: T
     ): String {
         val now = Date()
 
         return Jwts
             .builder()
-            .issuedAt(now)
             .expiration(Date(now.time + expiration.toMillis()))
-            .issuer(TOKEN_ISSUER)
-            .claims(payload)
-            .signWith(jwtProperties.secretKey)
+            .claims(objectMapper.convertValue(payload))
+            .signWith(secretKey)
             .compact()
     }
 
-    fun extractPayload(token: String): Map<String, *> =
+    fun <T : Any> extractPayload(
+        token: String,
+        type: KClass<T>
+    ): T =
         Jwts
             .parser()
-            .verifyWith(jwtProperties.secretKey)
+            .verifyWith(secretKey)
             .build()
             .parseSignedClaims(token)
             .payload
+            .let { objectMapper.convertValue(it, type.java) }
 }

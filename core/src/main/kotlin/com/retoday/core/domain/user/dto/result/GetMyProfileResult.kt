@@ -6,9 +6,9 @@ import com.retoday.core.domain.user.entity.TimeZone
 import java.time.LocalTime
 
 data class GetMyProfileResult(
-    val firstName: String,
-    val lastName: String,
-    val imageUrl: String,
+    val firstName: String?,
+    val lastName: String?,
+    val imageUrl: String?,
     val timeZone: TimeZone,
     val language: Language,
     val recapPeriod: LocalTime?,

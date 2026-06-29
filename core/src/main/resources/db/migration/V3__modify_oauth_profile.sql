@@ -1,0 +1,6 @@
+ALTER TABLE profile
+    MODIFY COLUMN first_name VARCHAR(255) NULL;
+ALTER TABLE profile
+    MODIFY COLUMN last_name VARCHAR(255) NULL;
+ALTER TABLE profile
+    MODIFY COLUMN image_url VARCHAR(255) NULL;
