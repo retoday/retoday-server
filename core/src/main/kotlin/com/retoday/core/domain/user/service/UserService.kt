@@ -19,7 +19,8 @@ import com.retoday.core.domain.user.repository.UserRepository
 import com.retoday.core.global.extension.transaction
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
-import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.dao.DuplicateKeyException
+import org.springframework.data.relational.core.conversion.DbActionExecutionException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
@@ -60,8 +61,8 @@ class UserService(
                     domain = normalizedDomain
                 )
             )
-        } catch (exception: DataIntegrityViolationException) {
-            if (userExcludedWebsiteRepository.existsByUserIdAndDomain(userId, normalizedDomain)) {
+        } catch (exception: DbActionExecutionException) {
+            if (exception.cause is DuplicateKeyException) {
                 throw ExcludedDomainAlreadyExistsException()
             }
 
@@ -75,7 +76,10 @@ class UserService(
         userId: UUID,
         command: DeleteMyExcludedDomainCommand
     ) {
-        val normalizedDomain = command.domain.trim().lowercase()
+        val normalizedDomain =
+            command.domain
+                .trim()
+                .lowercase()
 
         userExcludedWebsiteRepository.deleteByUserIdAndDomain(userId, normalizedDomain)
     }
