@@ -19,4 +19,4 @@ CREATE UNIQUE INDEX uk_website_category_classification_outbox_website_id
     ON website_category_classification_outbox (website_id);
 
 CREATE INDEX idx_website_category_classification_outbox_polling
-    ON website_category_classification_outbox (status, attempted_at, created_at, id);
+    ON website_category_classification_outbox (status, attempted_at, created_at);

@@ -30,7 +30,7 @@ class CustomWebsiteCategoryClassificationOutboxRepositoryImpl(
             .where(
                 OUTBOX.STATUS.equal(DSL.value(WebsiteCategoryClassificationOutboxStatus.PENDING, OUTBOX.STATUS))
                     .and(
-                        OUTBOX.ATTEMPTED_AT.isNull
+                        OUTBOX.ATTEMPTED_AT.isNull()
                             .or(OUTBOX.ATTEMPTED_AT.lessOrEqual(retryableAttemptedBefore))
                     )
                     .or(
@@ -41,8 +41,7 @@ class CustomWebsiteCategoryClassificationOutboxRepositoryImpl(
             )
             .orderBy(
                 OUTBOX.ATTEMPTED_AT.asc(),
-                OUTBOX.CREATED_AT.asc(),
-                OUTBOX.ID.asc()
+                OUTBOX.CREATED_AT.asc()
             )
             .limit(1)
             .forUpdate()
