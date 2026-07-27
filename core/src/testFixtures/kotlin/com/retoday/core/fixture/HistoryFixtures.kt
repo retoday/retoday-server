@@ -4,10 +4,7 @@ import com.retoday.core.domain.history.dto.command.RecordHistoryCommand
 import com.retoday.core.domain.history.dto.projection.WebsiteWithStayDurationProjection
 import com.retoday.core.domain.history.dto.projection.WebsiteWithStayDurationVisitCountProjection
 import com.retoday.core.domain.history.dto.result.*
-import com.retoday.core.domain.history.entity.History
-import com.retoday.core.domain.history.entity.Page
-import com.retoday.core.domain.history.entity.Website
-import com.retoday.core.domain.history.entity.WebsiteCategory
+import com.retoday.core.domain.history.entity.*
 import com.retoday.core.domain.user.entity.TimeZone
 import java.time.Duration
 import java.time.Instant
@@ -76,6 +73,27 @@ fun createWebsite(
         domain = domain,
         category = category,
         faviconUrl = faviconUrl
+    )
+
+fun createWebsiteCategoryClassificationOutbox(
+    id: UUID? = null,
+    websiteId: UUID = ID,
+    status: WebsiteCategoryClassificationOutboxStatus = WebsiteCategoryClassificationOutboxStatus.PENDING,
+    attemptCount: Int = 0,
+    attemptedAt: Instant? = null,
+    lastErrorMessage: String? = null,
+    createdAt: Instant = Instant.parse("2026-07-21T00:00:00Z"),
+    version: Long? = null
+): WebsiteCategoryClassificationOutbox =
+    WebsiteCategoryClassificationOutbox(
+        id = id,
+        websiteId = websiteId,
+        status = status,
+        attemptCount = attemptCount,
+        attemptedAt = attemptedAt,
+        lastErrorMessage = lastErrorMessage,
+        createdAt = createdAt,
+        version = version
     )
 
 fun createWebsiteCategory(code: WebsiteCategory = WebsiteCategory.DEVELOPMENT): WebsiteCategory = code

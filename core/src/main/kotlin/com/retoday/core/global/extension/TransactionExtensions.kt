@@ -7,7 +7,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition
 import org.springframework.transaction.support.TransactionTemplate
 
 @Component
-private class TransactionWrapper {
+class TransactionWrapper {
     constructor(transactionManager: PlatformTransactionManager) {
         TransactionWrapper.transactionManager = transactionManager
     }
@@ -28,7 +28,7 @@ private class TransactionWrapper {
                     }
             val transactionTemplate = TransactionTemplate(transactionManager, transactionDefinition)
 
-            return transactionTemplate.execute { func() }!!
+            return transactionTemplate.execute { func() } as T
         }
     }
 }
