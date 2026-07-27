@@ -1,8 +1,7 @@
-package com.retoday.api.domain.recap
+package com.retoday.api.domain.recap.controller
 
 import com.ninjasquad.springmockk.MockkBean
 import com.retoday.api.common.ControllerTest
-import com.retoday.api.domain.recap.controller.RecapController
 import com.retoday.api.domain.recap.dto.response.GetMyRecapResponse
 import com.retoday.api.extension.document
 import com.retoday.api.extension.expectBody
