@@ -26,6 +26,10 @@ class WebsiteCategoryOutboxService(
 
     private val logger = getLogger()
 
+    /**
+     * 처리 가능한 Outbox 한 건을 선점하여 웹사이트 카테고리를 분류한다.
+     * 분류에 실패한 항목은 다시 `PENDING`으로 돌려 재시도하며, 최대 시도 횟수를 넘기면 `FAILED`로 종료한다.
+     */
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     fun processNextOutbox() {
         val now = Instant.now()
