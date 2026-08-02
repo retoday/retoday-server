@@ -42,8 +42,8 @@ class CustomProfileRepositoryImpl(
             .join(USER)
             .on(USER.ID.equal(PROFILE.USER_ID))
             .where(
-                (PROFILE.TIME_ZONE.`in`(timeZones))
-                    .and(USER.STATUS.equal(DSL.value(status.name, USER.STATUS)))
+                PROFILE.TIME_ZONE.`in`(timeZones)
+                    .and(USER.STATUS.equal(DSL.value(status, USER.STATUS)))
             )
             .fetchInto()
 }

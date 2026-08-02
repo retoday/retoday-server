@@ -1,8 +1,7 @@
-package com.retoday.api.domain.user
+package com.retoday.api.domain.user.controller
 
 import com.ninjasquad.springmockk.MockkBean
 import com.retoday.api.common.ControllerTest
-import com.retoday.api.domain.user.controller.ProfileController
 import com.retoday.api.domain.user.dto.request.UpdateMyProfileRequest
 import com.retoday.api.domain.user.dto.response.GetMyProfileResponse
 import com.retoday.api.extension.document

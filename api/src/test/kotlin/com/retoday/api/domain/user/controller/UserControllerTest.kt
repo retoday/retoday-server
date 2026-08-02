@@ -1,8 +1,7 @@
-package com.retoday.api.domain.user
+package com.retoday.api.domain.user.controller
 
 import com.ninjasquad.springmockk.MockkBean
 import com.retoday.api.common.ControllerTest
-import com.retoday.api.domain.user.controller.UserController
 import com.retoday.api.domain.user.dto.request.AddMyExcludedDomainRequest
 import com.retoday.api.domain.user.dto.request.DeleteMyExcludedDomainRequest
 import com.retoday.api.domain.user.dto.request.WithdrawRequest

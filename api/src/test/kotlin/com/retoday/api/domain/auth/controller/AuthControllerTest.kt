@@ -1,8 +1,7 @@
-package com.retoday.api.domain.auth
+package com.retoday.api.domain.auth.controller
 
 import com.ninjasquad.springmockk.MockkBean
 import com.retoday.api.common.ControllerTest
-import com.retoday.api.domain.auth.controller.AuthController
 import com.retoday.api.domain.auth.dto.response.LoginResponse
 import com.retoday.api.domain.auth.dto.response.RefreshResponse
 import com.retoday.api.extension.*

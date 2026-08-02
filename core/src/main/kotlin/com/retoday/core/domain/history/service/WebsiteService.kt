@@ -1,27 +1,28 @@
 package com.retoday.core.domain.history.service
 
 import com.retoday.core.domain.history.client.WebsiteClient
+import com.retoday.core.domain.history.dto.command.CategorizeWebsiteCommand
 import com.retoday.core.domain.history.dto.command.UpsertWebsiteCommand
-import com.retoday.core.domain.history.dto.event.RecordHistoryEvent
 import com.retoday.core.domain.history.dto.request.CategorizeWebsiteRequest
 import com.retoday.core.domain.history.entity.Website
+import com.retoday.core.domain.history.entity.WebsiteCategory
+import com.retoday.core.domain.history.entity.WebsiteCategoryClassificationOutbox
 import com.retoday.core.domain.history.exception.WebsiteCategoryAlreadyExistsException
 import com.retoday.core.domain.history.exception.WebsiteNotFoundException
+import com.retoday.core.domain.history.repository.WebsiteCategoryClassificationOutboxRepository
 import com.retoday.core.domain.history.repository.WebsiteRepository
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
-import java.util.*
 
 @Service
 class WebsiteService(
     private val websiteRepository: WebsiteRepository,
+    private val websiteCategoryClassificationOutboxRepository: WebsiteCategoryClassificationOutboxRepository,
     @Qualifier("geminiWebsiteClient")
-    private val websiteClient: WebsiteClient,
-    private val eventPublisher: ApplicationEventPublisher
+    private val websiteClient: WebsiteClient
 ) {
     @Transactional
     fun upsertWebsite(command: UpsertWebsiteCommand): Website =
@@ -38,8 +39,8 @@ class WebsiteService(
                 .getByDomain(domain)
                 .apply {
                     if (inserted) {
-                        eventPublisher.publishEvent(
-                            RecordHistoryEvent(
+                        websiteCategoryClassificationOutboxRepository.save(
+                            WebsiteCategoryClassificationOutbox(
                                 websiteId = id!!
                             )
                         )
@@ -48,9 +49,9 @@ class WebsiteService(
         }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    fun categorizeWebsite(websiteId: UUID): Website {
+    fun categorizeWebsite(command: CategorizeWebsiteCommand): Website {
         val website =
-            websiteRepository.findByIdOrNull(websiteId)
+            websiteRepository.findByIdOrNull(command.websiteId)
                 ?: throw WebsiteNotFoundException()
 
         if (website.category != null) {
@@ -60,7 +61,8 @@ class WebsiteService(
         val categorizeWebsiteResponse =
             websiteClient.categorizeWebsite(
                 CategorizeWebsiteRequest(
-                    domain = website.domain
+                    domain = website.domain,
+                    categories = WebsiteCategory.entries
                 )
             )
 
