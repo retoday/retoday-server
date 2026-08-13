@@ -40,7 +40,7 @@ class DashboardService(
 
             GetMyDashboardResult(
                 getScreenTimeResult =
-                    getScreenTimes(
+                    getScreenTime(
                         GetScreenTimeQuery(
                             screenTimeUnit = period.screenTimeUnit,
                             startedAt = startedAt,
@@ -76,7 +76,7 @@ class DashboardService(
             )
         }
 
-    private fun getScreenTimes(query: GetScreenTimeQuery): GetScreenTimeResult =
+    private fun getScreenTime(query: GetScreenTimeQuery): GetScreenTimeResult =
         with(query) {
             val bucketCount = ((endedAt - startedAt) / screenTimeUnit).toInt()
             val stayDurations = MutableList(bucketCount) { Duration.ZERO }
