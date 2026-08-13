@@ -1,8 +1,8 @@
-package com.retoday.core.domain.history.dto.projection
+package com.retoday.core.domain.history.dto.result
 
 import java.time.Duration
 
-data class LogestStayedWebsiteProjection(
+data class GetLongestStayedWebsiteResult(
     val domain: String,
     val faviconUrl: String?,
     val stayDuration: Duration

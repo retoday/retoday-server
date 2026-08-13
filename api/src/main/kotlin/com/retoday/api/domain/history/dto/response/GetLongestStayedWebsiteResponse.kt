@@ -1,17 +1,17 @@
 package com.retoday.api.domain.history.dto.response
 
-import com.retoday.core.domain.history.dto.result.GetMyLongestStayedWebsiteResult
+import com.retoday.core.domain.history.dto.result.GetLongestStayedWebsiteResult
 import java.time.Duration
 
-data class GetMyLongestStayedWebsiteResponse(
-    val domain: String?,
+data class GetLongestStayedWebsiteResponse(
+    val domain: String,
     val faviconUrl: String?,
     val stayDuration: Duration
 ) {
     companion object {
-        fun from(result: GetMyLongestStayedWebsiteResult): GetMyLongestStayedWebsiteResponse =
+        fun from(result: GetLongestStayedWebsiteResult): GetLongestStayedWebsiteResponse =
             with(result) {
-                GetMyLongestStayedWebsiteResponse(
+                GetLongestStayedWebsiteResponse(
                     domain = domain,
                     faviconUrl = faviconUrl,
                     stayDuration = stayDuration

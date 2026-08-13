@@ -1,82 +1,49 @@
 package com.retoday.batch.domain.recap.service
 
 import com.retoday.core.common.ServiceTest
-import com.retoday.core.domain.history.dto.query.GetMyCategoryAnalysisQuery
-import com.retoday.core.domain.history.dto.query.GetMyFrequentlyVisitedWebsitesQuery
-import com.retoday.core.domain.history.dto.query.GetMyLongestStayedWebsiteQuery
-import com.retoday.core.domain.history.dto.query.GetMyScreenTimesQuery
-import com.retoday.core.domain.history.service.HistoryService
+import com.retoday.core.domain.history.dto.query.GetMyDashboardQuery
+import com.retoday.core.domain.history.dto.query.GetMyDashboardQuery.DashboardPeriod
+import com.retoday.core.domain.history.service.DashboardService
 import com.retoday.core.domain.recap.dto.model.RecapStatistics
 import com.retoday.core.domain.user.entity.TimeZone
-import com.retoday.core.fixture.*
+import com.retoday.core.fixture.ID
+import com.retoday.core.fixture.createGetDashboardResult
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import java.time.LocalDate
 
 class RecapStatisticsServiceTest : ServiceTest() {
-    private val historyService = mockk<HistoryService>()
-    private val recapStatisticsService = RecapStatisticsService(historyService)
+    private val dashboardService = mockk<DashboardService>()
+    private val recapStatisticsService = RecapStatisticsService(dashboardService)
 
     init {
-        Given("리캡 통계 생성을 요청하면") {
+        Given("리캡 통계 생성을 위한 대시보드 통계가 주어지면") {
             val date = LocalDate.parse("2026-02-23")
             val timeZone = TimeZone.SEOUL
-            val screenTimes = createGetMyScreenTimesResult(date)
-            val categoryAnalyses = createGetMyCategoryAnalysisResult()
-            val frequentlyVisitedWebsites = createGetMyFrequentlyVisitedWebsitesResult()
-            val longestStayedWebsite = createGetMyLongestStayedWebsiteResult()
-
+            val dashboard = createGetDashboardResult()
             every {
-                historyService.getMyScreenTimes(
+                dashboardService.getMyDashboard(
                     userId = ID,
                     query =
-                        GetMyScreenTimesQuery(
+                        GetMyDashboardQuery(
                             date = date,
                             timeZone = timeZone,
-                            period = GetMyScreenTimesQuery.Period.DAILY
+                            period = DashboardPeriod.DAILY
                         )
                 )
-            } returns screenTimes
-            every {
-                historyService.getMyCategoryAnalyses(
-                    userId = ID,
-                    query = GetMyCategoryAnalysisQuery(date = date, timeZone = timeZone)
-                )
-            } returns categoryAnalyses
-            every {
-                historyService.getMyFrequentlyVisitedWebsites(
-                    userId = ID,
-                    query =
-                        GetMyFrequentlyVisitedWebsitesQuery(
-                            date = date,
-                            timeZone = timeZone,
-                            limit = 10
-                        )
-                )
-            } returns frequentlyVisitedWebsites
-            every {
-                historyService.getMyLongestStayedWebsite(
-                    userId = ID,
-                    query = GetMyLongestStayedWebsiteQuery(date = date, timeZone = timeZone)
-                )
-            } returns longestStayedWebsite
+            } returns dashboard
 
             When("리캡 통계를 생성하면") {
-                val result =
-                    recapStatisticsService.getStatistics(
-                        userId = ID,
-                        date = date,
-                        timeZone = timeZone
-                    )
+                val result = recapStatisticsService.getStatistics(ID, date, timeZone)
 
-                Then("4개 history 통계 결과를 리캡 통계 input으로 묶는다") {
+                Then("통합 조회 결과에서 리캡에 필요한 통계를 반환한다") {
                     result shouldBe
                         RecapStatistics(
-                            getMyScreenTimesResult = screenTimes,
-                            getMyCategoryAnalysesResult = categoryAnalyses,
-                            getMyFrequentlyVisitedWebsitesResult = frequentlyVisitedWebsites,
-                            getMyLongestStayedWebsiteResult = longestStayedWebsite
+                            getScreenTimeResult = dashboard.getScreenTimeResult,
+                            getCategoryAnalysesResult = dashboard.getCategoryAnalysesResult,
+                            getFrequentlyVisitedWebsitesResult = dashboard.getFrequentlyVisitedWebsitesResult,
+                            getLongestStayedWebsiteResult = dashboard.getLongestStayedWebsiteResult
                         )
                 }
             }

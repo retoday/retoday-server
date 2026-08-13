@@ -27,8 +27,8 @@ class RecapService(
             .findByUserIdAndDate(userId, query.date)
             ?.let {
                 val sections = sectionRepository.findAllByRecapId(it.id!!)
-                val topics = topicRepository.findAllByRecapId(it.id!!)
-                val timelines = timelineRepository.findAllByRecapId(it.id!!)
+                val topics = topicRepository.findAllByRecapId(it.id)
+                val timelines = timelineRepository.findAllByRecapId(it.id)
 
                 GetMyRecapResult(
                     recap = it,

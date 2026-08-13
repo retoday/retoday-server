@@ -5,14 +5,17 @@ import com.retoday.api.common.ControllerTest
 import com.retoday.api.domain.recap.dto.response.GetMyRecapResponse
 import com.retoday.api.extension.document
 import com.retoday.api.extension.expectBody
+import com.retoday.api.extension.expectError
 import com.retoday.api.extension.expectStatus
 import com.retoday.api.extension.withAuthentication
+import com.retoday.api.snippet.errorResponseFields
 import com.retoday.api.snippet.getMyRecapQueryFields
 import com.retoday.api.snippet.getMyRecapResponseFields
 import com.retoday.core.domain.recap.dto.result.GetMyRecapResult
 import com.retoday.core.domain.recap.entity.RecapSection
 import com.retoday.core.domain.recap.entity.RecapTimeline
 import com.retoday.core.domain.recap.entity.RecapTopic
+import com.retoday.core.domain.recap.exception.RecapNotFoundException
 import com.retoday.core.domain.recap.service.RecapService
 import com.retoday.core.fixture.ID
 import com.retoday.core.fixture.createRecap
@@ -47,20 +50,40 @@ class RecapControllerTest : ControllerTest() {
                     topics = listOf(RecapTopic(recapId = recapId, keyword = "개발", title = "토픽", content = "내용"))
                 )
 
-            every { recapService.getMyRecap(any(), any()) } returns result
+            context("리캡이 존재하는 경우") {
+                every { recapService.getMyRecap(any(), any()) } returns result
 
-            it("200과 리캡 응답을 반환한다") {
-                webClient
-                    .get()
-                    .uri("/users/me/recaps?date=$date")
-                    .withAuthentication()
-                    .exchange()
-                    .expectStatus(200)
-                    .expectBody(GetMyRecapResponse.from(result))
-                    .document("내 리캡 조회 성공(200)") {
-                        queryParams(getMyRecapQueryFields)
-                        responseBody(getMyRecapResponseFields)
-                    }
+                it("200과 리캡 응답을 반환한다") {
+                    webClient
+                        .get()
+                        .uri("/users/me/recaps?date=$date")
+                        .withAuthentication()
+                        .exchange()
+                        .expectStatus(200)
+                        .expectBody(GetMyRecapResponse.from(result))
+                        .document("내 리캡 조회 성공(200)") {
+                            queryParams(getMyRecapQueryFields)
+                            responseBody(getMyRecapResponseFields)
+                        }
+                }
+            }
+
+            context("리캡이 존재하지 않는 경우") {
+                every { recapService.getMyRecap(any(), any()) } throws RecapNotFoundException()
+
+                it("404와 ErrorResponse를 반환한다") {
+                    webClient
+                        .get()
+                        .uri("/users/me/recaps?date=$date")
+                        .withAuthentication()
+                        .exchange()
+                        .expectStatus(404)
+                        .expectError()
+                        .document("내 리캡 조회 실패(404)") {
+                            queryParams(getMyRecapQueryFields)
+                            responseBody(errorResponseFields)
+                        }
+                }
             }
         }
     }

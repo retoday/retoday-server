@@ -35,7 +35,7 @@ fun listFieldsOf(
     vararg fields: Field
 ): Array<Field> =
     fields
-        .map { "${listField.name}[].${it.name}" desc it.description }
+        .map { it.copy(name = "${listField.name}[].${it.name}") }
         .plus(listField)
         .toTypedArray()
 
@@ -44,7 +44,7 @@ fun objectFieldsOf(
     vararg fields: Field
 ): Array<Field> =
     fields
-        .map { "${objectField.name}.${it.name}" desc it.description }
+        .map { it.copy(name = "${objectField.name}.${it.name}") }
         .plus(objectField)
         .toTypedArray()
 
@@ -116,6 +116,7 @@ class DocumentDsl<T>(
                 fields.map {
                     fieldWithPath(it.name)
                         .description(it.description)
+                        .apply { if (it.isOptional) optional() }
                 }
             )
         )

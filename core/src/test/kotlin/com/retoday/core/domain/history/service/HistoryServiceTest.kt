@@ -2,9 +2,6 @@ package com.retoday.core.domain.history.service
 
 import com.retoday.core.common.ServiceTest
 import com.retoday.core.domain.history.dto.command.RecordHistoryCommand
-import com.retoday.core.domain.history.dto.projection.HourlyHistoryCountProjection
-import com.retoday.core.domain.history.dto.query.GetMyWorkPatternQuery
-import com.retoday.core.domain.history.dto.result.GetMyWorkPatternResult
 import com.retoday.core.domain.history.dto.result.RecordHistoryResult
 import com.retoday.core.domain.history.entity.WebsiteCategory
 import com.retoday.core.domain.history.exception.DuplicateHistoryException
@@ -20,7 +17,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import java.time.Instant
-import java.time.LocalDate
 
 class HistoryServiceTest : ServiceTest() {
     private val historyRepository = mockk<HistoryRepository>()
@@ -129,29 +125,6 @@ class HistoryServiceTest : ServiceTest() {
                     shouldThrow<WebsiteExcludedByUserException> {
                         historyService.recordHistory(ID, command)
                     }
-                }
-            }
-        }
-
-        Given("작업 패턴 조회 요청이 들어오면") {
-            val date = LocalDate.parse("2026-02-13")
-            val query = GetMyWorkPatternQuery(date = date, timeZone = TimeZone.SEOUL)
-            every { historyRepository.findHourlyHistoryCounts(any(), any(), any(), any()) } returns
-                listOf(
-                    HourlyHistoryCountProjection(hour = 0, count = 1),
-                    HourlyHistoryCountProjection(hour = 7, count = 2),
-                    HourlyHistoryCountProjection(hour = 13, count = 3),
-                    HourlyHistoryCountProjection(hour = 21, count = 4)
-                )
-
-            When("작업 패턴을 조회하면") {
-                val result = historyService.getMyWorkPattern(ID, query)
-
-                Then("시간대별 집계가 계산된다") {
-                    result.counts[GetMyWorkPatternResult.TimeSlot.DAWN] shouldBe 1L
-                    result.counts[GetMyWorkPatternResult.TimeSlot.MORNING] shouldBe 2L
-                    result.counts[GetMyWorkPatternResult.TimeSlot.DAYTIME] shouldBe 3L
-                    result.counts[GetMyWorkPatternResult.TimeSlot.EVENING] shouldBe 4L
                 }
             }
         }
