@@ -4,7 +4,7 @@ import com.retoday.batch.domain.recap.dto.item.GenerateRecapItem
 import com.retoday.batch.domain.recap.dto.result.GenerateRecapResult
 import com.retoday.batch.domain.recap.service.RecapStatisticsService
 import com.retoday.batch.domain.recap.service.RecapTimelineService
-import com.retoday.core.domain.history.dto.result.GetMyCategoryAnalysesResult
+import com.retoday.core.domain.history.dto.result.GetCategoryAnalysesResult
 import com.retoday.core.domain.history.repository.HistoryRepository
 import com.retoday.core.domain.recap.client.RecapClient
 import com.retoday.core.domain.recap.dto.command.AssembleTimelinesCommand
@@ -125,7 +125,7 @@ class GenerateRecapItemProcessor(
             image =
                 getRecapImage(
                     firstVisitedHour = firstVisitedAt.atZone(profile.timeZone.id).hour,
-                    categoryAnalyses = recapStatistics.getMyCategoryAnalysesResult.categoryAnalyses,
+                    categoryAnalyses = recapStatistics.getCategoryAnalysesResult.categoryAnalyses,
                     recapSources = recapSources
                 ),
             recap = recapResponse,
@@ -136,10 +136,13 @@ class GenerateRecapItemProcessor(
 
     private fun getRecapImage(
         firstVisitedHour: Int,
-        categoryAnalyses: List<GetMyCategoryAnalysesResult.CategoryAnalysis>,
+        categoryAnalyses: List<GetCategoryAnalysesResult.CategoryAnalysis>,
         recapSources: List<RecapSourceProjection>
     ): RecapImage =
-        RecapImage.from(categoryAnalyses.maxBy { it.stayDuration }.category)
+        categoryAnalyses
+            .maxBy { it.stayDuration }
+            .category
+            ?.let { RecapImage.from(it) }
             ?: run {
                 val categoryCount = categoryAnalyses.count()
                 val totalStayDuration = recapSources.fold(Duration.ZERO) { acc, it -> acc + it.stayDuration }

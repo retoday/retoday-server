@@ -1,6 +1,6 @@
 package com.retoday.core.domain.history.dto.result
 
-data class GetMyWorkPatternResult(
+data class GetWorkPatternResult(
     val counts: Map<TimeSlot, Int>
 ) {
     enum class TimeSlot(

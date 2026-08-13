@@ -3,8 +3,7 @@ package com.retoday.core.domain.history.dto.result
 import com.retoday.core.domain.history.entity.WebsiteCategory
 import java.time.Duration
 
-data class GetMyCategoryAnalysesResult(
-    val totalStayDuration: Duration,
+data class GetCategoryAnalysesResult(
     val categoryAnalyses: List<CategoryAnalysis>
 ) {
     data class CategoryAnalysis(

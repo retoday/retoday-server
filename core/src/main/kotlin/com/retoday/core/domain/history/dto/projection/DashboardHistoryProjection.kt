@@ -1,12 +1,14 @@
 package com.retoday.core.domain.history.dto.projection
 
 import com.retoday.core.domain.history.entity.WebsiteCategory
-import java.time.Duration
+import java.time.Instant
+import java.util.*
 
-data class WebsiteWithStayDurationVisitCountProjection(
+data class DashboardHistoryProjection(
+    val websiteId: UUID,
     val domain: String,
     val faviconUrl: String?,
     val category: WebsiteCategory?,
-    val visitCount: Long,
-    val stayDuration: Duration
+    val visitedAt: Instant,
+    val closedAt: Instant
 )

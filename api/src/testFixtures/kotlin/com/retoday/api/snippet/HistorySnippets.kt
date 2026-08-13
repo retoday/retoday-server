@@ -1,13 +1,15 @@
 package com.retoday.api.snippet
 
-import com.retoday.api.domain.history.dto.request.*
+import com.retoday.api.domain.history.dto.request.GetMyDashboardRequest
+import com.retoday.api.domain.history.dto.request.RecordHistoryRequest
 import com.retoday.api.domain.history.dto.response.*
 import com.retoday.api.extension.desc
 import com.retoday.api.extension.fieldsOf
 import com.retoday.api.extension.listFieldsOf
 import com.retoday.api.extension.objectFieldsOf
-import com.retoday.core.domain.history.dto.result.GetMyCategoryAnalysesResult
-import com.retoday.core.domain.history.dto.result.GetMyFrequentlyVisitedWebsitesResult
+import com.retoday.core.domain.history.dto.result.GetCategoryAnalysesResult
+import com.retoday.core.domain.history.dto.result.GetFrequentlyVisitedWebsitesResult
+import com.retoday.core.domain.history.dto.result.GetScreenTimeResult
 
 val recordHistoryRequestFields =
     fieldsOf(
@@ -30,74 +32,54 @@ val recordHistoryResponseFields =
         RecordHistoryResponse::recordedAt desc "기록 시각"
     )
 
-val getMyScreenTimesQueryFields =
+val getMyDashboardQueryFields =
     fieldsOf(
-        GetMyScreenTimesRequest::date desc "조회 일자",
-        GetMyScreenTimesRequest::timeZone desc "타임존",
-        GetMyScreenTimesRequest::period desc "집계 주기"
+        GetMyDashboardRequest::date desc "조회 일자",
+        GetMyDashboardRequest::timeZone desc "타임존",
+        GetMyDashboardRequest::period desc "대시보드 집계 기간"
     )
 
-val getMyScreenTimesResponseFields =
+val getScreenTimeResponseFields =
     fieldsOf(
-        GetMyScreenTimesResponse::totalStayDuration desc "총 체류 시간",
+        GetScreenTimeResponse::totalStayDuration desc "총 체류 시간",
         *listFieldsOf(
-            listField = GetMyScreenTimesResponse::screenTimes desc "구간별 체류 시간",
-            GetMyScreenTimesResponse.ScreenTimeResponse::startedAt desc "구간 시작",
-            GetMyScreenTimesResponse.ScreenTimeResponse::endedAt desc "구간 종료",
-            GetMyScreenTimesResponse.ScreenTimeResponse::stayDuration desc "체류 시간"
+            listField = GetScreenTimeResponse::buckets desc "구간별 체류 시간",
+            GetScreenTimeResult.Bucket::startedAt desc "구간 시작",
+            GetScreenTimeResult.Bucket::endedAt desc "구간 종료",
+            GetScreenTimeResult.Bucket::stayDuration desc "체류 시간"
         )
     )
 
-val getMyCategoryAnalysisQueryFields =
+val getCategoryAnalysesResponseFields =
     fieldsOf(
-        GetMyCategoryAnalysesRequest::date desc "조회 일자",
-        GetMyCategoryAnalysesRequest::timeZone desc "타임존"
-    )
-
-val getMyCategoryAnalysesResponseFields =
-    fieldsOf(
-        GetMyCategoryAnalysesResponse::totalStayDuration desc "총 체류 시간",
         *listFieldsOf(
-            listField = GetMyCategoryAnalysesResponse::categoryAnalyses desc "카테고리 분석",
-            GetMyCategoryAnalysesResult.CategoryAnalysis::category desc "카테고리",
-            GetMyCategoryAnalysesResult.CategoryAnalysis::stayDuration desc "카테고리 체류 시간",
+            listField = GetCategoryAnalysesResponse::categoryAnalyses desc "카테고리 분석",
+            GetCategoryAnalysesResult.CategoryAnalysis::category desc "카테고리",
+            GetCategoryAnalysesResult.CategoryAnalysis::stayDuration desc "카테고리 체류 시간",
             *listFieldsOf(
-                listField = GetMyCategoryAnalysesResult.CategoryAnalysis::websiteAnalyses desc "카테고리 내 웹사이트 분석",
-                GetMyCategoryAnalysesResult.WebsiteAnalysis::domain desc "도메인",
-                GetMyCategoryAnalysesResult.WebsiteAnalysis::faviconUrl desc "아이콘",
-                GetMyCategoryAnalysesResult.WebsiteAnalysis::stayDuration desc "웹사이트 체류시간"
+                listField = GetCategoryAnalysesResult.CategoryAnalysis::websiteAnalyses desc "카테고리 내 웹사이트 분석",
+                GetCategoryAnalysesResult.WebsiteAnalysis::domain desc "도메인",
+                GetCategoryAnalysesResult.WebsiteAnalysis::faviconUrl desc "아이콘",
+                GetCategoryAnalysesResult.WebsiteAnalysis::stayDuration desc "웹사이트 체류시간"
             )
         )
     )
 
-val getMyFrequentlyVisitedWebsitesQueryFields =
-    fieldsOf(
-        GetMyFrequentlyVisitedWebsitesRequest::date desc "조회 일자",
-        GetMyFrequentlyVisitedWebsitesRequest::timeZone desc "타임존",
-        GetMyFrequentlyVisitedWebsitesRequest::limit desc "조회 개수"
-    )
-
-val getMyFrequentlyVisitedWebsitesResponseFields =
+val getFrequentlyVisitedWebsitesResponseFields =
     fieldsOf(
         *listFieldsOf(
-            listField = GetMyFrequentlyVisitedWebsitesResponse::websiteAnalyses desc "웹사이트 분석 목록",
-            GetMyFrequentlyVisitedWebsitesResult.WebsiteAnalysis::domain desc "도메인",
-            GetMyFrequentlyVisitedWebsitesResult.WebsiteAnalysis::faviconUrl desc "파비콘",
-            GetMyFrequentlyVisitedWebsitesResult.WebsiteAnalysis::visitCount desc "방문 수",
-            GetMyFrequentlyVisitedWebsitesResult.WebsiteAnalysis::stayDuration desc "체류 시간"
+            listField = GetFrequentlyVisitedWebsitesResponse::websiteAnalyses desc "웹사이트 분석 목록",
+            GetFrequentlyVisitedWebsitesResult.WebsiteAnalysis::domain desc "도메인",
+            GetFrequentlyVisitedWebsitesResult.WebsiteAnalysis::faviconUrl desc "파비콘",
+            GetFrequentlyVisitedWebsitesResult.WebsiteAnalysis::visitCount desc "방문 수",
+            GetFrequentlyVisitedWebsitesResult.WebsiteAnalysis::stayDuration desc "체류 시간"
         )
     )
 
-val getMyWorkPatternQueryFields =
-    fieldsOf(
-        GetMyWorkPatternRequest::date desc "조회 일자",
-        GetMyWorkPatternRequest::timeZone desc "타임존"
-    )
-
-val getMyWorkPatternResponseFields =
+val getWorkPatternResponseFields =
     fieldsOf(
         *objectFieldsOf(
-            objectField = GetMyWorkPatternResponse::counts desc "시간대별 카운트",
+            objectField = GetWorkPatternResponse::counts desc "시간대별 카운트",
             "DAWN" desc "새벽",
             "MORNING" desc "오전",
             "DAYTIME" desc "오후",
@@ -105,15 +87,65 @@ val getMyWorkPatternResponseFields =
         )
     )
 
-val getMyLongestStayedWebsiteQueryFields =
+val getLongestStayedWebsiteResponseFields =
     fieldsOf(
-        GetMyLongestStayedWebsiteRequest::date desc "조회 일자",
-        GetMyLongestStayedWebsiteRequest::timeZone desc "타임존"
+        GetLongestStayedWebsiteResponse::domain desc "도메인",
+        GetLongestStayedWebsiteResponse::faviconUrl desc "파비콘",
+        GetLongestStayedWebsiteResponse::stayDuration desc "체류 시간"
     )
 
-val getMyLongestStayedWebsiteResponseFields =
+val getMyDashboardResponseFields =
     fieldsOf(
-        GetMyLongestStayedWebsiteResponse::domain desc "도메인",
-        GetMyLongestStayedWebsiteResponse::faviconUrl desc "파비콘",
-        GetMyLongestStayedWebsiteResponse::stayDuration desc "체류 시간"
+        *objectFieldsOf(
+            objectField = GetMyDashboardResponse::getScreenTimeResponse desc "스크린타임",
+            GetScreenTimeResponse::totalStayDuration desc "총 체류 시간",
+            *listFieldsOf(
+                listField = GetScreenTimeResponse::buckets desc "구간별 체류 시간",
+                GetScreenTimeResult.Bucket::startedAt desc "구간 시작",
+                GetScreenTimeResult.Bucket::endedAt desc "구간 종료",
+                GetScreenTimeResult.Bucket::stayDuration desc "체류 시간"
+            )
+        ),
+        *objectFieldsOf(
+            objectField = GetMyDashboardResponse::getCategoryAnalysesResponse desc "카테고리 분석",
+            *listFieldsOf(
+                listField = GetCategoryAnalysesResponse::categoryAnalyses desc "카테고리 분석 목록",
+                GetCategoryAnalysesResult.CategoryAnalysis::category desc "카테고리",
+                GetCategoryAnalysesResult.CategoryAnalysis::stayDuration desc "카테고리 체류 시간",
+                *listFieldsOf(
+                    listField =
+                        GetCategoryAnalysesResult.CategoryAnalysis::websiteAnalyses desc
+                            "카테고리 내 웹사이트 분석",
+                    GetCategoryAnalysesResult.WebsiteAnalysis::domain desc "도메인",
+                    GetCategoryAnalysesResult.WebsiteAnalysis::faviconUrl desc "아이콘",
+                    GetCategoryAnalysesResult.WebsiteAnalysis::stayDuration desc "웹사이트 체류시간"
+                )
+            )
+        ),
+        *objectFieldsOf(
+            objectField = GetMyDashboardResponse::getFrequentlyVisitedWebsitesResponse desc "자주 방문한 웹사이트",
+            *listFieldsOf(
+                listField = GetFrequentlyVisitedWebsitesResponse::websiteAnalyses desc "웹사이트 분석 목록",
+                GetFrequentlyVisitedWebsitesResult.WebsiteAnalysis::domain desc "도메인",
+                GetFrequentlyVisitedWebsitesResult.WebsiteAnalysis::faviconUrl desc "파비콘",
+                GetFrequentlyVisitedWebsitesResult.WebsiteAnalysis::visitCount desc "방문 수",
+                GetFrequentlyVisitedWebsitesResult.WebsiteAnalysis::stayDuration desc "체류 시간"
+            )
+        ),
+        *objectFieldsOf(
+            objectField = GetMyDashboardResponse::getWorkPatternResponse desc "작업 패턴",
+            *objectFieldsOf(
+                objectField = GetWorkPatternResponse::counts desc "시간대별 카운트",
+                "DAWN" desc "새벽",
+                "MORNING" desc "오전",
+                "DAYTIME" desc "오후",
+                "EVENING" desc "저녁"
+            )
+        ),
+        *objectFieldsOf(
+            objectField = GetMyDashboardResponse::getLongestStayedWebsiteResponse desc "최장 체류 웹사이트",
+            GetLongestStayedWebsiteResponse::domain desc "도메인",
+            GetLongestStayedWebsiteResponse::faviconUrl desc "파비콘",
+            GetLongestStayedWebsiteResponse::stayDuration desc "체류 시간"
+        )
     )
