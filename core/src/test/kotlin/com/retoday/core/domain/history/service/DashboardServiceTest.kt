@@ -80,7 +80,7 @@ class DashboardServiceTest : ServiceTest() {
                     websiteStayDuration shouldBe totalStayDuration
                     result.getScreenTimeResult.buckets.first().stayDuration shouldBe Duration.ofMinutes(90)
                     result.getCategoryAnalysesResult.categoryAnalyses.map { it.category } shouldBe
-                        listOf(WebsiteCategory.DEVELOPMENT, WebsiteCategory.ETC)
+                        listOf(WebsiteCategory.DEVELOPMENT, null)
                     result.getFrequentlyVisitedWebsitesResult.websiteAnalyses.first().visitCount shouldBe 2
                     result.getFrequentlyVisitedWebsitesResult.websiteAnalyses.first().stayDuration shouldBe
                         Duration.ofHours(3)

@@ -7,7 +7,7 @@ data class GetCategoryAnalysesResult(
     val categoryAnalyses: List<CategoryAnalysis>
 ) {
     data class CategoryAnalysis(
-        val category: WebsiteCategory,
+        val category: WebsiteCategory?,
         val stayDuration: Duration,
         val websiteAnalyses: List<WebsiteAnalysis>
     )

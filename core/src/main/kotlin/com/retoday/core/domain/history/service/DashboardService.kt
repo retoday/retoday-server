@@ -2,7 +2,6 @@ package com.retoday.core.domain.history.service
 
 import com.retoday.core.domain.history.dto.query.*
 import com.retoday.core.domain.history.dto.result.*
-import com.retoday.core.domain.history.entity.WebsiteCategory
 import com.retoday.core.domain.history.exception.HistoryNotFoundException
 import com.retoday.core.domain.history.repository.HistoryRepository
 import com.retoday.core.global.extension.*
@@ -114,7 +113,7 @@ class DashboardService(
         GetCategoryAnalysesResult(
             categoryAnalyses =
                 query.histories
-                    .groupBy { it.category ?: WebsiteCategory.ETC }
+                    .groupBy { it.category }
                     .map { (category, categoryHistories) ->
                         val websiteAnalyses =
                             categoryHistories

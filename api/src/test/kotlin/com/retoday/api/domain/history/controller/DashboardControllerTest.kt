@@ -4,8 +4,10 @@ import com.ninjasquad.springmockk.MockkBean
 import com.retoday.api.common.ControllerTest
 import com.retoday.api.domain.history.dto.response.GetMyDashboardResponse
 import com.retoday.api.extension.*
+import com.retoday.api.snippet.errorResponseFields
 import com.retoday.api.snippet.getMyDashboardQueryFields
 import com.retoday.api.snippet.getMyDashboardResponseFields
+import com.retoday.core.domain.history.exception.HistoryNotFoundException
 import com.retoday.core.domain.history.service.DashboardService
 import com.retoday.core.fixture.createGetDashboardResult
 import io.mockk.every
@@ -39,6 +41,21 @@ class DashboardControllerTest : ControllerTest() {
                         .document("내 대시보드 조회 성공(200)") {
                             queryParams(getMyDashboardQueryFields)
                             responseBody(getMyDashboardResponseFields)
+                        }
+                }
+            }
+
+            context("조회 기간에 기록이 없는 경우") {
+                every { dashboardService.getMyDashboard(any(), any()) } throws HistoryNotFoundException()
+
+                it("404와 ErrorResponse를 반환한다") {
+                    request
+                        .exchange()
+                        .expectStatus(404)
+                        .expectError()
+                        .document("내 대시보드 조회 실패(404)") {
+                            queryParams(getMyDashboardQueryFields)
+                            responseBody(errorResponseFields)
                         }
                 }
             }

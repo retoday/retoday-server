@@ -90,6 +90,23 @@ class HistoryControllerTest : ControllerTest() {
                         }
                 }
             }
+
+            context("URL 형식이 유효하지 않은 경우") {
+                it("400과 ErrorResponse를 반환한다") {
+                    webClient
+                        .post()
+                        .uri("/histories")
+                        .bodyValue(createHistoryRecordRequest(url = "invalid-url"))
+                        .withAuthentication()
+                        .exchange()
+                        .expectStatus(400)
+                        .expectError()
+                        .document("히스토리 기록 요청 검증 실패(400)") {
+                            requestBody(recordHistoryRequestFields)
+                            responseBody(errorResponseFields)
+                        }
+                }
+            }
         }
     }
 }
