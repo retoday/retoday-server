@@ -1,0 +1,2 @@
+ALTER TABLE recap
+    MODIFY COLUMN ai_provider ENUM ('GEMINI', 'BEDROCK') NOT NULL;
