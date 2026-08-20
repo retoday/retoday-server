@@ -8,6 +8,7 @@ dependencies {
     implementation(libs.spring.data.jdbc)
     implementation(libs.spring.data.redis)
     implementation(libs.spring.ai.gemini)
+    implementation(libs.spring.ai.bedrock.converse)
     implementation(libs.kotlin.logging)
     implementation(libs.jackson.kotlin)
     implementation(libs.uuid)
