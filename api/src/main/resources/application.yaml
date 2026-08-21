@@ -10,6 +10,7 @@ spring:
     - ai
 server:
   port: 8080
+  forward-headers-strategy: native
   servlet:
     encoding:
       charset: UTF-8
@@ -43,6 +44,9 @@ logging:
   config: classpath:log4j2-${spring.profiles.active}.yaml
 frontend:
   uris: https://localhost:3000
+scheduler:
+  website-category-classification:
+    fixed-delay: PT1M
 sentry:
   environment: ${spring.profiles.active}
   in-app-includes:

@@ -1,19 +1,14 @@
 package com.retoday.core.domain.history.repository
 
-import com.retoday.core.domain.history.dto.projection.HourlyHistoryCountProjection
-import com.retoday.core.domain.history.dto.projection.LogestStayedWebsiteProjection
-import com.retoday.core.domain.history.dto.projection.WebsiteWithStayDurationProjection
-import com.retoday.core.domain.history.dto.projection.WebsiteWithStayDurationVisitCountProjection
+import com.retoday.core.domain.history.dto.projection.DashboardHistoryProjection
 import com.retoday.core.domain.history.entity.WebsiteCategory
 import com.retoday.core.domain.recap.dto.projection.RecapSourceProjection
-import com.retoday.core.domain.user.entity.TimeZone
+import com.retoday.core.global.extension.`as`
 import com.retoday.core.global.extension.fetchInto
-import com.retoday.core.global.extension.fetchOneInto
 import com.retoday.core.global.jooq.tables.History.Companion.HISTORY
 import com.retoday.core.global.jooq.tables.Page.Companion.PAGE
 import com.retoday.core.global.jooq.tables.Website.Companion.WEBSITE
 import org.jooq.DSLContext
-import org.jooq.Field
 import org.jooq.impl.DSL
 import java.time.Duration
 import java.time.Instant
@@ -22,19 +17,26 @@ import java.util.*
 class CustomHistoryRepositoryImpl(
     private val dsl: DSLContext
 ) : CustomHistoryRepository {
-    override fun findWebsitesWithStayDuration(
+    override fun findDashboardHistories(
         userId: UUID,
         startedAt: Instant,
         endedAt: Instant
-    ): List<WebsiteWithStayDurationProjection> {
-        val stayDuration = stayDuration(startedAt, endedAt)
+    ): List<DashboardHistoryProjection> {
+        val visitedAt =
+            DSL.greatest(HISTORY.VISITED_AT, startedAt)
+                .`as`(DashboardHistoryProjection::visitedAt)
+        val closedAt =
+            DSL.least(HISTORY.CLOSED_AT, endedAt)
+                .`as`(DashboardHistoryProjection::closedAt)
 
         return dsl
             .select(
+                HISTORY.WEBSITE_ID,
                 WEBSITE.DOMAIN,
                 WEBSITE.FAVICON_URL,
                 WEBSITE.CATEGORY,
-                stayDuration
+                visitedAt,
+                closedAt
             )
             .from(HISTORY)
             .join(WEBSITE)
@@ -44,99 +46,8 @@ class CustomHistoryRepositoryImpl(
                     .and(HISTORY.VISITED_AT.lessThan(endedAt))
                     .and(HISTORY.CLOSED_AT.greaterThan(startedAt))
             )
-            .groupBy(HISTORY.WEBSITE_ID)
-            .orderBy(stayDuration.desc())
+            .orderBy(HISTORY.VISITED_AT)
             .fetchInto()
-    }
-
-    override fun findWebsitesWithVisitCountAndStayDuration(
-        userId: UUID,
-        startedAt: Instant,
-        endedAt: Instant,
-        limit: Int
-    ): List<WebsiteWithStayDurationVisitCountProjection> {
-        val stayDuration = stayDuration(startedAt, endedAt)
-        val visitCount = DSL.count().`as`("visit_count")
-
-        return dsl
-            .select(
-                WEBSITE.DOMAIN,
-                WEBSITE.FAVICON_URL,
-                WEBSITE.CATEGORY,
-                visitCount,
-                stayDuration
-            )
-            .from(HISTORY)
-            .join(WEBSITE)
-            .on(WEBSITE.ID.equal(HISTORY.WEBSITE_ID))
-            .where(
-                HISTORY.USER_ID.equal(userId)
-                    .and(HISTORY.VISITED_AT.lessThan(endedAt))
-                    .and(HISTORY.CLOSED_AT.greaterThan(startedAt))
-            )
-            .groupBy(HISTORY.WEBSITE_ID)
-            .orderBy(visitCount.desc(), stayDuration.desc())
-            .limit(limit)
-            .fetchInto()
-    }
-
-    override fun findHourlyHistoryCounts(
-        userId: UUID,
-        timeZone: TimeZone,
-        startedAt: Instant,
-        endedAt: Instant
-    ): List<HourlyHistoryCountProjection> {
-        val hour =
-            DSL.field(
-                "HOUR(CONVERT_TZ({0}, {1}, {2}))",
-                Int::class.java,
-                HISTORY.VISITED_AT,
-                DSL.value(TimeZone.UTC.id.toString()),
-                DSL.value(timeZone.id.toString())
-            ).`as`("hour")
-        val count = DSL.count().`as`("count")
-
-        return dsl
-            .select(
-                hour,
-                count
-            )
-            .from(HISTORY)
-            .where(
-                HISTORY.USER_ID.equal(userId)
-                    .and(HISTORY.VISITED_AT.greaterOrEqual(startedAt))
-                    .and(HISTORY.VISITED_AT.lessThan(endedAt))
-            )
-            .groupBy(hour)
-            .orderBy(hour)
-            .fetchInto()
-    }
-
-    override fun findLongestStayedWebsite(
-        userId: UUID,
-        startedAt: Instant,
-        endedAt: Instant
-    ): LogestStayedWebsiteProjection? {
-        val stayDuration = stayDuration(startedAt, endedAt)
-
-        return dsl
-            .select(
-                WEBSITE.DOMAIN,
-                WEBSITE.FAVICON_URL,
-                stayDuration
-            )
-            .from(HISTORY)
-            .join(WEBSITE)
-            .on(WEBSITE.ID.equal(HISTORY.WEBSITE_ID))
-            .where(
-                HISTORY.USER_ID.equal(userId)
-                    .and(HISTORY.VISITED_AT.lessThan(endedAt))
-                    .and(HISTORY.CLOSED_AT.greaterThan(startedAt))
-            )
-            .groupBy(HISTORY.WEBSITE_ID)
-            .orderBy(stayDuration.desc())
-            .limit(1)
-            .fetchOneInto()
     }
 
     override fun findRecapSources(
@@ -153,13 +64,11 @@ class CustomHistoryRepositoryImpl(
                     HISTORY.CLOSED_AT
                 )
                 .convertFrom { Duration.ofSeconds(it) }
-                .`as`("stay_duration")
+                .`as`(RecapSourceProjection::stayDuration)
         val category =
             WEBSITE.CATEGORY
-                .convertFrom { value ->
-                    value?.let { WebsiteCategory.valueOf(it.literal) }
-                }
-                .`as`("category")
+                .convertFrom { value -> value?.let { WebsiteCategory.valueOf(it.literal) } }
+                .`as`(RecapSourceProjection::category)
 
         return dsl
             .select(
@@ -183,29 +92,4 @@ class CustomHistoryRepositoryImpl(
             .orderBy(HISTORY.VISITED_AT)
             .fetchInto()
     }
-
-    private fun stayDuration(
-        startedAt: Instant,
-        endedAt: Instant
-    ): Field<Duration> =
-        DSL
-            .sum(
-                DSL.field(
-                    """
-                    TIMESTAMPDIFF(
-                        SECOND,
-                        GREATEST({0}, {1}),
-                        LEAST({2}, {3})
-                    )
-                    """,
-                    Long::class.java,
-                    HISTORY.VISITED_AT,
-                    startedAt,
-                    HISTORY.CLOSED_AT,
-                    endedAt
-                )
-            )
-            .coerce(Long::class.java)
-            .convertFrom { Duration.ofSeconds(it) }
-            .`as`("stay_duration")
 }

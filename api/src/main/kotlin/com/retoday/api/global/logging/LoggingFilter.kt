@@ -18,7 +18,6 @@ import java.util.*
 class LoggingFilter : OncePerRequestFilter() {
     private companion object {
         const val TRACE_ID_FIELD = "traceId"
-        const val X_FORWARDED_FOR_HEADER = "X-Forwarded-For"
     }
 
     private val logger = getLogger()
@@ -50,15 +49,7 @@ class LoggingFilter : OncePerRequestFilter() {
     }
 
     private fun HttpServletRequest.log() {
-        val clientIp =
-            getHeader(X_FORWARDED_FOR_HEADER)
-                ?.run {
-                    split(",")
-                        .first()
-                }
-                ?: remoteAddr
-
-        logger.info { "HTTP $method $requestURI clientIp=$clientIp" }
+        logger.info { "HTTP $method $requestURI clientIp=$remoteAddr" }
     }
 
     private fun HttpServletResponse.log() {

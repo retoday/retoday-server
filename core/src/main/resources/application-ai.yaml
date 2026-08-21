@@ -1,5 +1,16 @@
 spring:
   ai:
+    bedrock:
+      aws:
+        region: ${AWS_BEDROCK_REGION:ap-northeast-1}
+        access-key: ${AWS_ACCESS_KEY_ID}
+        secret-key: ${AWS_SECRET_ACCESS_KEY}
+      converse:
+        chat:
+          options:
+            model: ${AWS_BEDROCK_MODEL:amazon.nova-lite-v1:0}
+            temperature: 0.7
+            max-tokens: ${AWS_BEDROCK_MAX_TOKENS:4096}
     google:
       genai:
         api-key: ${GEMINI_API_KEY}

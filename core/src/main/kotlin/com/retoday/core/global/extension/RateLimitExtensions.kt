@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component
 import java.time.Duration
 
 @Component
-private class RateLimitWrapper {
+class RateLimitWrapper {
     constructor(redisTemplate: RedisTemplate<String, String>) {
         RateLimitWrapper.redisTemplate = redisTemplate
     }

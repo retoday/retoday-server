@@ -19,7 +19,7 @@ val deleteMyExcludedDomainRequestFields =
         DeleteMyExcludedDomainRequest::domain desc "예외 처리에서 제거할 도메인"
     )
 
-val deleteMyAccountRequestFields =
+val withdrawRequestFields =
     fieldsOf(
         WithdrawRequest::oAuthToken desc "연결을 해제할 OAuth2 토큰"
     )

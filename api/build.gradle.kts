@@ -18,7 +18,9 @@ dependencies {
     implementation(libs.bundles.sentry)
 
     testImplementation(testFixtures(project(":core")))
+    testImplementation(libs.spring.data.jdbc)
     testImplementation(libs.bundles.test)
+    testImplementation(libs.bundles.testcontainers)
     testImplementation(libs.bundles.spring.restdocs)
 
     testFixturesImplementation(testFixtures(project(":core")))

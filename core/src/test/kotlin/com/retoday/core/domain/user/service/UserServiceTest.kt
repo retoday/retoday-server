@@ -19,7 +19,9 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.dao.DuplicateKeyException
+import org.springframework.data.relational.core.conversion.DbAction
+import org.springframework.data.relational.core.conversion.DbActionExecutionException
 
 class UserServiceTest : ServiceTest() {
     private val userRepository = mockk<UserRepository>()
@@ -76,8 +78,11 @@ class UserServiceTest : ServiceTest() {
         }
 
         Given("이미 존재하는 도메인 추가 요청 시") {
-            every { userExcludedWebsiteRepository.save(any()) } throws DataIntegrityViolationException("duplicate")
-            every { userExcludedWebsiteRepository.existsByUserIdAndDomain(ID, "github.com") } returns true
+            every { userExcludedWebsiteRepository.save(any()) } throws
+                DbActionExecutionException(
+                    mockk<DbAction<*>>(),
+                    DuplicateKeyException("duplicate")
+                )
 
             When("중복된 예외 도메인 추가를 요청하면") {
                 Then("중복 예외가 발생한다") {
