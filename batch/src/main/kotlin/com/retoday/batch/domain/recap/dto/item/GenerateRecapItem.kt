@@ -7,5 +7,5 @@ import java.time.LocalDate
 data class GenerateRecapItem(
     val profile: Profile,
     val recapDate: LocalDate,
-    val aiProvider: AiProvider = AiProvider.BEDROCK
+    val aiProvider: AiProvider
 )

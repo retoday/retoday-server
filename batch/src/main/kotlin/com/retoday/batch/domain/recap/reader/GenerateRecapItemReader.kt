@@ -1,6 +1,7 @@
 package com.retoday.batch.domain.recap.reader
 
 import com.retoday.batch.domain.recap.dto.item.GenerateRecapItem
+import com.retoday.core.domain.recap.entity.AiProvider
 import com.retoday.core.domain.user.entity.Profile
 import com.retoday.core.domain.user.entity.TimeZone
 import com.retoday.core.domain.user.entity.UserStatus
@@ -16,7 +17,9 @@ import java.time.Instant
 class GenerateRecapItemReader(
     private val profileRepository: ProfileRepository,
     @Value("#{jobParameters['timeZone']}")
-    private val timeZone: String
+    private val timeZone: String,
+    @Value("\${recap.ai-provider}")
+    private val aiProvider: AiProvider
 ) : ItemReader<GenerateRecapItem> {
     private var profiles: Iterator<Profile>? = null
 
@@ -27,7 +30,8 @@ class GenerateRecapItemReader(
             val profile = iterator.next()
             GenerateRecapItem(
                 profile = profile,
-                recapDate = Instant.now().atZone(profile.timeZone.id).toLocalDate().minusDays(1)
+                recapDate = Instant.now().atZone(profile.timeZone.id).toLocalDate().minusDays(1),
+                aiProvider = aiProvider
             )
         } else {
             null
