@@ -32,7 +32,7 @@ When multiple themes exist, emphasize the ones with longer duration.
 - Must be a complete sentence.
 - No exclamations or keyword listing.
 
-## daily_summary
+## summary
 
 - 1–2 lines of summary and encouragement.
 - Korean: Max 70 characters.
@@ -63,7 +63,7 @@ Each section must include:
 ```
 {
   "title": "string",
-  "dailySummary": "string",
+  "summary": "string",
 
   "sections": [
     {
