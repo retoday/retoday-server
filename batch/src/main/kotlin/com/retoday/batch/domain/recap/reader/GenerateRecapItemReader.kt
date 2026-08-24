@@ -11,6 +11,7 @@ import org.springframework.batch.item.ItemReader
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.time.Instant
+import java.time.LocalDate
 
 @Component
 @StepScope
@@ -18,6 +19,8 @@ class GenerateRecapItemReader(
     private val profileRepository: ProfileRepository,
     @Value("#{jobParameters['timeZone']}")
     private val timeZone: String,
+    @Value("#{jobParameters['recapDate']}")
+    private val requestedRecapDate: String?,
     @Value("\${recap.ai-provider}")
     private val aiProvider: AiProvider
 ) : ItemReader<GenerateRecapItem> {
@@ -30,7 +33,9 @@ class GenerateRecapItemReader(
             val profile = iterator.next()
             GenerateRecapItem(
                 profile = profile,
-                recapDate = Instant.now().atZone(profile.timeZone.id).toLocalDate().minusDays(1),
+                recapDate =
+                    requestedRecapDate?.let(LocalDate::parse)
+                        ?: Instant.now().atZone(profile.timeZone.id).toLocalDate().minusDays(1),
                 aiProvider = aiProvider
             )
         } else {
