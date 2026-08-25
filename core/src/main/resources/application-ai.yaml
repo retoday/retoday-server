@@ -2,9 +2,8 @@ spring:
   ai:
     bedrock:
       aws:
+        # AWS SDK resolves AWS_BEARER_TOKEN_BEDROCK directly from the environment.
         region: ${AWS_BEDROCK_REGION:ap-northeast-1}
-        access-key: ${AWS_ACCESS_KEY_ID}
-        secret-key: ${AWS_SECRET_ACCESS_KEY}
       converse:
         chat:
           options:

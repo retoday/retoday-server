@@ -29,9 +29,11 @@ class BedrockRecapClientTest :
                     .load("application-ai.yaml", ClassPathResource("application-ai.yaml"))
                     .first()
 
-            Then("Nova Lite와 도쿄 리전을 기본값으로 사용한다") {
+            Then("SDK 기본 인증과 Nova Lite 및 도쿄 리전을 사용한다") {
                 properties.getProperty("spring.ai.bedrock.aws.region") shouldBe
                     "${'$'}{AWS_BEDROCK_REGION:ap-northeast-1}"
+                properties.getProperty("spring.ai.bedrock.aws.access-key") shouldBe null
+                properties.getProperty("spring.ai.bedrock.aws.secret-key") shouldBe null
                 properties.getProperty("spring.ai.bedrock.converse.chat.options.model") shouldBe
                     "${'$'}{AWS_BEDROCK_MODEL:amazon.nova-lite-v1:0}"
                 properties.getProperty("spring.ai.bedrock.converse.chat.options.max-tokens") shouldBe
