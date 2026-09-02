@@ -1,0 +1,2 @@
+ALTER TABLE website
+    MODIFY COLUMN favicon_url VARCHAR(2048);
