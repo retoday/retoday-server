@@ -11,8 +11,7 @@ import java.time.Instant
 
 data class RecordHistoryRequest(
     @field:NotBlank
-    @field:Size(max = 2048)
-    @field:URL
+    @field:Url
     val url: String,
     val visitedAt: Instant,
     val closedAt: Instant,
@@ -28,6 +27,7 @@ data class RecordHistoryRequest(
     @field:Min(value = 0)
     @field:Max(value = 100)
     val scrollDepth: Int?
+    @field:Url
 ) {
     fun toCommand(): RecordHistoryCommand =
         RecordHistoryCommand(
