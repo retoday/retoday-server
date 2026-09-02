@@ -19,9 +19,10 @@ data class RecordHistoryRequest(
     val timeZone: TimeZone,
     @field:Size(max = 500)
     val title: String?,
-    @field:Size(max = 5000, message = "description은 5000자를 초과할 수 없습니다")
+    @field:Size(max = 5000)
     val description: String?,
-    @field:Size(max = 2048, message = "faviconUrl은 2048자를 초과할 수 없습니다")
+    @field:Size(max = 2048)
+    @field:URL
     val faviconUrl: String?,
     val isClosed: Boolean,
     @field:Min(value = 0)
