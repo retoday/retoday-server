@@ -5,6 +5,7 @@ kotlin = "2.2.0"
 
 # Spring
 spring-boot = "3.5.3"
+spring-ai = "1.1.4"
 
 # JOOQ
 jooq = "3.19.24"
@@ -70,8 +71,8 @@ spring-batch = { group = "org.springframework.boot", name = "spring-boot-starter
 spring-actuator = { group = "org.springframework.boot", name = "spring-boot-starter-actuator" }
 spring-data-jdbc = { group = "org.springframework.boot", name = "spring-boot-starter-data-jdbc" }
 spring-data-redis = { group = "org.springframework.boot", name = "spring-boot-starter-data-redis" }
-spring-ai-gemini = { group = "org.springframework.ai", name = "spring-ai-starter-model-google-genai", version = "1.1.4" }
-spring-ai-bedrock-converse = { group = "org.springframework.ai", name = "spring-ai-starter-model-bedrock-converse", version = "1.1.4" }
+spring-ai-gemini = { group = "org.springframework.ai", name = "spring-ai-starter-model-google-genai", version.ref = "spring-ai" }
+spring-ai-bedrock = { group = "org.springframework.ai", name = "spring-ai-starter-model-bedrock-converse", version.ref = "spring-ai" }
 spring-test = { group = "org.springframework.boot", name = "spring-boot-starter-test" }
 spring-testcontainers = { group = "org.springframework.boot", name = "spring-boot-testcontainers" }
 spring-restdocs-webtestclient = { group = "org.springframework.restdocs", name = "spring-restdocs-webtestclient" }
@@ -142,6 +143,14 @@ jwt = [
 jackson = [
     "jackson-kotlin",
     "jackson-yaml"
+]
+spring-data = [
+    "spring-data-jdbc",
+    "spring-data-redis"
+]
+spring-ai = [
+    "spring-ai-gemini",
+    "spring-ai-bedrock"
 ]
 spring-restdocs = [
     "spring-restdocs-webtestclient",

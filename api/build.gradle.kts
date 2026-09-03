@@ -11,6 +11,7 @@ dependencies {
     implementation(libs.spring.security)
     implementation(libs.spring.validation)
     implementation(libs.spring.actuator)
+    implementation(libs.spring.log4j2)
     implementation(libs.kotlin.logging)
     implementation(libs.prometheus)
     implementation(libs.bundles.jwt)
@@ -18,9 +19,7 @@ dependencies {
     implementation(libs.bundles.sentry)
 
     testImplementation(testFixtures(project(":core")))
-    testImplementation(libs.spring.data.jdbc)
     testImplementation(libs.bundles.test)
-    testImplementation(libs.bundles.testcontainers)
     testImplementation(libs.bundles.spring.restdocs)
 
     testFixturesImplementation(testFixtures(project(":core")))

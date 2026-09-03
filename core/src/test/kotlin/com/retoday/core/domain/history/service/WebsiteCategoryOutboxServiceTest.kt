@@ -19,13 +19,13 @@ import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 
 @Import(
-    WebsiteCategoryOutboxService::class,
+    WebsiteCategoryClassificationOutboxService::class,
     TransactionWrapper::class
 )
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class WebsiteCategoryOutboxServiceTest : RepositoryTest() {
     @Autowired
-    private lateinit var outboxService: WebsiteCategoryOutboxService
+    private lateinit var outboxService: WebsiteCategoryClassificationOutboxService
 
     @Autowired
     private lateinit var outboxRepository: WebsiteCategoryClassificationOutboxRepository
@@ -52,7 +52,7 @@ class WebsiteCategoryOutboxServiceTest : RepositoryTest() {
                     val result = outboxRepository.findByIdOrNull(outbox.id!!)
                     result?.status shouldBe WebsiteCategoryClassificationOutboxStatus.COMPLETED
                     result?.attemptCount shouldBe 1
-                    result?.attemptedAt shouldNotBe null
+                    result?.lastAttemptedAt shouldNotBe null
                     verify(exactly = 1) {
                         websiteService.categorizeWebsite(
                             CategorizeWebsiteCommand(outbox.websiteId)

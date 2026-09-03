@@ -6,7 +6,7 @@ import io.kotest.core.spec.IsolationMode
 import io.kotest.extensions.spring.SpringExtension
 
 class TestConfiguration : AbstractProjectConfig() {
-    override val isolationMode: IsolationMode = IsolationMode.InstancePerLeaf
+    override val isolationMode = IsolationMode.InstancePerLeaf
 
     override fun extensions(): List<Extension> = listOf(SpringExtension)
 }

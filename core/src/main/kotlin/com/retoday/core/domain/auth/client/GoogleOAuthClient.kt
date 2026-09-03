@@ -49,7 +49,12 @@ class GoogleOAuthClient(
     override fun revokeOAuthUser(request: RevokeOAuthUserRequest) {
         restClient
             .post()
-            .uri("$REVOKE_ENDPOINT?${TOKEN_QUERY_PARAMETER}=${request.token}")
+            .uri {
+                it
+                    .path(REVOKE_ENDPOINT)
+                    .queryParam(TOKEN_QUERY_PARAMETER, request.token)
+                    .build()
+            }
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .retrieve()
             .onStatus({ it == HttpStatus.BAD_REQUEST }) { _, _ -> throw InvalidOAuthTokenException() }

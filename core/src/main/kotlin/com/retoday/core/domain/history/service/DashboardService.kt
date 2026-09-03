@@ -1,5 +1,6 @@
 package com.retoday.core.domain.history.service
 
+import com.retoday.core.domain.history.dto.model.DashboardSource
 import com.retoday.core.domain.history.dto.query.*
 import com.retoday.core.domain.history.dto.result.*
 import com.retoday.core.domain.history.exception.HistoryNotFoundException
@@ -9,12 +10,21 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.time.Duration
+import java.time.Instant
 import java.util.*
 
 @Service
 class DashboardService(
     private val historyRepository: HistoryRepository
 ) {
+    /**
+     * 대시보드를 조회하는 유스케이스
+     *
+     * 대시보드의 집계 단위는 [GetMyDashboardQuery.DashboardPeriod]에 의해 결정된다.
+     * 데이터베이스 조회는 한 번뿐이고 실제 집계는 애플리케이션 단에서 수행하므로 불필요한 트랜잭션을 사용하지 않는다.
+     *
+     * @see [HistoryRepository.findHistoriesWithWebsite]
+     */
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     fun getMyDashboard(
         userId: UUID,
@@ -26,14 +36,25 @@ class DashboardService(
                     .atStartOfDay(timeZone.id)
                     .toInstant()
             val endedAt = startedAt + period.amount
-            val histories =
-                historyRepository.findDashboardHistories(
+            val now = Instant.now()
+            val historiesWithWebsite =
+                historyRepository.findHistoriesWithWebsite(
                     userId = userId,
                     startedAt = startedAt,
                     endedAt = endedAt
                 )
+            val sources =
+                historiesWithWebsite.map {
+                    DashboardSource(
+                        domain = it.domain,
+                        faviconUrl = it.faviconUrl,
+                        category = it.category,
+                        startedAt = maxOf(it.startedAt, startedAt),
+                        endedAt = minOf(it.endedAt ?: now, endedAt)
+                    )
+                }
 
-            if (histories.isEmpty()) {
+            if (sources.isEmpty()) {
                 throw HistoryNotFoundException()
             }
 
@@ -44,32 +65,32 @@ class DashboardService(
                             screenTimeUnit = period.screenTimeUnit,
                             startedAt = startedAt,
                             endedAt = endedAt,
-                            histories = histories
+                            sources = sources
                         )
                     ),
                 getCategoryAnalysesResult =
                     getCategoryAnalyses(
                         GetCategoryAnalysisQuery(
-                            histories = histories
+                            sources = sources
                         )
                     ),
                 getFrequentlyVisitedWebsitesResult =
                     getFrequentlyVisitedWebsites(
                         GetFrequentlyVisitedWebsitesQuery(
-                            histories = histories
+                            sources = sources
                         )
                     ),
                 getWorkPatternResult =
                     getWorkPattern(
                         GetWorkPatternQuery(
                             timeZone = timeZone,
-                            histories = histories
+                            sources = sources
                         )
                     ),
                 getLongestStayedWebsiteResult =
                     getLongestStayedWebsite(
                         GetLongestStayedWebsiteQuery(
-                            histories = histories
+                            sources = sources
                         )
                     )
             )
@@ -80,16 +101,15 @@ class DashboardService(
             val bucketCount = ((endedAt - startedAt) / screenTimeUnit).toInt()
             val stayDurations = MutableList(bucketCount) { Duration.ZERO }
 
-            for (history in histories) {
-                var visitedAt = history.visitedAt
-                val closedAt = history.closedAt
+            for (source in sources) {
+                var currentAt = source.startedAt
 
-                while (visitedAt < closedAt) {
-                    val bucketIndex = ((visitedAt - startedAt) / screenTimeUnit).toInt()
-                    val nextVisitedAt = minOf(closedAt, startedAt + (screenTimeUnit * (bucketIndex + 1)))
+                while (currentAt < source.endedAt) {
+                    val bucketIndex = ((currentAt - startedAt) / screenTimeUnit).toInt()
+                    val nextAt = minOf(source.endedAt, startedAt + (screenTimeUnit * (bucketIndex + 1)))
 
-                    stayDurations[bucketIndex] += nextVisitedAt - visitedAt
-                    visitedAt = nextVisitedAt
+                    stayDurations[bucketIndex] += nextAt - currentAt
+                    currentAt = nextAt
                 }
             }
 
@@ -112,27 +132,27 @@ class DashboardService(
     private fun getCategoryAnalyses(query: GetCategoryAnalysisQuery): GetCategoryAnalysesResult =
         GetCategoryAnalysesResult(
             categoryAnalyses =
-                query.histories
+                query.sources
                     .groupBy { it.category }
-                    .map { (category, categoryHistories) ->
+                    .map { (category, sourcesByCategory) ->
                         val websiteAnalyses =
-                            categoryHistories
-                                .groupBy { it.websiteId }
+                            sourcesByCategory
+                                .groupBy { it.domain }
                                 .values
-                                .map { websiteHistories ->
-                                    val history = websiteHistories.first()
+                                .map { sourcesByDomain ->
+                                    val source = sourcesByDomain.first()
 
                                     GetCategoryAnalysesResult.WebsiteAnalysis(
-                                        domain = history.domain,
-                                        faviconUrl = history.faviconUrl,
-                                        stayDuration = websiteHistories.sumOf { it.closedAt - it.visitedAt }
+                                        domain = source.domain,
+                                        faviconUrl = source.faviconUrl,
+                                        stayDuration = sourcesByDomain.sumOf { it.stayDuration }
                                     )
                                 }
                                 .sortedByDescending { it.stayDuration }
 
                         GetCategoryAnalysesResult.CategoryAnalysis(
                             category = category,
-                            stayDuration = categoryHistories.sumOf { it.closedAt - it.visitedAt },
+                            stayDuration = sourcesByCategory.sumOf { it.stayDuration },
                             websiteAnalyses = websiteAnalyses
                         )
                     }
@@ -144,17 +164,17 @@ class DashboardService(
     ): GetFrequentlyVisitedWebsitesResult =
         GetFrequentlyVisitedWebsitesResult(
             websiteAnalyses =
-                query.histories
-                    .groupBy { it.websiteId }
+                query.sources
+                    .groupBy { it.domain }
                     .values
-                    .map { websiteHistories ->
-                        val history = websiteHistories.first()
+                    .map { sourcesByDomain ->
+                        val source = sourcesByDomain.first()
 
                         GetFrequentlyVisitedWebsitesResult.WebsiteAnalysis(
-                            domain = history.domain,
-                            faviconUrl = history.faviconUrl,
-                            visitCount = websiteHistories.count(),
-                            stayDuration = websiteHistories.sumOf { it.closedAt - it.visitedAt }
+                            domain = source.domain,
+                            faviconUrl = source.faviconUrl,
+                            visitCount = sourcesByDomain.count(),
+                            stayDuration = sourcesByDomain.sumOf { it.stayDuration }
                         )
                     }
                     .sortedWith(
@@ -163,11 +183,11 @@ class DashboardService(
                     )
         )
 
-    fun getWorkPattern(query: GetWorkPatternQuery): GetWorkPatternResult =
+    private fun getWorkPattern(query: GetWorkPatternQuery): GetWorkPatternResult =
         with(query) {
             val counts =
-                histories
-                    .groupingBy { it.visitedAt.atZone(timeZone.id).hour }
+                sources
+                    .groupingBy { it.startedAt.atZone(timeZone.id).hour }
                     .eachCount()
 
             GetWorkPatternResult(
@@ -180,16 +200,16 @@ class DashboardService(
         }
 
     private fun getLongestStayedWebsite(query: GetLongestStayedWebsiteQuery): GetLongestStayedWebsiteResult =
-        query.histories
-            .groupBy { it.websiteId }
+        query.sources
+            .groupBy { it.domain }
             .values
-            .map { websiteHistories ->
-                val history = websiteHistories.first()
+            .map { sourcesByDomain ->
+                val source = sourcesByDomain.first()
 
                 GetLongestStayedWebsiteResult(
-                    domain = history.domain,
-                    faviconUrl = history.faviconUrl,
-                    stayDuration = websiteHistories.sumOf { it.closedAt - it.visitedAt }
+                    domain = source.domain,
+                    faviconUrl = source.faviconUrl,
+                    stayDuration = sourcesByDomain.sumOf { it.stayDuration }
                 )
             }
             .maxBy { it.stayDuration }

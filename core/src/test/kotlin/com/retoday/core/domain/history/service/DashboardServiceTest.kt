@@ -3,14 +3,17 @@ package com.retoday.core.domain.history.service
 import com.retoday.core.common.ServiceTest
 import com.retoday.core.domain.history.dto.query.GetMyDashboardQuery
 import com.retoday.core.domain.history.dto.query.GetMyDashboardQuery.DashboardPeriod
-import com.retoday.core.domain.history.dto.query.GetWorkPatternQuery
 import com.retoday.core.domain.history.dto.result.GetWorkPatternResult
 import com.retoday.core.domain.history.entity.WebsiteCategory
+import com.retoday.core.domain.history.exception.HistoryNotFoundException
 import com.retoday.core.domain.history.repository.HistoryRepository
 import com.retoday.core.domain.user.entity.TimeZone
+import com.retoday.core.fixture.DASHBOARD_DATE
 import com.retoday.core.fixture.ID
 import com.retoday.core.fixture.WEBSITE_DOMAIN
-import com.retoday.core.fixture.createDashboardHistoryProjection
+import com.retoday.core.fixture.createHistoryWithWebsiteProjection
+import com.retoday.core.global.extension.minus
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -18,7 +21,28 @@ import io.mockk.verify
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
-import java.util.*
+
+private const val OTHER_WEBSITE_DOMAIN = "example.com"
+private val DAY = Duration.ofDays(1)
+private val DAILY_SEOUL_STARTED_AT = DASHBOARD_DATE.atStartOfDay(TimeZone.SEOUL.id).toInstant()
+private val DAILY_SEOUL_ENDED_AT = DAILY_SEOUL_STARTED_AT + DAY
+private val FIRST_HISTORY_STARTED_AT = DAILY_SEOUL_STARTED_AT + Duration.ofMinutes(30)
+private val FIRST_HISTORY_ENDED_AT = DAILY_SEOUL_STARTED_AT + Duration.ofHours(2) + Duration.ofMinutes(30)
+private val SECOND_HISTORY_STARTED_AT = DAILY_SEOUL_STARTED_AT + Duration.ofHours(7)
+private val SECOND_HISTORY_ENDED_AT = DAILY_SEOUL_STARTED_AT + Duration.ofHours(8)
+private val THIRD_HISTORY_STARTED_AT = DAILY_SEOUL_STARTED_AT + Duration.ofHours(13)
+private val THIRD_HISTORY_ENDED_AT = DAILY_SEOUL_STARTED_AT + Duration.ofHours(14) + Duration.ofMinutes(30)
+private val TOTAL_STAY_DURATION = Duration.ofHours(4) + Duration.ofMinutes(30)
+private val LONGEST_STAY_DURATION = Duration.ofHours(3)
+private val FIRST_BUCKET_STAY_DURATION = Duration.ofMinutes(90)
+private val RANGE_PADDING = Duration.ofHours(1)
+private val ACTIVE_STARTED_BEFORE = Duration.ofMinutes(10)
+private val WEEKLY_FIRST_STAY_DURATION = Duration.ofHours(1)
+private val WEEKLY_LAST_STAY_DURATION = Duration.ofHours(2)
+private val WEEKLY_DASHBOARD_DATE = LocalDate.of(2026, 2, 11)
+private val WEEKLY_STARTED_AT = LocalDate.of(2026, 2, 9).atStartOfDay(TimeZone.SEOUL.id).toInstant()
+private val WEEKLY_ENDED_AT = WEEKLY_STARTED_AT + DashboardPeriod.WEEKLY.amount
+private val EMPTY_DASHBOARD_DATE = LocalDate.of(2026, 3, 1)
 
 class DashboardServiceTest : ServiceTest() {
     private val historyRepository = mockk<HistoryRepository>()
@@ -26,32 +50,30 @@ class DashboardServiceTest : ServiceTest() {
 
     init {
         Given("하루 동안 여러 웹사이트를 방문한 기록이 주어지면") {
-            val date = LocalDate.parse("2026-02-13")
-            val otherWebsiteId = UUID.fromString("00000000-0000-0000-0000-000000000002")
+            val date = DASHBOARD_DATE
             val histories =
                 listOf(
-                    createDashboardHistoryProjection(
-                        visitedAt = Instant.parse("2026-02-12T15:30:00Z"),
-                        closedAt = Instant.parse("2026-02-12T17:30:00Z")
+                    createHistoryWithWebsiteProjection(
+                        startedAt = FIRST_HISTORY_STARTED_AT,
+                        endedAt = FIRST_HISTORY_ENDED_AT
                     ),
-                    createDashboardHistoryProjection(
-                        visitedAt = Instant.parse("2026-02-12T22:00:00Z"),
-                        closedAt = Instant.parse("2026-02-12T23:00:00Z")
+                    createHistoryWithWebsiteProjection(
+                        startedAt = SECOND_HISTORY_STARTED_AT,
+                        endedAt = SECOND_HISTORY_ENDED_AT
                     ),
-                    createDashboardHistoryProjection(
-                        websiteId = otherWebsiteId,
-                        domain = "example.com",
+                    createHistoryWithWebsiteProjection(
+                        domain = OTHER_WEBSITE_DOMAIN,
                         faviconUrl = null,
                         category = null,
-                        visitedAt = Instant.parse("2026-02-13T04:00:00Z"),
-                        closedAt = Instant.parse("2026-02-13T05:30:00Z")
+                        startedAt = THIRD_HISTORY_STARTED_AT,
+                        endedAt = THIRD_HISTORY_ENDED_AT
                     )
                 )
             every {
-                historyRepository.findDashboardHistories(
+                historyRepository.findHistoriesWithWebsite(
                     ID,
-                    Instant.parse("2026-02-12T15:00:00Z"),
-                    Instant.parse("2026-02-13T15:00:00Z")
+                    DAILY_SEOUL_STARTED_AT,
+                    DAILY_SEOUL_ENDED_AT
                 )
             } returns histories
 
@@ -74,16 +96,28 @@ class DashboardServiceTest : ServiceTest() {
                     val websiteStayDuration =
                         result.getFrequentlyVisitedWebsitesResult.websiteAnalyses
                             .fold(Duration.ZERO) { total, analysis -> total + analysis.stayDuration }
+                    val bucketStayDuration =
+                        result.getScreenTimeResult.buckets
+                            .fold(Duration.ZERO) { total, bucket -> total + bucket.stayDuration }
+                    val frequentlyVisitedWebsites =
+                        result.getFrequentlyVisitedWebsitesResult.websiteAnalyses
 
-                    totalStayDuration shouldBe Duration.ofHours(4).plusMinutes(30)
+                    totalStayDuration shouldBe TOTAL_STAY_DURATION
+                    bucketStayDuration shouldBe totalStayDuration
                     categoryStayDuration shouldBe totalStayDuration
                     websiteStayDuration shouldBe totalStayDuration
-                    result.getScreenTimeResult.buckets.first().stayDuration shouldBe Duration.ofMinutes(90)
+                    result.getCategoryAnalysesResult.categoryAnalyses.forEach { categoryAnalysis ->
+                        categoryAnalysis.websiteAnalyses
+                            .fold(Duration.ZERO) { total, analysis -> total + analysis.stayDuration } shouldBe
+                            categoryAnalysis.stayDuration
+                    }
+                    frequentlyVisitedWebsites.sumOf { it.visitCount } shouldBe histories.size
+                    result.getScreenTimeResult.buckets.first().stayDuration shouldBe FIRST_BUCKET_STAY_DURATION
                     result.getCategoryAnalysesResult.categoryAnalyses.map { it.category } shouldBe
                         listOf(WebsiteCategory.DEVELOPMENT, null)
                     result.getFrequentlyVisitedWebsitesResult.websiteAnalyses.first().visitCount shouldBe 2
                     result.getFrequentlyVisitedWebsitesResult.websiteAnalyses.first().stayDuration shouldBe
-                        Duration.ofHours(3)
+                        LONGEST_STAY_DURATION
                     result.getWorkPatternResult.counts shouldBe
                         mapOf(
                             GetWorkPatternResult.TimeSlot.DAWN to 1,
@@ -92,57 +126,124 @@ class DashboardServiceTest : ServiceTest() {
                             GetWorkPatternResult.TimeSlot.EVENING to 0
                         )
                     result.getLongestStayedWebsiteResult.domain shouldBe WEBSITE_DOMAIN
-                    result.getLongestStayedWebsiteResult.stayDuration shouldBe Duration.ofHours(3)
-                    result.getLongestStayedWebsiteResult.stayDuration shouldBe
-                        result.getFrequentlyVisitedWebsitesResult.websiteAnalyses.maxOf { it.stayDuration }
-                    verify(exactly = 1) { historyRepository.findDashboardHistories(any(), any(), any()) }
+                    result.getLongestStayedWebsiteResult.stayDuration shouldBe LONGEST_STAY_DURATION
+                    val longestStayedWebsite = frequentlyVisitedWebsites.maxBy { it.stayDuration }
+                    result.getLongestStayedWebsiteResult.domain shouldBe longestStayedWebsite.domain
+                    result.getLongestStayedWebsiteResult.faviconUrl shouldBe longestStayedWebsite.faviconUrl
+                    result.getLongestStayedWebsiteResult.stayDuration shouldBe longestStayedWebsite.stayDuration
+                    result.getWorkPatternResult.counts.values.sum() shouldBe histories.size
+                    verify(exactly = 1) { historyRepository.findHistoriesWithWebsite(any(), any(), any()) }
                 }
             }
         }
 
-        Given("작업 패턴 단독 조회 조건과 방문 기록이 주어지면") {
-            val date = LocalDate.parse("2026-02-14")
-            val histories =
+        Given("조회 범위 양쪽에 걸친 기록이 주어지면") {
+            val date = DASHBOARD_DATE
+            val rangeStartedAt = DAILY_SEOUL_STARTED_AT
+            val rangeEndedAt = DAILY_SEOUL_ENDED_AT
+            every {
+                historyRepository.findHistoriesWithWebsite(ID, rangeStartedAt, rangeEndedAt)
+            } returns
                 listOf(
-                    createDashboardHistoryProjection(
-                        visitedAt = Instant.parse("2026-02-13T22:00:00Z"),
-                        closedAt = Instant.parse("2026-02-13T23:00:00Z")
+                    createHistoryWithWebsiteProjection(
+                        startedAt = rangeStartedAt - RANGE_PADDING,
+                        endedAt = rangeEndedAt + RANGE_PADDING
                     )
                 )
 
-            When("작업 패턴을 조회하면") {
+            When("일간 대시보드를 조회하면") {
                 val result =
-                    dashboardService.getWorkPattern(
-                        GetWorkPatternQuery(
+                    dashboardService.getMyDashboard(
+                        ID,
+                        GetMyDashboardQuery(
+                            date = date,
                             timeZone = TimeZone.SEOUL,
-                            histories = histories
+                            period = DashboardPeriod.DAILY
                         )
                     )
 
-                Then("기존 단독 조회 함수도 시간대별 통계를 반환한다") {
-                    result.counts[GetWorkPatternResult.TimeSlot.MORNING] shouldBe 1
+                Then("조회 범위 안의 체류 시간만 모든 통계에 동일하게 반영한다") {
+                    val totalStayDuration = result.getScreenTimeResult.totalStayDuration
+
+                    totalStayDuration shouldBe rangeEndedAt - rangeStartedAt
+                    result.getScreenTimeResult.buckets
+                        .fold(Duration.ZERO) { total, bucket -> total + bucket.stayDuration } shouldBe
+                        totalStayDuration
+                    result.getCategoryAnalysesResult.categoryAnalyses.single().stayDuration shouldBe
+                        totalStayDuration
+                    result.getFrequentlyVisitedWebsitesResult.websiteAnalyses.single().stayDuration shouldBe
+                        totalStayDuration
+                    result.getLongestStayedWebsiteResult.stayDuration shouldBe totalStayDuration
+                }
+            }
+        }
+
+        Given("종료되지 않은 현재 활성 기록이 주어지면") {
+            val before = Instant.now()
+            val date = before.atZone(TimeZone.SEOUL.id).toLocalDate()
+            val rangeStartedAt = date.atStartOfDay(TimeZone.SEOUL.id).toInstant()
+            val rangeEndedAt = rangeStartedAt + DAY
+            val activeStartedAt = before - ACTIVE_STARTED_BEFORE
+            every {
+                historyRepository.findHistoriesWithWebsite(ID, rangeStartedAt, rangeEndedAt)
+            } returns
+                listOf(
+                    createHistoryWithWebsiteProjection(
+                        startedAt = activeStartedAt,
+                        endedAt = null
+                    )
+                )
+
+            When("오늘의 대시보드를 조회하면") {
+                val result =
+                    dashboardService.getMyDashboard(
+                        ID,
+                        GetMyDashboardQuery(
+                            date = date,
+                            timeZone = TimeZone.SEOUL,
+                            period = DashboardPeriod.DAILY
+                        )
+                    )
+                val after = Instant.now()
+
+                Then("활성 기록은 현재까지만 집계한다") {
+                    val totalStayDuration = result.getScreenTimeResult.totalStayDuration
+                    val clippedStartedAt = maxOf(activeStartedAt, rangeStartedAt)
+                    val minimumDuration = Duration.between(clippedStartedAt, before)
+                    val maximumDuration = Duration.between(clippedStartedAt, minOf(after, rangeEndedAt))
+
+                    (totalStayDuration >= minimumDuration) shouldBe true
+                    (totalStayDuration <= maximumDuration) shouldBe true
+                    result.getScreenTimeResult.buckets
+                        .fold(Duration.ZERO) { total, bucket -> total + bucket.stayDuration } shouldBe
+                        totalStayDuration
+                    result.getCategoryAnalysesResult.categoryAnalyses
+                        .fold(Duration.ZERO) { total, analysis -> total + analysis.stayDuration } shouldBe
+                        totalStayDuration
+                    result.getFrequentlyVisitedWebsitesResult.websiteAnalyses.single().visitCount shouldBe 1
+                    result.getLongestStayedWebsiteResult.stayDuration shouldBe totalStayDuration
                 }
             }
         }
 
         Given("한 주의 시작과 마지막 날에 방문한 기록이 주어지면") {
-            val date = LocalDate.parse("2026-02-11")
+            val date = WEEKLY_DASHBOARD_DATE
             val histories =
                 listOf(
-                    createDashboardHistoryProjection(
-                        visitedAt = Instant.parse("2026-02-08T15:00:00Z"),
-                        closedAt = Instant.parse("2026-02-08T16:00:00Z")
+                    createHistoryWithWebsiteProjection(
+                        startedAt = WEEKLY_STARTED_AT,
+                        endedAt = WEEKLY_STARTED_AT + WEEKLY_FIRST_STAY_DURATION
                     ),
-                    createDashboardHistoryProjection(
-                        visitedAt = Instant.parse("2026-02-15T13:00:00Z"),
-                        closedAt = Instant.parse("2026-02-15T15:00:00Z")
+                    createHistoryWithWebsiteProjection(
+                        startedAt = WEEKLY_ENDED_AT - WEEKLY_LAST_STAY_DURATION,
+                        endedAt = WEEKLY_ENDED_AT
                     )
                 )
             every {
-                historyRepository.findDashboardHistories(
+                historyRepository.findHistoriesWithWebsite(
                     ID,
-                    Instant.parse("2026-02-08T15:00:00Z"),
-                    Instant.parse("2026-02-15T15:00:00Z")
+                    WEEKLY_STARTED_AT,
+                    WEEKLY_ENDED_AT
                 )
             } returns histories
 
@@ -159,11 +260,33 @@ class DashboardServiceTest : ServiceTest() {
 
                 Then("월요일부터 일요일까지 일별 스크린타임을 반환한다") {
                     result.getScreenTimeResult.buckets.size shouldBe 7
-                    result.getScreenTimeResult.buckets.first().startedAt shouldBe
-                        Instant.parse("2026-02-08T15:00:00Z")
-                    result.getScreenTimeResult.buckets.last().endedAt shouldBe
-                        Instant.parse("2026-02-15T15:00:00Z")
-                    result.getScreenTimeResult.totalStayDuration shouldBe Duration.ofHours(3)
+                    result.getScreenTimeResult.buckets.first().startedAt shouldBe WEEKLY_STARTED_AT
+                    result.getScreenTimeResult.buckets.last().endedAt shouldBe WEEKLY_ENDED_AT
+                    result.getScreenTimeResult.totalStayDuration shouldBe LONGEST_STAY_DURATION
+                }
+            }
+        }
+
+        Given("조회 기간에 방문 기록이 없으면") {
+            val date = EMPTY_DASHBOARD_DATE
+            val rangeStartedAt = date.atStartOfDay(TimeZone.SEOUL.id).toInstant()
+            val rangeEndedAt = rangeStartedAt + DAY
+            every {
+                historyRepository.findHistoriesWithWebsite(ID, rangeStartedAt, rangeEndedAt)
+            } returns emptyList()
+
+            When("대시보드를 조회하면") {
+                Then("HistoryNotFoundException을 던진다") {
+                    shouldThrow<HistoryNotFoundException> {
+                        dashboardService.getMyDashboard(
+                            ID,
+                            GetMyDashboardQuery(
+                                date = date,
+                                timeZone = TimeZone.SEOUL,
+                                period = DashboardPeriod.DAILY
+                            )
+                        )
+                    }
                 }
             }
         }

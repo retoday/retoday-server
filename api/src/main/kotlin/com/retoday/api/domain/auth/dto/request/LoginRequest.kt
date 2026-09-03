@@ -9,11 +9,11 @@ data class LoginRequest(
     @field:NotBlank
     @get:JsonProperty("oAuthToken")
     val oAuthToken: String,
-    val provider: SocialProvider
+    val socialProvider: SocialProvider
 ) {
     fun toCommand(): LoginCommand =
         LoginCommand(
             oAuthToken = oAuthToken,
-            socialProvider = provider
+            socialProvider = socialProvider
         )
 }

@@ -2,14 +2,14 @@ package com.retoday.core.domain.history.repository
 
 import com.retoday.core.domain.history.entity.Page
 import com.retoday.core.global.extension.createUuid
+import com.retoday.core.global.extension.fetchSingleInto
 import com.retoday.core.global.jooq.tables.Page.Companion.PAGE
 import org.jooq.DSLContext
-import org.jooq.impl.DSL.coalesce
 
 class CustomPageRepositoryImpl(
     private val dsl: DSLContext
 ) : CustomPageRepository {
-    override fun upsertByUrl(page: Page): Int =
+    override fun upsertByUrl(page: Page): Page {
         dsl
             .insertInto(PAGE)
             .columns(
@@ -27,7 +27,13 @@ class CustomPageRepositoryImpl(
                 page.description
             )
             .onDuplicateKeyUpdate()
-            .set(PAGE.TITLE, coalesce(PAGE.TITLE, page.title))
-            .set(PAGE.DESCRIPTION, coalesce(PAGE.DESCRIPTION, page.description))
+            .set(PAGE.TITLE, page.title)
+            .set(PAGE.DESCRIPTION, page.description)
             .execute()
+
+        return dsl
+            .selectFrom(PAGE)
+            .where(PAGE.URL.equal(page.url))
+            .fetchSingleInto()
+    }
 }

@@ -23,7 +23,6 @@ class CustomProfileRepositoryImpl(
                 PROFILE.IMAGE_URL,
                 PROFILE.TIME_ZONE,
                 PROFILE.LANGUAGE,
-                PROFILE.RECAP_PERIOD,
                 USER.EMAIL
             )
             .from(PROFILE)

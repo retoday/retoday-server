@@ -3,15 +3,37 @@ package com.retoday.batch.domain.recap.service
 import com.retoday.core.common.ServiceTest
 import com.retoday.core.domain.history.entity.WebsiteCategory
 import com.retoday.core.domain.recap.dto.command.AssembleTimelinesCommand
+import com.retoday.core.domain.recap.dto.model.RecapSource
 import com.retoday.core.domain.recap.dto.model.TimelineGroup
 import com.retoday.core.domain.recap.dto.model.TimelineSegment
-import com.retoday.core.domain.recap.dto.projection.RecapSourceProjection
 import com.retoday.core.domain.recap.dto.result.AssembledTimelineResult
 import com.retoday.core.domain.user.entity.TimeZone
+import com.retoday.core.fixture.RECAP_DATE
 import io.kotest.matchers.shouldBe
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalTime
+import java.time.ZoneOffset
+
+private const val SHOP_SHOES_URL = "https://shop.example.com/shoes"
+private const val SHOP_CART_URL = "https://shop.example.com/cart"
+private const val NEWS_ARTICLE_URL = "https://news.example.com/article"
+private const val SHOP_DOMAIN = "shop.example.com"
+private const val SOURCE_TITLE = "신발 검색"
+private const val SOURCE_DESCRIPTION = "신발 상품 페이지"
+private const val SHOPPING_TIMELINE_TITLE = "신발 쇼핑하기"
+private const val NEWS_TIMELINE_TITLE = "뉴스 읽기"
+private const val COMPARISON_TIMELINE_TITLE = "상품 비교하기"
+private const val SHORT_TIMELINE_TITLE = "짧은 탐색"
+private const val DEFAULT_ACTIVE_MINUTES = 20L
+private val TIMELINE_TIME_ZONE = TimeZone.SEOUL
+private val SOURCE_CATEGORY = WebsiteCategory.SHOPPING
+private val TIMELINE_BASE_AT = (RECAP_DATE.atStartOfDay(ZoneOffset.UTC) + Duration.ofHours(1)).toInstant()
+
+private fun timelineAt(minutesAfterBase: Long): Instant = TIMELINE_BASE_AT + Duration.ofMinutes(minutesAfterBase)
+
+private fun localTimeAt(minutesAfterBase: Long): LocalTime =
+    timelineAt(minutesAfterBase).atZone(TIMELINE_TIME_ZONE.id).toLocalTime()
 
 class RecapTimelineServiceTest : ServiceTest() {
     private val recapTimelineService = RecapTimelineService()
@@ -21,27 +43,27 @@ class RecapTimelineServiceTest : ServiceTest() {
             val recapSources =
                 listOf(
                     createRecapSource(
-                        url = "https://shop.example.com/shoes",
-                        visitedAt = Instant.parse("2026-02-23T01:30:00Z"),
-                        closedAt = Instant.parse("2026-02-23T02:10:00Z")
+                        url = SHOP_SHOES_URL,
+                        startedAt = timelineAt(30),
+                        endedAt = timelineAt(70)
                     ),
                     createRecapSource(
-                        url = "https://news.example.com/article",
-                        visitedAt = Instant.parse("2026-02-23T01:00:00Z"),
-                        closedAt = Instant.parse("2026-02-23T01:00:59Z")
+                        url = NEWS_ARTICLE_URL,
+                        startedAt = timelineAt(0),
+                        endedAt = timelineAt(0) + Duration.ofSeconds(59)
                     )
                 )
 
             When("타임라인 구간을 생성하면") {
-                val segments = recapTimelineService.createSegments(recapSources, TimeZone.SEOUL)
+                val segments = recapTimelineService.createSegments(recapSources, TIMELINE_TIME_ZONE)
 
                 Then("1분 이하 기록은 제외하고 시작 시각 기준으로 정렬한다") {
                     segments shouldBe
                         listOf(
                             createSegment(
                                 id = 1,
-                                startedAt = LocalTime.of(10, 30),
-                                endedAt = LocalTime.of(11, 10),
+                                startedAt = localTimeAt(30),
+                                endedAt = localTimeAt(70),
                                 activeMinutes = 40
                             )
                         )
@@ -53,27 +75,27 @@ class RecapTimelineServiceTest : ServiceTest() {
             val recapSources =
                 listOf(
                     createRecapSource(
-                        url = "https://shop.example.com/shoes",
-                        visitedAt = Instant.parse("2026-02-23T01:00:00Z"),
-                        closedAt = Instant.parse("2026-02-23T01:10:00Z")
+                        url = SHOP_SHOES_URL,
+                        startedAt = timelineAt(0),
+                        endedAt = timelineAt(10)
                     ),
                     createRecapSource(
-                        url = "https://shop.example.com/shoes",
-                        visitedAt = Instant.parse("2026-02-23T01:15:00Z"),
-                        closedAt = Instant.parse("2026-02-23T01:25:00Z")
+                        url = SHOP_SHOES_URL,
+                        startedAt = timelineAt(15),
+                        endedAt = timelineAt(25)
                     )
                 )
 
             When("타임라인 구간을 생성하면") {
-                val segments = recapTimelineService.createSegments(recapSources, TimeZone.SEOUL)
+                val segments = recapTimelineService.createSegments(recapSources, TIMELINE_TIME_ZONE)
 
                 Then("하나의 URL segment로 묶고 active time을 합산한다") {
                     segments shouldBe
                         listOf(
                             createSegment(
                                 id = 1,
-                                startedAt = LocalTime.of(10, 0),
-                                endedAt = LocalTime.of(10, 25)
+                                startedAt = localTimeAt(0),
+                                endedAt = localTimeAt(25)
                             )
                         )
                 }
@@ -84,33 +106,33 @@ class RecapTimelineServiceTest : ServiceTest() {
             val recapSources =
                 listOf(
                     createRecapSource(
-                        url = "https://shop.example.com/shoes",
-                        visitedAt = Instant.parse("2026-02-23T01:00:00Z"),
-                        closedAt = Instant.parse("2026-02-23T01:10:00Z")
+                        url = SHOP_SHOES_URL,
+                        startedAt = timelineAt(0),
+                        endedAt = timelineAt(10)
                     ),
                     createRecapSource(
-                        url = "https://shop.example.com/shoes",
-                        visitedAt = Instant.parse("2026-02-23T01:21:00Z"),
-                        closedAt = Instant.parse("2026-02-23T01:31:00Z")
+                        url = SHOP_SHOES_URL,
+                        startedAt = timelineAt(21),
+                        endedAt = timelineAt(31)
                     )
                 )
 
             When("타임라인 구간을 생성하면") {
-                val segments = recapTimelineService.createSegments(recapSources, TimeZone.SEOUL)
+                val segments = recapTimelineService.createSegments(recapSources, TIMELINE_TIME_ZONE)
 
                 Then("서로 다른 URL segment로 분리한다") {
                     segments shouldBe
                         listOf(
                             createSegment(
                                 id = 1,
-                                startedAt = LocalTime.of(10, 0),
-                                endedAt = LocalTime.of(10, 10),
+                                startedAt = localTimeAt(0),
+                                endedAt = localTimeAt(10),
                                 activeMinutes = 10
                             ),
                             createSegment(
                                 id = 2,
-                                startedAt = LocalTime.of(10, 21),
-                                endedAt = LocalTime.of(10, 31),
+                                startedAt = localTimeAt(21),
+                                endedAt = localTimeAt(31),
                                 activeMinutes = 10
                             )
                         )
@@ -123,33 +145,33 @@ class RecapTimelineServiceTest : ServiceTest() {
                 recapTimelineService.createSegments(
                     listOf(
                         createRecapSource(
-                            url = "https://shop.example.com/shoes",
-                            visitedAt = Instant.parse("2026-02-23T01:00:00Z"),
-                            closedAt = Instant.parse("2026-02-23T01:20:00Z")
+                            url = SHOP_SHOES_URL,
+                            startedAt = timelineAt(0),
+                            endedAt = timelineAt(20)
                         ),
                         createRecapSource(
-                            url = "https://shop.example.com/cart",
-                            visitedAt = Instant.parse("2026-02-23T01:25:00Z"),
-                            closedAt = Instant.parse("2026-02-23T01:40:00Z")
+                            url = SHOP_CART_URL,
+                            startedAt = timelineAt(25),
+                            endedAt = timelineAt(40)
                         ),
                         createRecapSource(
-                            url = "https://news.example.com/article",
-                            visitedAt = Instant.parse("2026-02-23T02:00:00Z"),
-                            closedAt = Instant.parse("2026-02-23T02:10:00Z")
+                            url = NEWS_ARTICLE_URL,
+                            startedAt = timelineAt(60),
+                            endedAt = timelineAt(70)
                         )
                     ),
-                    TimeZone.SEOUL
+                    TIMELINE_TIME_ZONE
                 )
             val command =
                 AssembleTimelinesCommand(
                     groups =
                         listOf(
                             TimelineGroup(
-                                label = "신발 쇼핑하기",
+                                label = SHOPPING_TIMELINE_TITLE,
                                 segmentIds = listOf(1L, 2L)
                             ),
                             TimelineGroup(
-                                label = "뉴스 읽기",
+                                label = NEWS_TIMELINE_TITLE,
                                 segmentIds = listOf(3L)
                             )
                         ),
@@ -163,9 +185,9 @@ class RecapTimelineServiceTest : ServiceTest() {
                     timelines shouldBe
                         listOf(
                             AssembledTimelineResult(
-                                title = "신발 쇼핑하기",
-                                startedAt = LocalTime.of(10, 0),
-                                endedAt = LocalTime.of(10, 40)
+                                title = SHOPPING_TIMELINE_TITLE,
+                                startedAt = localTimeAt(0),
+                                endedAt = localTimeAt(40)
                             )
                         )
                 }
@@ -175,20 +197,20 @@ class RecapTimelineServiceTest : ServiceTest() {
         Given("AI가 서로 다른 group에 같은 segment id를 중복 반환하면") {
             val segments =
                 listOf(
-                    createSegment(id = 1, startedAt = LocalTime.of(10, 0), endedAt = LocalTime.of(10, 20)),
-                    createSegment(id = 2, startedAt = LocalTime.of(10, 20), endedAt = LocalTime.of(10, 40)),
-                    createSegment(id = 3, startedAt = LocalTime.of(10, 40), endedAt = LocalTime.of(11, 0))
+                    createSegment(id = 1, startedAt = localTimeAt(0), endedAt = localTimeAt(20)),
+                    createSegment(id = 2, startedAt = localTimeAt(20), endedAt = localTimeAt(40)),
+                    createSegment(id = 3, startedAt = localTimeAt(40), endedAt = localTimeAt(60))
                 )
             val command =
                 AssembleTimelinesCommand(
                     groups =
                         listOf(
                             TimelineGroup(
-                                label = "신발 쇼핑하기",
+                                label = SHOPPING_TIMELINE_TITLE,
                                 segmentIds = listOf(1L, 2L)
                             ),
                             TimelineGroup(
-                                label = "상품 비교하기",
+                                label = COMPARISON_TIMELINE_TITLE,
                                 segmentIds = listOf(2L, 3L)
                             )
                         ),
@@ -202,9 +224,9 @@ class RecapTimelineServiceTest : ServiceTest() {
                     timelines shouldBe
                         listOf(
                             AssembledTimelineResult(
-                                title = "신발 쇼핑하기",
-                                startedAt = LocalTime.of(10, 0),
-                                endedAt = LocalTime.of(10, 40)
+                                title = SHOPPING_TIMELINE_TITLE,
+                                startedAt = localTimeAt(0),
+                                endedAt = localTimeAt(40)
                             )
                         )
                 }
@@ -214,19 +236,19 @@ class RecapTimelineServiceTest : ServiceTest() {
         Given("먼저 나온 group이 30분 미만이라 제거되면") {
             val segments =
                 listOf(
-                    createSegment(id = 1, startedAt = LocalTime.of(10, 0), endedAt = LocalTime.of(10, 20)),
-                    createSegment(id = 2, startedAt = LocalTime.of(10, 20), endedAt = LocalTime.of(10, 40))
+                    createSegment(id = 1, startedAt = localTimeAt(0), endedAt = localTimeAt(20)),
+                    createSegment(id = 2, startedAt = localTimeAt(20), endedAt = localTimeAt(40))
                 )
             val command =
                 AssembleTimelinesCommand(
                     groups =
                         listOf(
                             TimelineGroup(
-                                label = "짧은 탐색",
+                                label = SHORT_TIMELINE_TITLE,
                                 segmentIds = listOf(1L)
                             ),
                             TimelineGroup(
-                                label = "신발 쇼핑하기",
+                                label = SHOPPING_TIMELINE_TITLE,
                                 segmentIds = listOf(1L, 2L)
                             )
                         ),
@@ -240,9 +262,9 @@ class RecapTimelineServiceTest : ServiceTest() {
                     timelines shouldBe
                         listOf(
                             AssembledTimelineResult(
-                                title = "신발 쇼핑하기",
-                                startedAt = LocalTime.of(10, 0),
-                                endedAt = LocalTime.of(10, 40)
+                                title = SHOPPING_TIMELINE_TITLE,
+                                startedAt = localTimeAt(0),
+                                endedAt = localTimeAt(40)
                             )
                         )
                 }
@@ -254,31 +276,30 @@ class RecapTimelineServiceTest : ServiceTest() {
         id: Long,
         startedAt: LocalTime,
         endedAt: LocalTime,
-        activeMinutes: Long = 20
+        activeMinutes: Long = DEFAULT_ACTIVE_MINUTES
     ) = TimelineSegment(
         id = id,
         startedAt = startedAt,
         endedAt = endedAt,
         activeMinutes = activeMinutes,
-        domain = "shop.example.com",
-        title = "신발 검색",
-        description = "신발 상품 페이지",
-        category = WebsiteCategory.SHOPPING
+        domain = SHOP_DOMAIN,
+        title = SOURCE_TITLE,
+        description = SOURCE_DESCRIPTION,
+        category = SOURCE_CATEGORY
     )
 
     private fun createRecapSource(
         url: String,
-        visitedAt: Instant,
-        closedAt: Instant
-    ): RecapSourceProjection =
-        RecapSourceProjection(
+        startedAt: Instant,
+        endedAt: Instant
+    ): RecapSource =
+        RecapSource(
             url = url,
-            title = "신발 검색",
-            description = "신발 상품 페이지",
-            domain = "shop.example.com",
-            category = WebsiteCategory.SHOPPING,
-            visitedAt = visitedAt,
-            closedAt = closedAt,
-            stayDuration = Duration.between(visitedAt, closedAt)
+            title = SOURCE_TITLE,
+            description = SOURCE_DESCRIPTION,
+            domain = SHOP_DOMAIN,
+            category = SOURCE_CATEGORY,
+            startedAt = startedAt,
+            endedAt = endedAt
         )
 }
