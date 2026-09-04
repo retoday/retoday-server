@@ -8,7 +8,7 @@ import com.retoday.core.domain.history.dto.result.GetCategoryAnalysesResult
 import com.retoday.core.domain.history.repository.HistoryRepository
 import com.retoday.core.domain.recap.client.RecapClient
 import com.retoday.core.domain.recap.dto.command.AssembleTimelinesCommand
-import com.retoday.core.domain.recap.dto.projection.RecapSourceProjection
+import com.retoday.core.domain.recap.dto.model.RecapSource
 import com.retoday.core.domain.recap.dto.request.GenerateRecapRequest
 import com.retoday.core.domain.recap.dto.request.GenerateTimelinesRequest
 import com.retoday.core.domain.recap.dto.request.GenerateTopicsRequest
@@ -18,7 +18,8 @@ import org.springframework.batch.item.ItemProcessor
 import org.springframework.core.task.TaskExecutor
 import org.springframework.stereotype.Component
 import java.time.Duration
-import java.time.temporal.ChronoUnit
+import java.time.Instant
+import java.time.Period
 import java.util.concurrent.CompletableFuture
 
 @Component
@@ -41,19 +42,30 @@ class GenerateRecapItemProcessor(
             item.recapDate
                 .atStartOfDay(profile.timeZone.id)
                 .toInstant()
-        val endedAt = startedAt.plus(1, ChronoUnit.DAYS)
+        val endedAt = startedAt + Period.ofDays(1)
+        val now = Instant.now()
         val recapSources =
             historyRepository.findRecapSources(
                 userId = profile.userId,
                 startedAt = startedAt,
                 endedAt = endedAt
-            )
+            ).map {
+                RecapSource(
+                    url = it.url,
+                    title = it.title,
+                    description = it.description,
+                    domain = it.domain,
+                    category = it.category,
+                    startedAt = it.startedAt,
+                    endedAt = it.endedAt ?: now
+                )
+            }
         if (recapSources.isEmpty()) {
             return null
         }
 
-        val firstVisitedAt = recapSources.minOf { it.visitedAt }
-        val lastClosedAt = recapSources.maxOf { it.closedAt }
+        val firstStartedAt = recapSources.minOf { it.startedAt }
+        val lastEndedAt = recapSources.maxOf { it.endedAt }
         val recapStatistics =
             recapStatisticsService.getStatistics(
                 userId = profile.userId,
@@ -120,11 +132,11 @@ class GenerateRecapItemProcessor(
             userId = profile.userId,
             date = item.recapDate,
             aiProvider = item.aiProvider,
-            startedAt = firstVisitedAt,
-            endedAt = lastClosedAt,
+            startedAt = firstStartedAt,
+            endedAt = lastEndedAt,
             image =
                 getRecapImage(
-                    firstVisitedHour = firstVisitedAt.atZone(profile.timeZone.id).hour,
+                    firstStartedHour = firstStartedAt.atZone(profile.timeZone.id).hour,
                     categoryAnalyses = recapStatistics.getCategoryAnalysesResult.categoryAnalyses,
                     recapSources = recapSources
                 ),
@@ -135,9 +147,9 @@ class GenerateRecapItemProcessor(
     }
 
     private fun getRecapImage(
-        firstVisitedHour: Int,
+        firstStartedHour: Int,
         categoryAnalyses: List<GetCategoryAnalysesResult.CategoryAnalysis>,
-        recapSources: List<RecapSourceProjection>
+        recapSources: List<RecapSource>
     ): RecapImage =
         categoryAnalyses
             .maxBy { it.stayDuration }
@@ -152,8 +164,8 @@ class GenerateRecapItemProcessor(
                     totalStayDuration < Duration.ofHours(1) -> RecapImage.SCREEN_TIME_UNDER_1H
                     categoryCount >= 5 -> RecapImage.CATEGORY_OVER_5
                     categoryCount == 1 -> RecapImage.CATEGORY_ONLY_1
-                    firstVisitedHour >= 21 -> RecapImage.START_AFTER_9PM
-                    firstVisitedHour < 9 -> RecapImage.START_BEFORE_9AM
+                    firstStartedHour >= 21 -> RecapImage.START_AFTER_9PM
+                    firstStartedHour < 9 -> RecapImage.START_BEFORE_9AM
                     else -> RecapImage.RANDOM
                 }
             }

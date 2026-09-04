@@ -10,8 +10,20 @@ import com.retoday.core.fixture.createUser
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import org.springframework.beans.factory.annotation.Autowired
-import java.time.LocalTime
-import java.util.UUID
+import java.util.*
+
+private const val OTHER_SOCIAL_ID = "other-social-id"
+private const val OTHER_EMAIL = "other@example.com"
+private const val OTHER_FIRST_NAME = "Other"
+private const val TARGET_SOCIAL_ID = "target-social-id"
+private const val TARGET_EMAIL = "target@example.com"
+private const val TARGET_FIRST_NAME = "Target"
+private const val USER_LAST_NAME = "User"
+private const val TARGET_IMAGE_URL = "https://target.example.com/profile.png"
+private const val SEOUL_SOCIAL_ID = "seoul-user"
+private const val PACIFIC_SOCIAL_ID = "pacific-user"
+private const val SEOUL_FIRST_NAME = "Seoul"
+private const val PACIFIC_FIRST_NAME = "Pacific"
 
 class CustomProfileRepositoryTest : RepositoryTest() {
     @Autowired
@@ -28,34 +40,33 @@ class CustomProfileRepositoryTest : RepositoryTest() {
                         userRepository
                             .save(
                                 createUser(
-                                    socialId = "other-social-id",
-                                    email = "other@example.com"
+                                    socialId = OTHER_SOCIAL_ID,
+                                    email = OTHER_EMAIL
                                 )
                             ).id!!
                     val targetUserId =
                         userRepository
                             .save(
                                 createUser(
-                                    socialId = "target-social-id",
-                                    email = "target@example.com"
+                                    socialId = TARGET_SOCIAL_ID,
+                                    email = TARGET_EMAIL
                                 )
                             ).id!!
                     profileRepository.save(
                         createProfile(
                             userId = otherUserId,
-                            firstName = "Other",
-                            lastName = "User"
+                            firstName = OTHER_FIRST_NAME,
+                            lastName = USER_LAST_NAME
                         )
                     )
                     profileRepository.save(
                         createProfile(
                             userId = targetUserId,
-                            firstName = "Target",
-                            lastName = "User",
-                            imageUrl = "https://target.example.com/profile.png",
+                            firstName = TARGET_FIRST_NAME,
+                            lastName = USER_LAST_NAME,
+                            imageUrl = TARGET_IMAGE_URL,
                             timeZone = TimeZone.PACIFIC,
-                            language = Language.ENGLISH,
-                            recapPeriod = LocalTime.of(21, 30)
+                            language = Language.ENGLISH
                         )
                     )
 
@@ -63,13 +74,12 @@ class CustomProfileRepositoryTest : RepositoryTest() {
 
                     projection shouldBe
                         createProfileWithEmailProjection(
-                            firstName = "Target",
-                            lastName = "User",
-                            imageUrl = "https://target.example.com/profile.png",
+                            firstName = TARGET_FIRST_NAME,
+                            lastName = USER_LAST_NAME,
+                            imageUrl = TARGET_IMAGE_URL,
                             timeZone = TimeZone.PACIFIC,
                             language = Language.ENGLISH,
-                            recapPeriod = LocalTime.of(21, 30),
-                            email = "target@example.com"
+                            email = TARGET_EMAIL
                         )
                 }
             }
@@ -84,22 +94,22 @@ class CustomProfileRepositoryTest : RepositoryTest() {
         describe("${ProfileRepository::findAllByStatusAndTimeZoneIn.name}()") {
             context("서로 다른 시간대의 활성 사용자 프로필이 저장되어 있으면") {
                 it("요청한 상태와 시간대가 모두 일치하는 프로필만 반환한다") {
-                    val seoulUserId = userRepository.save(createUser(socialId = "seoul-user")).id!!
-                    val utcUserId = userRepository.save(createUser(socialId = "utc-user")).id!!
+                    val seoulUserId = userRepository.save(createUser(socialId = SEOUL_SOCIAL_ID)).id!!
+                    val pacificUserId = userRepository.save(createUser(socialId = PACIFIC_SOCIAL_ID)).id!!
                     val seoulProfileId =
                         profileRepository
                             .save(
                                 createProfile(
                                     userId = seoulUserId,
-                                    firstName = "Seoul",
+                                    firstName = SEOUL_FIRST_NAME,
                                     timeZone = TimeZone.SEOUL
                                 )
                             ).id!!
                     profileRepository.save(
                         createProfile(
-                            userId = utcUserId,
-                            firstName = "UTC",
-                            timeZone = TimeZone.UTC
+                            userId = pacificUserId,
+                            firstName = PACIFIC_FIRST_NAME,
+                            timeZone = TimeZone.PACIFIC
                         )
                     )
 
@@ -114,7 +124,7 @@ class CustomProfileRepositoryTest : RepositoryTest() {
                             createProfile(
                                 id = seoulProfileId,
                                 userId = seoulUserId,
-                                firstName = "Seoul",
+                                firstName = SEOUL_FIRST_NAME,
                                 timeZone = TimeZone.SEOUL
                             )
                         )

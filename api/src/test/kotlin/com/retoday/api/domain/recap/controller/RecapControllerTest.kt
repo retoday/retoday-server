@@ -18,11 +18,23 @@ import com.retoday.core.domain.recap.entity.RecapTopic
 import com.retoday.core.domain.recap.exception.RecapNotFoundException
 import com.retoday.core.domain.recap.service.RecapService
 import com.retoday.core.fixture.ID
+import com.retoday.core.fixture.RECAP_DATE
 import com.retoday.core.fixture.createRecap
 import io.mockk.every
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import java.time.LocalDate
 import java.time.LocalTime
+import java.time.Period
+
+private const val RECAP_PATH = "/users/me/recaps"
+private const val SECTION_TITLE = "섹션"
+private const val SECTION_CONTENT = "내용"
+private const val TIMELINE_TITLE = "타임라인"
+private const val TOPIC_KEYWORD = "개발"
+private const val TOPIC_TITLE = "토픽"
+private const val TOPIC_CONTENT = "내용"
+private val REQUESTED_RECAP_DATE = RECAP_DATE - Period.ofDays(2)
+private val TIMELINE_STARTED_AT = LocalTime.of(9, 0)
+private val TIMELINE_ENDED_AT = LocalTime.of(9, 30)
 
 @WebMvcTest(RecapController::class)
 class RecapControllerTest : ControllerTest() {
@@ -31,23 +43,38 @@ class RecapControllerTest : ControllerTest() {
 
     init {
         describe("${RecapController::getMyRecap.name}()") {
-            val date = LocalDate.parse("2026-02-21")
+            val date = REQUESTED_RECAP_DATE
             val recap = createRecap(userId = ID, recapDate = date).copy(id = ID)
             val recapId = recap.id!!
             val result =
                 GetMyRecapResult(
                     recap = recap,
-                    sections = listOf(RecapSection(recapId = recapId, title = "섹션", content = "내용")),
+                    sections =
+                        listOf(
+                            RecapSection(
+                                recapId = recapId,
+                                title = SECTION_TITLE,
+                                content = SECTION_CONTENT
+                            )
+                        ),
                     timelines =
                         listOf(
                             RecapTimeline(
                                 recapId = recapId,
-                                title = "타임라인",
-                                startedAt = LocalTime.of(9, 0),
-                                endedAt = LocalTime.of(9, 30)
+                                title = TIMELINE_TITLE,
+                                startedAt = TIMELINE_STARTED_AT,
+                                endedAt = TIMELINE_ENDED_AT
                             )
                         ),
-                    topics = listOf(RecapTopic(recapId = recapId, keyword = "개발", title = "토픽", content = "내용"))
+                    topics =
+                        listOf(
+                            RecapTopic(
+                                recapId = recapId,
+                                keyword = TOPIC_KEYWORD,
+                                title = TOPIC_TITLE,
+                                content = TOPIC_CONTENT
+                            )
+                        )
                 )
 
             context("리캡이 존재하는 경우") {
@@ -56,7 +83,7 @@ class RecapControllerTest : ControllerTest() {
                 it("200과 리캡 응답을 반환한다") {
                     webClient
                         .get()
-                        .uri("/users/me/recaps?date=$date")
+                        .uri("$RECAP_PATH?date=$date")
                         .withAuthentication()
                         .exchange()
                         .expectStatus(200)
@@ -74,7 +101,7 @@ class RecapControllerTest : ControllerTest() {
                 it("404와 ErrorResponse를 반환한다") {
                     webClient
                         .get()
-                        .uri("/users/me/recaps?date=$date")
+                        .uri("$RECAP_PATH?date=$date")
                         .withAuthentication()
                         .exchange()
                         .expectStatus(404)

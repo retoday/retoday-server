@@ -2,13 +2,11 @@ package com.retoday.core.domain.history.dto.projection
 
 import com.retoday.core.domain.history.entity.WebsiteCategory
 import java.time.Instant
-import java.util.*
 
-data class DashboardHistoryProjection(
-    val websiteId: UUID,
+data class HistoryWithWebsiteProjection(
     val domain: String,
     val faviconUrl: String?,
     val category: WebsiteCategory?,
-    val visitedAt: Instant,
-    val closedAt: Instant
+    val startedAt: Instant,
+    val endedAt: Instant?
 )

@@ -9,13 +9,13 @@ import com.retoday.core.domain.recap.repository.SectionRepository
 import com.retoday.core.domain.recap.repository.TimelineRepository
 import com.retoday.core.domain.recap.repository.TopicRepository
 import com.retoday.core.fixture.ID
+import com.retoday.core.fixture.RECAP_DATE
 import com.retoday.core.fixture.createRecap
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import java.time.LocalDate
 
 class RecapServiceTest : ServiceTest() {
     private val recapRepository = mockk<RecapRepository>()
@@ -38,14 +38,14 @@ class RecapServiceTest : ServiceTest() {
             When("해당 날짜의 리캡을 조회하면") {
                 Then("RecapNotFoundException이 발생한다") {
                     shouldThrow<RecapNotFoundException> {
-                        recapService.getMyRecap(ID, GetMyRecapQuery(LocalDate.parse("2026-02-23")))
+                        recapService.getMyRecap(ID, GetMyRecapQuery(RECAP_DATE))
                     }
                 }
             }
         }
 
         Given("리캡이 있는 날짜를 조회하면") {
-            val date = LocalDate.parse("2026-02-23")
+            val date = RECAP_DATE
             val recap = createRecap(userId = ID, recapDate = date).copy(id = ID)
 
             every { recapRepository.findByUserIdAndDate(ID, date) } returns recap

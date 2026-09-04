@@ -1,32 +1,33 @@
 package com.retoday.api.snippet
 
+import com.retoday.api.domain.history.dto.request.CreateHistoryRequest
 import com.retoday.api.domain.history.dto.request.GetMyDashboardRequest
-import com.retoday.api.domain.history.dto.request.RecordHistoryRequest
+import com.retoday.api.domain.history.dto.request.UpdateHistoryRequest
 import com.retoday.api.domain.history.dto.response.*
 import com.retoday.api.extension.*
 import com.retoday.core.domain.history.dto.result.GetCategoryAnalysesResult
 import com.retoday.core.domain.history.dto.result.GetFrequentlyVisitedWebsitesResult
 import com.retoday.core.domain.history.dto.result.GetScreenTimeResult
 
-val recordHistoryRequestFields =
+val createHistoryRequestFields =
     fieldsOf(
-        RecordHistoryRequest::url desc "페이지 URL",
-        RecordHistoryRequest::visitedAt desc "방문 시각",
-        RecordHistoryRequest::closedAt desc "종료 시각",
-        RecordHistoryRequest::timeZone desc "타임존",
-        optional(RecordHistoryRequest::title desc "페이지 제목"),
-        optional(RecordHistoryRequest::description desc "페이지 설명"),
-        optional(RecordHistoryRequest::faviconUrl desc "파비콘 URL"),
-        RecordHistoryRequest::isClosed desc "탭 종료 여부",
-        optional(RecordHistoryRequest::scrollDepth desc "스크롤 깊이")
+        CreateHistoryRequest::url desc "페이지 URL",
+        CreateHistoryRequest::startedAt desc "기록 시작 시각",
+        CreateHistoryRequest::timeZone desc "타임존",
+        optional(CreateHistoryRequest::title desc "페이지 제목"),
+        optional(CreateHistoryRequest::description desc "페이지 설명"),
+        optional(CreateHistoryRequest::faviconUrl desc "파비콘 URL")
     )
 
-val recordHistoryResponseFields =
+val updateHistoryRequestFields =
     fieldsOf(
-        RecordHistoryResponse::historyId desc "히스토리 ID",
-        RecordHistoryResponse::pageId desc "페이지 ID",
-        RecordHistoryResponse::websiteId desc "웹사이트 ID",
-        RecordHistoryResponse::recordedAt desc "기록 시각"
+        optional(UpdateHistoryRequest::endedAt desc "종료 시각"),
+        optional(UpdateHistoryRequest::lastActiveAt desc "마지막 활동 시각")
+    )
+
+val createHistoryResponseFields =
+    fieldsOf(
+        CreateHistoryResponse::historyId desc "히스토리 ID"
     )
 
 val getMyDashboardQueryFields =

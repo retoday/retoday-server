@@ -60,7 +60,7 @@ class DocumentDsl<T>(
     private val identifier: String,
     private val contentSpec: BodySpec<T, *>
 ) {
-    private val snippets: MutableList<Snippet> = mutableListOf()
+    private val snippets = mutableListOf<Snippet>()
 
     fun requestBody(fields: Array<Field>) {
         snippets.add(

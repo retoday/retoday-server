@@ -8,6 +8,7 @@ import com.retoday.core.domain.auth.dto.result.LoginResult
 import com.retoday.core.domain.auth.exception.InvalidAuthenticationException
 import com.retoday.core.domain.auth.exception.RefreshTokenNotFoundException
 import com.retoday.core.domain.auth.repository.RefreshTokenRepository
+import com.retoday.core.domain.user.entity.Profile
 import com.retoday.core.domain.user.entity.Role
 import com.retoday.core.domain.user.entity.SocialProvider
 import com.retoday.core.domain.user.entity.User
@@ -57,7 +58,7 @@ class AuthServiceTest : ServiceTest() {
             val user = createUser(email = "old@re-today.com").copy(id = ID)
             val profile = createProfile(userId = user.id!!, firstName = "Old")
             val savedUser = slot<User>()
-            val savedProfile = slot<com.retoday.core.domain.user.entity.Profile>()
+            val savedProfile = slot<Profile>()
             val response =
                 createGetOAuthUserResponse(
                     email = "new@re-today.com",

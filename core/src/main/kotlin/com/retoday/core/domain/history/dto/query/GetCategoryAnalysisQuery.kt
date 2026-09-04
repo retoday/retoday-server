@@ -1,7 +1,7 @@
 package com.retoday.core.domain.history.dto.query
 
-import com.retoday.core.domain.history.dto.projection.DashboardHistoryProjection
+import com.retoday.core.domain.history.dto.model.DashboardSource
 
 data class GetCategoryAnalysisQuery(
-    val histories: List<DashboardHistoryProjection>
+    val sources: List<DashboardSource>
 )

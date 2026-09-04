@@ -1,10 +1,10 @@
 package com.retoday.api.global.validation
 
-import jakarta.validation.Constraint
-import jakarta.validation.ConstraintValidator
-import jakarta.validation.ConstraintValidatorContext
-import jakarta.validation.Payload
+import jakarta.validation.*
+import jakarta.validation.constraints.Size
 import kotlin.reflect.KClass
+
+private const val MAX_DOMAIN_LENGTH = 255
 
 @MustBeDocumented
 @Target(
@@ -12,9 +12,11 @@ import kotlin.reflect.KClass
     AnnotationTarget.VALUE_PARAMETER
 )
 @Retention(AnnotationRetention.RUNTIME)
+@Size(max = MAX_DOMAIN_LENGTH)
+@ReportAsSingleViolation
 @Constraint(validatedBy = [DomainValidator::class])
 annotation class Domain(
-    val message: String = "유효한 도메인 형식이 아닙니다.",
+    val message: String = "유효한 URL 형식이 아니거나 ${MAX_DOMAIN_LENGTH}자를 초과합니다.",
     val groups: Array<KClass<*>> = [],
     val payload: Array<KClass<out Payload>> = []
 )
