@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.time.Instant
 import java.time.LocalDate
+import java.time.Period
 
 @Component
 @StepScope
@@ -35,7 +36,7 @@ class GenerateRecapItemReader(
                 profile = profile,
                 recapDate =
                     requestedRecapDate?.let(LocalDate::parse)
-                        ?: Instant.now().atZone(profile.timeZone.id).toLocalDate().minusDays(1),
+                        ?: (Instant.now().atZone(profile.timeZone.id).toLocalDate() - Period.ofDays(1)),
                 aiProvider = aiProvider
             )
         } else {

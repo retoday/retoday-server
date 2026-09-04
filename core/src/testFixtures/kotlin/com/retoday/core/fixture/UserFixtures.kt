@@ -10,26 +10,25 @@ import com.retoday.core.domain.user.entity.TimeZone
 import com.retoday.core.domain.user.entity.User
 import com.retoday.core.domain.user.entity.UserExcludedWebsiteDomain
 import com.retoday.core.domain.user.entity.UserStatus
-import java.time.LocalTime
-import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 const val SOCIAL_ID = "1232342423"
 const val EMAIL = "earlgrey02@re-today.com"
 val SOCIAL_PROVIDER = SocialProvider.GOOGLE
 val USER_STATUS = UserStatus.ACTIVE
+val USER_ROLE = Role.MEMBER
 const val FIRST_NAME = "Sangyoon"
 const val LAST_NAME = "Jeong"
 const val IMAGE_URL = "https://re-today.com/profile.png"
 val TIME_ZONE = TimeZone.SEOUL
-val RECAP_PERIOD: LocalTime = LocalTime.now().truncatedTo(ChronoUnit.SECONDS)
+val LANGUAGE = Language.KOREAN
 
 fun createUser(
     id: UUID? = null,
     socialId: String = SOCIAL_ID,
     email: String = EMAIL,
     provider: SocialProvider = SOCIAL_PROVIDER,
-    role: Role = Role.MEMBER,
+    role: Role = USER_ROLE,
     status: UserStatus = USER_STATUS
 ): User =
     User(
@@ -48,8 +47,7 @@ fun createProfile(
     lastName: String = LAST_NAME,
     imageUrl: String = IMAGE_URL,
     timeZone: TimeZone = TIME_ZONE,
-    language: Language = Language.KOREAN,
-    recapPeriod: LocalTime? = RECAP_PERIOD
+    language: Language = LANGUAGE
 ): Profile =
     Profile(
         id = id,
@@ -58,11 +56,10 @@ fun createProfile(
         lastName = lastName,
         imageUrl = imageUrl,
         timeZone = timeZone,
-        language = language,
-        recapPeriod = recapPeriod
+        language = language
     )
 
-fun createUserExcludedWebsite(
+fun createUserExcludedWebsiteDomain(
     id: UUID? = null,
     userId: UUID = ID,
     domain: String = EXCLUDED_WEBSITE_DOMAIN
@@ -78,8 +75,7 @@ fun createProfileWithEmailProjection(
     lastName: String = LAST_NAME,
     imageUrl: String = IMAGE_URL,
     timeZone: TimeZone = TIME_ZONE,
-    language: Language = Language.KOREAN,
-    recapPeriod: LocalTime? = RECAP_PERIOD,
+    language: Language = LANGUAGE,
     email: String = EMAIL
 ): ProfileWithEmailProjection =
     ProfileWithEmailProjection(
@@ -88,7 +84,6 @@ fun createProfileWithEmailProjection(
         imageUrl = imageUrl,
         timeZone = timeZone,
         language = language,
-        recapPeriod = recapPeriod,
         email = email
     )
 
@@ -97,8 +92,7 @@ fun createGetMyProfileResult(
     lastName: String = LAST_NAME,
     imageUrl: String = IMAGE_URL,
     timeZone: TimeZone = TIME_ZONE,
-    language: Language = Language.KOREAN,
-    recapPeriod: LocalTime? = RECAP_PERIOD,
+    language: Language = LANGUAGE,
     email: String = EMAIL,
     excludedDomains: List<String> = listOf(EXCLUDED_WEBSITE_DOMAIN)
 ): GetMyProfileResult =
@@ -108,7 +102,6 @@ fun createGetMyProfileResult(
         imageUrl = imageUrl,
         timeZone = timeZone,
         language = language,
-        recapPeriod = recapPeriod,
         email = email,
         excludedDomains = excludedDomains
     )

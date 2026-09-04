@@ -14,7 +14,7 @@ class RateLimitWrapper {
     }
 
     companion object {
-        private val SCRIPT = RedisScript<List<Long>>(ClassPathResource("script/rate_limit.lua"))
+        private val script = RedisScript<List<Long>>(ClassPathResource("script/rate_limit.lua"))
         private lateinit var redisTemplate: RedisTemplate<String, String>
 
         operator fun <T> invoke(
@@ -23,7 +23,7 @@ class RateLimitWrapper {
             window: Duration,
             func: () -> T
         ): T {
-            val (count, ttl) = redisTemplate.execute(SCRIPT, listOf(key), window.seconds.toString())!!
+            val (count, ttl) = redisTemplate.execute(script, listOf(key), window.seconds.toString())!!
             val retryAfter = ttl.takeIf { count > limitCount }
 
             if (retryAfter != null) {

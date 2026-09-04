@@ -47,7 +47,7 @@ class ProfileControllerTest : ControllerTest() {
         describe("${ProfileController::updateMyProfile.name}()") {
             val request =
                 UpdateMyProfileRequest(
-                    timeZone = TimeZone.UTC,
+                    timeZone = TimeZone.PACIFIC,
                     language = Language.ENGLISH
                 )
 

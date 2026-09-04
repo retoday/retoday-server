@@ -21,7 +21,5 @@ class PageService(
                     description = description
                 )
             )
-
-            pageRepository.getByUrl(url)
         }
 }
