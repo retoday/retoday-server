@@ -29,6 +29,7 @@ class CustomWebsiteRepositoryImpl(
         return dsl
             .selectFrom(WEBSITE)
             .where(WEBSITE.DOMAIN.equal(website.domain))
+            .forShare()
             .fetchSingleInto()
     }
 }

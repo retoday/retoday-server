@@ -34,6 +34,7 @@ class CustomPageRepositoryImpl(
         return dsl
             .selectFrom(PAGE)
             .where(PAGE.URL.equal(page.url))
+            .forShare()
             .fetchSingleInto()
     }
 }
