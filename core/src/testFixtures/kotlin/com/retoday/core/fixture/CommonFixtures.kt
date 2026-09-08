@@ -1,5 +1,5 @@
 package com.retoday.core.fixture
 
-import java.util.*
+import com.retoday.core.global.extension.createUuid
 
-val ID = UUID.randomUUID()!!
+val ID = createUuid()

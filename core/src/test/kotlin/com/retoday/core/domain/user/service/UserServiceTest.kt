@@ -23,6 +23,11 @@ import org.springframework.dao.DuplicateKeyException
 import org.springframework.data.relational.core.conversion.DbAction
 import org.springframework.data.relational.core.conversion.DbActionExecutionException
 
+private const val UNNORMALIZED_WEBSITE_DOMAIN = " GitHub.COM "
+private const val UNNORMALIZED_WEBSITE_DOMAIN_FOR_DELETE = " GitHub.com "
+private const val OAUTH_TOKEN = "oauth-token"
+private const val OTHER_SOCIAL_ID = "other-social-id"
+
 class UserServiceTest : ServiceTest() {
     private val userRepository = mockk<UserRepository>()
     private val userExcludedWebsiteRepository = mockk<UserExcludedWebsiteRepository>()
@@ -44,7 +49,7 @@ class UserServiceTest : ServiceTest() {
 
     init {
         Given("예외 도메인 조회 시") {
-            val excludedDomains = listOf(createUserExcludedWebsite(userId = ID, domain = "github.com"))
+            val excludedDomains = listOf(createUserExcludedWebsiteDomain(userId = ID, domain = WEBSITE_DOMAIN))
             every { userExcludedWebsiteRepository.findAllByUserId(ID) } returns excludedDomains
 
             When("사용자의 예외 도메인을 조회하면") {
@@ -63,14 +68,14 @@ class UserServiceTest : ServiceTest() {
                 val saved =
                     userService.addMyExcludedDomain(
                         ID,
-                        AddMyExcludedDomainCommand(domain = " GitHub.COM ")
+                        AddMyExcludedDomainCommand(domain = UNNORMALIZED_WEBSITE_DOMAIN)
                     )
 
                 Then("소문자/trim 처리되어 저장된다") {
-                    saved shouldBe createUserExcludedWebsite(userId = ID, domain = "github.com")
+                    saved shouldBe createUserExcludedWebsiteDomain(userId = ID, domain = WEBSITE_DOMAIN)
                     verify(exactly = 1) {
                         userExcludedWebsiteRepository.save(
-                            match { it.userId == ID && it.domain == "github.com" }
+                            match { it.userId == ID && it.domain == WEBSITE_DOMAIN }
                         )
                     }
                 }
@@ -89,7 +94,7 @@ class UserServiceTest : ServiceTest() {
                     shouldThrow<ExcludedDomainAlreadyExistsException> {
                         userService.addMyExcludedDomain(
                             ID,
-                            AddMyExcludedDomainCommand(domain = "github.com")
+                            AddMyExcludedDomainCommand(domain = WEBSITE_DOMAIN)
                         )
                     }
                 }
@@ -97,24 +102,24 @@ class UserServiceTest : ServiceTest() {
         }
 
         Given("도메인 삭제 요청 시") {
-            every { userExcludedWebsiteRepository.deleteByUserIdAndDomain(ID, "github.com") } returns 1L
+            every { userExcludedWebsiteRepository.deleteByUserIdAndDomain(ID, WEBSITE_DOMAIN) } returns 1L
 
             When("예외 도메인 삭제를 요청하면") {
                 userService.deleteMyExcludedDomain(
                     ID,
-                    DeleteMyExcludedDomainCommand(domain = " GitHub.com ")
+                    DeleteMyExcludedDomainCommand(domain = UNNORMALIZED_WEBSITE_DOMAIN_FOR_DELETE)
                 )
 
                 Then("정규화된 도메인으로 삭제된다") {
                     verify(exactly = 1) {
-                        userExcludedWebsiteRepository.deleteByUserIdAndDomain(ID, "github.com")
+                        userExcludedWebsiteRepository.deleteByUserIdAndDomain(ID, WEBSITE_DOMAIN)
                     }
                 }
             }
         }
 
         Given("회원 탈퇴 요청 시") {
-            val command = WithdrawCommand(oAuthToken = "oauth-token")
+            val command = WithdrawCommand(oAuthToken = OAUTH_TOKEN)
             every { userRepository.findById(ID) } returns java.util.Optional.of(createUser().copy(id = ID))
             every { oAuthClient.socialProvider } returns SOCIAL_PROVIDER
 
@@ -142,7 +147,7 @@ class UserServiceTest : ServiceTest() {
             }
 
             When("다른 사용자의 OAuth 토큰이 주어지면") {
-                every { oAuthClient.getOAuthUser(any()) } returns createGetOAuthUserResponse(id = "other-social-id")
+                every { oAuthClient.getOAuthUser(any()) } returns createGetOAuthUserResponse(id = OTHER_SOCIAL_ID)
 
                 Then("인증 예외가 발생하고 탈퇴 처리하지 않는다") {
                     shouldThrow<InvalidAuthenticationException> {

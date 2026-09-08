@@ -4,13 +4,14 @@ import com.retoday.core.domain.recap.entity.AiProvider
 import com.retoday.core.domain.user.entity.TimeZone
 import com.retoday.core.domain.user.entity.UserStatus
 import com.retoday.core.domain.user.repository.ProfileRepository
+import com.retoday.core.fixture.RECAP_DATE
 import com.retoday.core.fixture.createProfile
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import java.time.Instant
-import java.time.LocalDate
+import java.time.Period
 
 class GenerateRecapItemReaderTest :
     BehaviorSpec({
@@ -31,12 +32,12 @@ class GenerateRecapItemReaderTest :
                 GenerateRecapItemReader(
                     profileRepository = profileRepository,
                     timeZone = TimeZone.SEOUL.name,
-                    requestedRecapDate = "2026-08-09",
+                    requestedRecapDate = RECAP_DATE.toString(),
                     aiProvider = AiProvider.BEDROCK
                 )
 
             Then("지정한 날짜로 아이템을 생성한다") {
-                reader.read()?.recapDate shouldBe LocalDate.parse("2026-08-09")
+                reader.read()?.recapDate shouldBe RECAP_DATE
             }
         }
 
@@ -50,7 +51,7 @@ class GenerateRecapItemReaderTest :
                 )
 
             Then("기존처럼 사용자 현지 날짜의 어제로 아이템을 생성한다") {
-                val expectedDate = Instant.now().atZone(profile.timeZone.id).toLocalDate().minusDays(1)
+                val expectedDate = Instant.now().atZone(profile.timeZone.id).toLocalDate() - Period.ofDays(1)
 
                 reader.read()?.recapDate shouldBe expectedDate
             }

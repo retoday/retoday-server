@@ -1,9 +1,9 @@
 package com.retoday.batch.domain.recap.service
 
 import com.retoday.core.domain.recap.dto.command.AssembleTimelinesCommand
+import com.retoday.core.domain.recap.dto.model.RecapSource
 import com.retoday.core.domain.recap.dto.model.TimelineSegment
 import com.retoday.core.domain.recap.dto.model.UrlSegment
-import com.retoday.core.domain.recap.dto.projection.RecapSourceProjection
 import com.retoday.core.domain.recap.dto.result.AssembledTimelineResult
 import com.retoday.core.domain.user.entity.TimeZone
 import org.springframework.stereotype.Service
@@ -13,13 +13,13 @@ import java.time.Instant
 @Service
 class RecapTimelineService {
     private companion object {
-        val MIN_SEGMENT_ACTIVE_DURATION: Duration = Duration.ofMinutes(1)
-        val MIN_TIMELINE_ACTIVE_DURATION: Duration = Duration.ofMinutes(30)
-        val SAME_URL_REVISIT_GAP: Duration = Duration.ofMinutes(10)
+        val MIN_SEGMENT_ACTIVE_DURATION = Duration.ofMinutes(1)
+        val MIN_TIMELINE_ACTIVE_DURATION = Duration.ofMinutes(30)
+        val SAME_URL_REVISIT_GAP = Duration.ofMinutes(10)
     }
 
     fun createSegments(
-        recapSources: List<RecapSourceProjection>,
+        recapSources: List<RecapSource>,
         timeZone: TimeZone
     ): List<TimelineSegment> =
         recapSources
@@ -43,24 +43,24 @@ class RecapTimelineService {
                 )
             }
 
-    private fun createUrlSegments(sources: List<RecapSourceProjection>): List<UrlSegment> {
-        val sortedSources = sources.sortedBy { it.visitedAt }
-        val segmentSourceGroups = mutableListOf<List<RecapSourceProjection>>()
-        var currentSources = mutableListOf<RecapSourceProjection>()
+    private fun createUrlSegments(sources: List<RecapSource>): List<UrlSegment> {
+        val sortedSources = sources.sortedBy { it.startedAt }
+        val segmentSourceGroups = mutableListOf<List<RecapSource>>()
+        var currentSources = mutableListOf<RecapSource>()
         var currentEndedAt: Instant? = null
 
         for (source in sortedSources) {
-            val gap = currentEndedAt?.let { Duration.between(it, source.visitedAt) }
+            val gap = currentEndedAt?.let { Duration.between(it, source.startedAt) }
 
             if (currentSources.isEmpty() || gap == null || gap > SAME_URL_REVISIT_GAP) {
                 if (currentSources.isNotEmpty()) {
                     segmentSourceGroups += currentSources.toList()
                 }
                 currentSources = mutableListOf(source)
-                currentEndedAt = source.closedAt
+                currentEndedAt = source.endedAt
             } else {
                 currentSources += source
-                currentEndedAt = maxOf(currentEndedAt, source.closedAt)
+                currentEndedAt = maxOf(currentEndedAt, source.endedAt)
             }
         }
 

@@ -2,6 +2,7 @@ package com.retoday.core.domain.user.service
 
 import com.retoday.core.domain.user.dto.command.UpdateMyProfileCommand
 import com.retoday.core.domain.user.dto.result.GetMyProfileResult
+import com.retoday.core.domain.user.exception.ProfileNotFoundException
 import com.retoday.core.domain.user.repository.ProfileRepository
 import com.retoday.core.domain.user.repository.UserExcludedWebsiteRepository
 import org.springframework.stereotype.Service
@@ -15,14 +16,14 @@ class ProfileService(
 ) {
     @Transactional(readOnly = true)
     fun getMyProfile(userId: UUID): GetMyProfileResult {
-        val profileWithEmail = profileRepository.findByUserIdWithEmail(userId) ?: error("프로필이 존재하지 않습니다.")
+        val profileWithEmail = profileRepository.findByUserIdWithEmail(userId) ?: throw ProfileNotFoundException()
         val excludedDomains =
             userExcludedWebsiteRepository
                 .findAllByUserId(userId)
                 .map { it.domain }
 
         return GetMyProfileResult.of(
-            projection = profileWithEmail,
+            profileWithEmail = profileWithEmail,
             excludedDomains = excludedDomains
         )
     }
@@ -32,7 +33,7 @@ class ProfileService(
         userId: UUID,
         command: UpdateMyProfileCommand
     ) {
-        val profile = profileRepository.findByUserId(userId) ?: error("프로필이 존재하지 않습니다.")
+        val profile = profileRepository.findByUserId(userId) ?: throw ProfileNotFoundException()
 
         profileRepository.save(
             profile.copy(

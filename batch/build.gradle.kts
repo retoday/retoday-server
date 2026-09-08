@@ -5,13 +5,11 @@ plugins {
 dependencies {
     implementation(project(":core"))
     implementation(libs.spring.batch)
-    implementation(libs.spring.actuator)
+    implementation(libs.spring.log4j2)
     implementation(libs.prometheus)
     implementation(libs.prometheus.pushgateway)
 
     testImplementation(testFixtures(project(":core")))
-    testImplementation(libs.spring.ai.gemini)
-    testImplementation(libs.jackson.kotlin)
     testImplementation(libs.bundles.test)
 
     testFixturesImplementation(testFixtures(project(":core")))

@@ -35,23 +35,21 @@ class WebsiteServiceTest : ServiceTest() {
     init {
         Given("처음 방문한 웹사이트면") {
             val command = UpsertWebsiteCommand(domain = WEBSITE_DOMAIN, faviconUrl = WEBSITE_FAVICON_URL)
-            val website = createWebsite(id = ID, domain = WEBSITE_DOMAIN, category = null)
             val outboxId = java.util.UUID.randomUUID()
 
-            every { websiteRepository.upsertByDomain(any()) } returns true
-            every { websiteRepository.getByDomain(WEBSITE_DOMAIN) } returns website
+            every { websiteRepository.upsertByDomain(any()) } answers { firstArg() }
             every { websiteClassificationOutboxRepository.save(any()) } answers {
                 firstArg<WebsiteCategoryClassificationOutbox>().copy(id = outboxId)
             }
 
             When("웹사이트를 등록하면") {
-                websiteService.upsertWebsite(command)
+                val result = websiteService.upsertWebsite(command)
 
                 Then("카테고리 분류 Outbox를 저장한다") {
                     verify(exactly = 1) {
                         websiteClassificationOutboxRepository.save(
                             match {
-                                it.websiteId == website.id &&
+                                it.websiteId == result.id &&
                                     it.status == WebsiteCategoryClassificationOutboxStatus.PENDING &&
                                     it.attemptCount == 0
                             }
@@ -65,8 +63,7 @@ class WebsiteServiceTest : ServiceTest() {
             val command = UpsertWebsiteCommand(domain = WEBSITE_DOMAIN, faviconUrl = WEBSITE_FAVICON_URL)
             val website = createWebsite(id = ID, domain = WEBSITE_DOMAIN)
 
-            every { websiteRepository.upsertByDomain(any()) } returns false
-            every { websiteRepository.getByDomain(WEBSITE_DOMAIN) } returns website
+            every { websiteRepository.upsertByDomain(any()) } returns website
 
             When("웹사이트를 등록하면") {
                 websiteService.upsertWebsite(command)

@@ -7,11 +7,11 @@ import com.retoday.core.domain.history.service.DashboardService
 import com.retoday.core.domain.recap.dto.model.RecapStatistics
 import com.retoday.core.domain.user.entity.TimeZone
 import com.retoday.core.fixture.ID
-import com.retoday.core.fixture.createGetDashboardResult
+import com.retoday.core.fixture.RECAP_DATE
+import com.retoday.core.fixture.createGetMyDashboardResult
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
-import java.time.LocalDate
 
 class RecapStatisticsServiceTest : ServiceTest() {
     private val dashboardService = mockk<DashboardService>()
@@ -19,9 +19,9 @@ class RecapStatisticsServiceTest : ServiceTest() {
 
     init {
         Given("리캡 통계 생성을 위한 대시보드 통계가 주어지면") {
-            val date = LocalDate.parse("2026-02-23")
+            val date = RECAP_DATE
             val timeZone = TimeZone.SEOUL
-            val dashboard = createGetDashboardResult()
+            val dashboard = createGetMyDashboardResult()
             every {
                 dashboardService.getMyDashboard(
                     userId = ID,

@@ -22,28 +22,25 @@ class RecapService(
     fun getMyRecap(
         userId: UUID,
         query: GetMyRecapQuery
-    ): GetMyRecapResult =
-        recapRepository
-            .findByUserIdAndDate(userId, query.date)
-            ?.let {
-                val sections = sectionRepository.findAllByRecapId(it.id!!)
-                val topics = topicRepository.findAllByRecapId(it.id)
-                val timelines = timelineRepository.findAllByRecapId(it.id)
+    ): GetMyRecapResult {
+        val recap = recapRepository.findByUserIdAndDate(userId, query.date) ?: throw RecapNotFoundException()
+        val sections = sectionRepository.findAllByRecapId(recap.id!!)
+        val topics = topicRepository.findAllByRecapId(recap.id)
+        val timelines = timelineRepository.findAllByRecapId(recap.id)
 
-                GetMyRecapResult(
-                    recap = it,
-                    sections = sections,
-                    topics = topics,
-                    timelines = timelines
-                )
-            }
-            ?: throw RecapNotFoundException()
+        return GetMyRecapResult(
+            recap = recap,
+            sections = sections,
+            topics = topics,
+            timelines = timelines
+        )
+    }
 
     @Transactional
     fun deleteMyRecaps(userId: UUID) {
         val recapIds =
             recapRepository.findAllByUserId(userId)
-                .map { it.id!! }
+                .mapNotNull { it.id }
 
         if (recapIds.isNotEmpty()) {
             sectionRepository.deleteAllByRecapIdIn(recapIds)

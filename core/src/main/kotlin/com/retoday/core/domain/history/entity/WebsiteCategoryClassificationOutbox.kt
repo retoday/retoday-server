@@ -1,7 +1,6 @@
 package com.retoday.core.domain.history.entity
 
 import org.springframework.data.annotation.Id
-import org.springframework.data.annotation.Version
 import org.springframework.data.relational.core.mapping.Table
 import java.time.Instant
 import java.util.*
@@ -13,9 +12,7 @@ data class WebsiteCategoryClassificationOutbox(
     val websiteId: UUID,
     val status: WebsiteCategoryClassificationOutboxStatus = WebsiteCategoryClassificationOutboxStatus.PENDING,
     val attemptCount: Int = 0,
-    val attemptedAt: Instant? = null,
+    val lastAttemptedAt: Instant? = null,
     val lastErrorMessage: String? = null,
-    val createdAt: Instant = Instant.now(),
-    @Version
-    val version: Long? = null
+    val createdAt: Instant = Instant.now()
 )

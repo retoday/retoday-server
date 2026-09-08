@@ -16,31 +16,21 @@ class CustomWebsiteCategoryClassificationOutboxRepositoryImpl(
         recoverableAttemptedBefore: Instant
     ): WebsiteCategoryClassificationOutbox? =
         dsl
-            .select(
-                OUTBOX.ID,
-                OUTBOX.WEBSITE_ID,
-                OUTBOX.STATUS,
-                OUTBOX.ATTEMPT_COUNT,
-                OUTBOX.ATTEMPTED_AT,
-                OUTBOX.LAST_ERROR_MESSAGE,
-                OUTBOX.CREATED_AT,
-                OUTBOX.VERSION
-            )
-            .from(OUTBOX)
+            .selectFrom(OUTBOX)
             .where(
                 OUTBOX.STATUS.equal(DSL.value(WebsiteCategoryClassificationOutboxStatus.PENDING, OUTBOX.STATUS))
                     .and(
-                        OUTBOX.ATTEMPTED_AT.isNull()
-                            .or(OUTBOX.ATTEMPTED_AT.lessOrEqual(retryableAttemptedBefore))
+                        OUTBOX.LAST_ATTEMPTED_AT.isNull()
+                            .or(OUTBOX.LAST_ATTEMPTED_AT.lessOrEqual(retryableAttemptedBefore))
                     )
                     .or(
                         OUTBOX.STATUS
                             .equal(DSL.value(WebsiteCategoryClassificationOutboxStatus.PROCESSING, OUTBOX.STATUS))
-                            .and(OUTBOX.ATTEMPTED_AT.lessOrEqual(recoverableAttemptedBefore))
+                            .and(OUTBOX.LAST_ATTEMPTED_AT.lessOrEqual(recoverableAttemptedBefore))
                     )
             )
             .orderBy(
-                OUTBOX.ATTEMPTED_AT.asc(),
+                OUTBOX.LAST_ATTEMPTED_AT.asc(),
                 OUTBOX.CREATED_AT.asc()
             )
             .limit(1)

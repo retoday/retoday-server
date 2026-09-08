@@ -45,6 +45,8 @@ logging:
 frontend:
   uris: https://localhost:3000
 scheduler:
+  history-heartbeat:
+    fixed-delay: PT1M
   website-category-classification:
     fixed-delay: PT1M
 sentry:

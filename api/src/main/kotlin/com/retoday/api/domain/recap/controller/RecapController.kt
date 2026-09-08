@@ -5,7 +5,6 @@ import com.retoday.api.domain.recap.dto.response.GetMyRecapResponse
 import com.retoday.api.global.annotation.AuthenticationId
 import com.retoday.core.domain.recap.service.RecapService
 import jakarta.validation.Valid
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.RequestMapping
@@ -24,8 +23,8 @@ class RecapController(
         @Valid
         @ModelAttribute
         request: GetMyRecapRequest
-    ): ResponseEntity<GetMyRecapResponse> =
+    ): GetMyRecapResponse =
         recapService
             .getMyRecap(userId, request.toQuery())
-            .let { ResponseEntity.ok(GetMyRecapResponse.from(it)) }
+            .let { GetMyRecapResponse.from(it) }
 }

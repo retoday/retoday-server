@@ -1,7 +1,7 @@
 package com.retoday.core.fixture
 
-import com.retoday.core.domain.history.dto.command.RecordHistoryCommand
-import com.retoday.core.domain.history.dto.projection.DashboardHistoryProjection
+import com.retoday.core.domain.history.dto.command.CreateHistoryCommand
+import com.retoday.core.domain.history.dto.projection.HistoryWithWebsiteProjection
 import com.retoday.core.domain.history.dto.result.*
 import com.retoday.core.domain.history.entity.*
 import com.retoday.core.domain.user.entity.TimeZone
@@ -11,8 +11,6 @@ import java.time.LocalDate
 import java.time.ZoneOffset
 import java.util.*
 
-const val TAB_ID = 1
-const val SCROLL_DEPTH = 0
 const val WEBSITE_DOMAIN = "github.com"
 const val EXCLUDED_WEBSITE_DOMAIN = "re-today.com"
 const val WEBSITE_FAVICON_URL = "https://github.githubassets.com/favicons/favicon.svg"
@@ -21,28 +19,41 @@ const val WEBSITE_PAGE_URL = "https://github.com/Nexters/retoday-server"
 const val WEBSITE_TITLE = "GitHub"
 const val WEBSITE_DESCRIPTION = "GitHub is where people build software."
 
-private val DEFAULT_DATE: LocalDate = LocalDate.parse("2026-02-13")
+val DASHBOARD_DATE = LocalDate.parse("2026-02-13")
+val DASHBOARD_STARTED_AT = DASHBOARD_DATE.atStartOfDay(ZoneOffset.UTC).toInstant()
+val DASHBOARD_ENDED_AT = DASHBOARD_STARTED_AT + Duration.ofHours(1)
+val DASHBOARD_RANGE_ENDED_AT = DASHBOARD_STARTED_AT + Duration.ofDays(1)
+val DASHBOARD_ANALYSIS_STAY_DURATION = Duration.ofMinutes(90)
+val SCREEN_TIME_STAY_DURATION = Duration.ofHours(1)
+val WEBSITE_CATEGORY_OUTBOX_CREATED_AT = Instant.parse("2026-07-21T00:00:00Z")
+val WEBSITE_CATEGORY_OUTBOX_STATUS = WebsiteCategoryClassificationOutboxStatus.PENDING
+const val WEBSITE_CATEGORY_OUTBOX_ATTEMPT_COUNT = 0
+const val DASHBOARD_VISIT_COUNT = 1
+const val DAWN_VISIT_COUNT = 2
+const val MORNING_VISIT_COUNT = 3
+const val DAYTIME_VISIT_COUNT = 5
+const val EVENING_VISIT_COUNT = 4
+val HISTORY_STARTED_AT = Instant.parse("2026-09-03T00:00:00Z")
+val HISTORY_ENDED_AT = HISTORY_STARTED_AT + Duration.ofSeconds(10)
 
-fun createDashboardHistoryProjection(
-    websiteId: UUID = ID,
+fun createHistoryWithWebsiteProjection(
     domain: String = WEBSITE_DOMAIN,
     faviconUrl: String? = WEBSITE_FAVICON_URL,
     category: WebsiteCategory? = WEBSITE_CATEGORY,
-    visitedAt: Instant = Instant.parse("2026-02-13T00:00:00Z"),
-    closedAt: Instant = Instant.parse("2026-02-13T01:00:00Z")
-): DashboardHistoryProjection =
-    DashboardHistoryProjection(
-        websiteId = websiteId,
+    startedAt: Instant = DASHBOARD_STARTED_AT,
+    endedAt: Instant? = DASHBOARD_ENDED_AT
+): HistoryWithWebsiteProjection =
+    HistoryWithWebsiteProjection(
         domain = domain,
         faviconUrl = faviconUrl,
         category = category,
-        visitedAt = visitedAt,
-        closedAt = closedAt
+        startedAt = startedAt,
+        endedAt = endedAt
     )
 
-fun createGetDashboardResult(
-    getScreenTimeResult: GetScreenTimeResult = createGetScreenTimesResult(),
-    getCategoryAnalysesResult: GetCategoryAnalysesResult = createGetCategoryAnalysisResult(),
+fun createGetMyDashboardResult(
+    getScreenTimeResult: GetScreenTimeResult = createGetScreenTimeResult(),
+    getCategoryAnalysesResult: GetCategoryAnalysesResult = createGetCategoryAnalysesResult(),
     getFrequentlyVisitedWebsitesResult: GetFrequentlyVisitedWebsitesResult =
         createGetFrequentlyVisitedWebsitesResult(),
     getWorkPatternResult: GetWorkPatternResult = createGetWorkPatternResult(),
@@ -59,7 +70,7 @@ fun createGetDashboardResult(
 fun createGetLongestStayedWebsiteResult(
     domain: String = WEBSITE_DOMAIN,
     faviconUrl: String? = WEBSITE_FAVICON_URL,
-    stayDuration: Duration = Duration.ofSeconds(5_400)
+    stayDuration: Duration = DASHBOARD_ANALYSIS_STAY_DURATION
 ): GetLongestStayedWebsiteResult =
     GetLongestStayedWebsiteResult(
         domain = domain,
@@ -83,25 +94,21 @@ fun createWebsite(
 fun createWebsiteCategoryClassificationOutbox(
     id: UUID? = null,
     websiteId: UUID = ID,
-    status: WebsiteCategoryClassificationOutboxStatus = WebsiteCategoryClassificationOutboxStatus.PENDING,
-    attemptCount: Int = 0,
+    status: WebsiteCategoryClassificationOutboxStatus = WEBSITE_CATEGORY_OUTBOX_STATUS,
+    attemptCount: Int = WEBSITE_CATEGORY_OUTBOX_ATTEMPT_COUNT,
     attemptedAt: Instant? = null,
     lastErrorMessage: String? = null,
-    createdAt: Instant = Instant.parse("2026-07-21T00:00:00Z"),
-    version: Long? = null
+    createdAt: Instant = WEBSITE_CATEGORY_OUTBOX_CREATED_AT
 ): WebsiteCategoryClassificationOutbox =
     WebsiteCategoryClassificationOutbox(
         id = id,
         websiteId = websiteId,
         status = status,
         attemptCount = attemptCount,
-        attemptedAt = attemptedAt,
+        lastAttemptedAt = attemptedAt,
         lastErrorMessage = lastErrorMessage,
-        createdAt = createdAt,
-        version = version
+        createdAt = createdAt
     )
-
-fun createWebsiteCategory(code: WebsiteCategory = WebsiteCategory.DEVELOPMENT): WebsiteCategory = code
 
 fun createPage(
     id: UUID? = null,
@@ -118,24 +125,16 @@ fun createPage(
         description = description
     )
 
-fun createHistoryRecordResult(
-    historyId: UUID = ID,
-    pageId: UUID = ID,
-    websiteId: UUID = ID,
-    recordedAt: Instant = Instant.now()
-): RecordHistoryResult =
-    RecordHistoryResult(
-        historyId = historyId,
-        pageId = pageId,
-        websiteId = websiteId,
-        recordedAt = recordedAt
+fun createHistoryResult(historyId: UUID = ID): CreateHistoryResult =
+    CreateHistoryResult(
+        historyId = historyId
     )
 
-fun createGetScreenTimesResult(
-    date: LocalDate = DEFAULT_DATE,
+fun createGetScreenTimeResult(
+    date: LocalDate = DASHBOARD_DATE,
     startedAt: Instant = date.atStartOfDay(ZoneOffset.UTC).toInstant(),
-    endedAt: Instant = date.atStartOfDay(ZoneOffset.UTC).plusHours(2).toInstant(),
-    stayDuration: Duration = Duration.ofHours(1)
+    endedAt: Instant = (date.atStartOfDay(ZoneOffset.UTC) + Duration.ofHours(2)).toInstant(),
+    stayDuration: Duration = SCREEN_TIME_STAY_DURATION
 ): GetScreenTimeResult =
     GetScreenTimeResult(
         totalStayDuration = stayDuration,
@@ -149,23 +148,12 @@ fun createGetScreenTimesResult(
             )
     )
 
-fun createGetWeeklyScreenTimesResult(
-    date: LocalDate = LocalDate.parse("2026-02-08"),
-    stayDuration: Duration = Duration.ofHours(1)
-): GetScreenTimeResult =
-    createGetScreenTimesResult(
-        date = date,
-        startedAt = date.atStartOfDay(ZoneOffset.UTC).toInstant(),
-        endedAt = date.atStartOfDay(ZoneOffset.UTC).plusDays(1).toInstant(),
-        stayDuration = stayDuration
-    )
-
-fun createGetCategoryAnalysisResult(
+fun createGetCategoryAnalysesResult(
     category: WebsiteCategory = WEBSITE_CATEGORY,
-    categoryStayDuration: Duration = Duration.ofMinutes(90),
+    categoryStayDuration: Duration = DASHBOARD_ANALYSIS_STAY_DURATION,
     domain: String = WEBSITE_DOMAIN,
     faviconUrl: String? = WEBSITE_FAVICON_URL,
-    websiteStayDuration: Duration = Duration.ofMinutes(90)
+    websiteStayDuration: Duration = DASHBOARD_ANALYSIS_STAY_DURATION
 ): GetCategoryAnalysesResult =
     GetCategoryAnalysesResult(
         categoryAnalyses =
@@ -188,8 +176,8 @@ fun createGetCategoryAnalysisResult(
 fun createGetFrequentlyVisitedWebsitesResult(
     domain: String = WEBSITE_DOMAIN,
     faviconUrl: String? = WEBSITE_FAVICON_URL,
-    visitCount: Int = 1,
-    stayDuration: Duration = Duration.ofMinutes(90)
+    visitCount: Int = DASHBOARD_VISIT_COUNT,
+    stayDuration: Duration = DASHBOARD_ANALYSIS_STAY_DURATION
 ): GetFrequentlyVisitedWebsitesResult =
     GetFrequentlyVisitedWebsitesResult(
         websiteAnalyses =
@@ -204,10 +192,10 @@ fun createGetFrequentlyVisitedWebsitesResult(
     )
 
 fun createGetWorkPatternResult(
-    dawnCount: Int = 2,
-    morningCount: Int = 3,
-    daytimeCount: Int = 5,
-    eveningCount: Int = 4
+    dawnCount: Int = DAWN_VISIT_COUNT,
+    morningCount: Int = MORNING_VISIT_COUNT,
+    daytimeCount: Int = DAYTIME_VISIT_COUNT,
+    eveningCount: Int = EVENING_VISIT_COUNT
 ): GetWorkPatternResult =
     GetWorkPatternResult(
         counts =
@@ -224,39 +212,33 @@ fun createHistory(
     userId: UUID = ID,
     websiteId: UUID = ID,
     pageId: UUID = ID,
-    visitedAt: Instant = Instant.now().minusSeconds(10),
-    closedAt: Instant = Instant.now(),
-    isClosed: Boolean = true,
-    scrollDepth: Int? = SCROLL_DEPTH
+    startedAt: Instant = HISTORY_STARTED_AT,
+    endedAt: Instant? = HISTORY_ENDED_AT,
+    lastActiveAt: Instant = endedAt ?: startedAt,
+    timeZone: TimeZone = TIME_ZONE
 ): History =
     History(
         id = id,
         userId = userId,
         websiteId = websiteId,
         pageId = pageId,
-        visitedAt = visitedAt,
-        closedAt = closedAt,
-        isClosed = isClosed,
-        scrollDepth = scrollDepth
+        startedAt = startedAt,
+        lastActiveAt = lastActiveAt,
+        endedAt = endedAt,
+        timeZone = timeZone
     )
 
-fun createHistoryRecordCommand(
+fun createHistoryCommand(
     url: String = WEBSITE_PAGE_URL,
-    visitedAt: Instant = Instant.now().minusSeconds(10),
-    closedAt: Instant = Instant.now(),
-    timeZone: TimeZone = TimeZone.SEOUL,
+    startedAt: Instant = HISTORY_STARTED_AT,
+    timeZone: TimeZone = TIME_ZONE,
     title: String? = WEBSITE_TITLE,
     description: String? = WEBSITE_DESCRIPTION,
-    faviconUrl: String? = WEBSITE_FAVICON_URL,
-    isClosed: Boolean = true,
-    scrollDepth: Int? = SCROLL_DEPTH
-): RecordHistoryCommand =
-    RecordHistoryCommand(
-        visitedAt = visitedAt,
-        closedAt = closedAt,
+    faviconUrl: String? = WEBSITE_FAVICON_URL
+): CreateHistoryCommand =
+    CreateHistoryCommand(
+        startedAt = startedAt,
         timeZone = timeZone,
-        isClosed = isClosed,
-        scrollDepth = scrollDepth,
         title = title,
         description = description,
         faviconUrl = faviconUrl,

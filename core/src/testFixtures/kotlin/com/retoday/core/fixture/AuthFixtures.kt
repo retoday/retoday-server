@@ -11,7 +11,7 @@ import java.time.Duration
 import java.util.*
 
 const val TOKEN = "eyJhbGciOiJub25lIn0.eyJpZCI6MSwiaWF0IjoxNTE2MjM5MDIyfQ."
-val EXPIRATION = Duration.ofHours(1)!!
+val EXPIRATION = Duration.ofHours(1)
 
 fun createRefreshToken(
     userId: UUID = ID,

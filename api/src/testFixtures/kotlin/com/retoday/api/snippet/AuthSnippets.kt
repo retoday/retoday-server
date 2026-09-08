@@ -10,7 +10,7 @@ import com.retoday.api.extension.fieldsOf
 val loginRequestFields =
     fieldsOf(
         LoginRequest::oAuthToken desc "OAuth2 토큰",
-        LoginRequest::provider desc "OAuth2 제공자"
+        LoginRequest::socialProvider desc "OAuth2 제공자"
     )
 
 val refreshRequestFields =

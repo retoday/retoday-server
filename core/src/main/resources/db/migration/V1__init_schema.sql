@@ -18,11 +18,10 @@ CREATE UNIQUE INDEX uk_user_social_provider_social_id
 CREATE TABLE profile (
     id           BINARY(16) PRIMARY KEY,
     user_id      BINARY(16)   NOT NULL,
-    first_name   VARCHAR(255) NOT NULL,
-    last_name    VARCHAR(255) NOT NULL,
-    image_url    VARCHAR(255) NOT NULL,
+    first_name   VARCHAR(255),
+    last_name    VARCHAR(255),
+    image_url    VARCHAR(255),
     time_zone    ENUM(
-        'UTC',
         'SEOUL',
         'PACIFIC'
     ) NOT NULL,
@@ -55,11 +54,33 @@ CREATE TABLE website (
         'AI',
         'ETC'
     ),
-    favicon_url VARCHAR(500)
+    favicon_url VARCHAR(2048)
 );
 
 CREATE UNIQUE INDEX uk_website_domain
     ON website (domain);
+
+CREATE TABLE website_category_classification_outbox
+(
+    id                 BINARY(16) PRIMARY KEY,
+    website_id         BINARY(16)   NOT NULL,
+    status             ENUM (
+        'PENDING',
+        'PROCESSING',
+        'COMPLETED',
+        'FAILED'
+        )                           NOT NULL,
+    attempt_count      INT          NOT NULL,
+    last_attempted_at  TIMESTAMP(6),
+    last_error_message VARCHAR(1000),
+    created_at         TIMESTAMP(6) NOT NULL
+);
+
+CREATE UNIQUE INDEX uk_website_category_classification_outbox_website_id
+    ON website_category_classification_outbox (website_id);
+
+CREATE INDEX idx_website_category_classification_outbox_polling
+    ON website_category_classification_outbox (status, last_attempted_at, created_at);
 
 CREATE TABLE page (
     id          BINARY(16) PRIMARY KEY,
@@ -73,24 +94,28 @@ CREATE UNIQUE INDEX uk_page_url
     ON page (url);
 
 CREATE TABLE history (
-    id           BINARY(16) PRIMARY KEY,
-    user_id      BINARY(16)   NOT NULL,
-    website_id   BINARY(16)   NOT NULL,
-    page_id      BINARY(16)   NOT NULL,
-    visited_at   TIMESTAMP(6) NOT NULL,
-    closed_at    TIMESTAMP(6) NOT NULL,
-    is_closed    BIT(1)       NOT NULL,
-    scroll_depth INT
+    id             BINARY(16) PRIMARY KEY,
+    user_id        BINARY(16)   NOT NULL,
+    website_id     BINARY(16)   NOT NULL,
+    page_id        BINARY(16)   NOT NULL,
+    started_at     TIMESTAMP(6) NOT NULL,
+    last_active_at TIMESTAMP(6) NOT NULL,
+    time_zone      ENUM(
+        'UTC',
+        'SEOUL',
+        'PACIFIC'
+    ) NOT NULL,
+    ended_at       TIMESTAMP(6)
 );
 
-CREATE INDEX idx_history_user_id_visited_at
-    ON history (user_id, visited_at);
+CREATE INDEX idx_history_user_id_started_at
+    ON history (user_id, started_at);
 
-CREATE INDEX idx_history_user_id_closed_at
-    ON history (user_id, closed_at);
+CREATE INDEX idx_history_user_id_ended_at
+    ON history (user_id, ended_at);
 
-CREATE INDEX idx_history_user_id_page_id_visited_at
-    ON history (user_id, page_id, visited_at);
+CREATE INDEX idx_history_ended_at_last_active_at
+    ON history (ended_at, last_active_at);
 
 CREATE TABLE user_excluded_website_domain (
     id      BINARY(16) PRIMARY KEY,
@@ -130,7 +155,10 @@ CREATE TABLE recap (
     ),
     started_at  TIMESTAMP(6)    NOT NULL,
     ended_at    TIMESTAMP(6)    NOT NULL,
-    ai_provider ENUM('GEMINI')  NOT NULL
+    ai_provider ENUM(
+        'GEMINI',
+        'BEDROCK'
+    ) NOT NULL
 );
 
 CREATE UNIQUE INDEX uk_recap_user_id_date

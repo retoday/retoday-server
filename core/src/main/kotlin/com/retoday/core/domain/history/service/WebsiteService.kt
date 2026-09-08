@@ -11,6 +11,7 @@ import com.retoday.core.domain.history.exception.WebsiteCategoryAlreadyExistsExc
 import com.retoday.core.domain.history.exception.WebsiteNotFoundException
 import com.retoday.core.domain.history.repository.WebsiteCategoryClassificationOutboxRepository
 import com.retoday.core.domain.history.repository.WebsiteRepository
+import com.retoday.core.global.extension.createUuid
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -24,28 +25,36 @@ class WebsiteService(
     @Qualifier("geminiWebsiteClient")
     private val websiteClient: WebsiteClient
 ) {
+    /**
+     * 웹사이트를 생성 또는 갱신하는 유스케이스
+     *
+     * 웹사이트가 처음 생성된 경우, 카테고리 분류를 위해 [WebsiteCategoryClassificationOutbox]를 생성한다.
+     *
+     * @see [WebsiteCategoryClassificationOutboxService.processNextOutbox]
+     */
     @Transactional
     fun upsertWebsite(command: UpsertWebsiteCommand): Website =
         with(command) {
-            val inserted =
+            val websiteId = createUuid()
+            val website =
                 websiteRepository.upsertByDomain(
                     Website(
+                        id = websiteId,
                         domain = domain,
                         faviconUrl = faviconUrl
                     )
                 )
+            val isNew = website.id == websiteId
 
-            websiteRepository
-                .getByDomain(domain)
-                .apply {
-                    if (inserted) {
-                        websiteCategoryClassificationOutboxRepository.save(
-                            WebsiteCategoryClassificationOutbox(
-                                websiteId = id!!
-                            )
-                        )
-                    }
-                }
+            if (isNew) {
+                websiteCategoryClassificationOutboxRepository.save(
+                    WebsiteCategoryClassificationOutbox(
+                        websiteId = websiteId
+                    )
+                )
+            }
+
+            return website
         }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)

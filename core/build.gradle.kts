@@ -5,17 +5,13 @@ plugins {
 
 dependencies {
     implementation(libs.spring.web)
-    implementation(libs.spring.data.jdbc)
-    implementation(libs.spring.data.redis)
-    implementation(libs.spring.ai.gemini)
-    implementation(libs.spring.ai.bedrock.converse)
     implementation(libs.kotlin.logging)
     implementation(libs.jackson.kotlin)
     implementation(libs.uuid)
+    implementation(libs.bundles.spring.ai)
+    implementation(libs.bundles.spring.data)
     implementation(libs.bundles.jwt)
     implementation(libs.bundles.jooq)
-
-    api(libs.spring.log4j2)
 
     runtimeOnly(libs.mysql.driver)
     runtimeOnly(libs.bundles.flyway)

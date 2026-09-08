@@ -22,6 +22,13 @@ class JdbcConfiguration {
             )
         )
 
+    /**
+     * 엔티티 식별자를 생성해 주입하는 콜백(Callback)
+     *
+     * 내부적으로 UUID(v7) 식별자를 생성한다.
+     *
+     * @see [createUuid]
+     */
     @Bean
     fun beforeConvertCallback(mappingContext: RelationalMappingContext): BeforeConvertCallback<Any> =
         BeforeConvertCallback {

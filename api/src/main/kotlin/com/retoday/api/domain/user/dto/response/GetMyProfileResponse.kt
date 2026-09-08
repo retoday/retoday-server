@@ -3,7 +3,6 @@ package com.retoday.api.domain.user.dto.response
 import com.retoday.core.domain.user.dto.result.GetMyProfileResult
 import com.retoday.core.domain.user.entity.Language
 import com.retoday.core.domain.user.entity.TimeZone
-import java.time.LocalTime
 
 data class GetMyProfileResponse(
     val email: String,
@@ -12,7 +11,6 @@ data class GetMyProfileResponse(
     val imageUrl: String?,
     val timeZone: TimeZone,
     val language: Language,
-    val recapPeriod: LocalTime?,
     val excludedDomains: List<String>
 ) {
     companion object {
@@ -25,7 +23,6 @@ data class GetMyProfileResponse(
                     imageUrl = imageUrl,
                     timeZone = timeZone,
                     language = language,
-                    recapPeriod = recapPeriod,
                     excludedDomains = excludedDomains
                 )
             }
