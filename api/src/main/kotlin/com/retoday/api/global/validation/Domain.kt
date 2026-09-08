@@ -30,5 +30,5 @@ class DomainValidator : ConstraintValidator<Domain, String> {
     override fun isValid(
         value: String?,
         context: ConstraintValidatorContext
-    ): Boolean = (value == null) || DOMAIN_REGEX matches value.trim()
+    ): Boolean = (value == null) || DOMAIN_REGEX matches value
 }
