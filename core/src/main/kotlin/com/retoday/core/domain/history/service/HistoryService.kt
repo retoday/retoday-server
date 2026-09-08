@@ -11,6 +11,7 @@ import com.retoday.core.domain.history.exception.InvalidTimeRangeException
 import com.retoday.core.domain.history.exception.WebsiteExcludedByUserException
 import com.retoday.core.domain.history.repository.HistoryRepository
 import com.retoday.core.domain.user.service.UserService
+import com.retoday.core.global.extension.canonicalizeUrl
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.net.URI
@@ -26,7 +27,6 @@ class HistoryService(
     private val userService: UserService
 ) {
     private companion object {
-        const val WWW_PREFIX = "www."
         val HISTORY_STALE_AFTER = Duration.ofMinutes(10)
     }
 
@@ -41,7 +41,8 @@ class HistoryService(
         command: CreateHistoryCommand
     ): CreateHistoryResult =
         with(command) {
-            val domain = URI(url).host.removePrefix(WWW_PREFIX)
+            val canonicalizedUrl = canonicalizeUrl(url)
+            val domain = URI(canonicalizedUrl).host
             val userExcludedWebsiteDomains = userService.getExcludedDomains(userId)
 
             if (userExcludedWebsiteDomains.any { it.includes(domain) }) {
@@ -59,7 +60,7 @@ class HistoryService(
                 pageService.upsertPage(
                     UpsertPageCommand(
                         websiteId = website.id!!,
-                        url = url,
+                        url = canonicalizedUrl,
                         title = title,
                         description = description
                     )
