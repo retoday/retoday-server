@@ -9,12 +9,14 @@ import java.time.Instant
 data class CreateHistoryRequest(
     val startedAt: Instant,
     val timeZone: TimeZone,
+    @field:Size(max = 2048)
     @field:Url(protocols = ["http", "https"])
     val url: String,
     @field:Size(max = 500)
     val title: String?,
     @field:Size(max = 5000)
     val description: String?,
+    @field:Size(max = 2048)
     @field:Url(protocols = ["http", "https"])
     val faviconUrl: String?
 ) {

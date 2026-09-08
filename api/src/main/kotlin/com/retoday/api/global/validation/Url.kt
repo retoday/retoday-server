@@ -8,8 +8,6 @@ import java.net.URI
 import java.net.URISyntaxException
 import kotlin.reflect.KClass
 
-private const val MAX_URL_LENGTH = 2048
-
 @MustBeDocumented
 @Target(
     AnnotationTarget.FIELD,
@@ -19,7 +17,7 @@ private const val MAX_URL_LENGTH = 2048
 @Constraint(validatedBy = [UrlValidator::class])
 annotation class Url(
     val protocols: Array<String> = [],
-    val message: String = "유효한 URL 형식이 아니거나 ${MAX_URL_LENGTH}자를 초과합니다.",
+    val message: String = "유효한 URL 형식이 아닙니다.",
     val groups: Array<KClass<*>> = [],
     val payload: Array<KClass<out Payload>> = []
 )
@@ -36,7 +34,6 @@ class UrlValidator : ConstraintValidator<Url, String> {
         context: ConstraintValidatorContext
     ): Boolean {
         if (value == null) return true
-        if (value.length > MAX_URL_LENGTH) return false
 
         val uri =
             try {
