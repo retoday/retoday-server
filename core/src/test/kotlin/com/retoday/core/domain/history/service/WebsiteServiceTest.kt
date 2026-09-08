@@ -34,7 +34,11 @@ class WebsiteServiceTest : ServiceTest() {
 
     init {
         Given("처음 방문한 웹사이트면") {
-            val command = UpsertWebsiteCommand(domain = WEBSITE_DOMAIN, faviconUrl = WEBSITE_FAVICON_URL)
+            val command =
+                UpsertWebsiteCommand(
+                    domain = "WWW.GITHUB.COM",
+                    faviconUrl = WEBSITE_FAVICON_URL
+                )
             val outboxId = java.util.UUID.randomUUID()
 
             every { websiteRepository.upsertByDomain(any()) } answers { firstArg() }
@@ -47,6 +51,9 @@ class WebsiteServiceTest : ServiceTest() {
 
                 Then("카테고리 분류 Outbox를 저장한다") {
                     verify(exactly = 1) {
+                        websiteRepository.upsertByDomain(
+                            match { it.domain == WEBSITE_DOMAIN }
+                        )
                         websiteClassificationOutboxRepository.save(
                             match {
                                 it.websiteId == result.id &&
@@ -60,7 +67,11 @@ class WebsiteServiceTest : ServiceTest() {
         }
 
         Given("이미 등록된 웹사이트면") {
-            val command = UpsertWebsiteCommand(domain = WEBSITE_DOMAIN, faviconUrl = WEBSITE_FAVICON_URL)
+            val command =
+                UpsertWebsiteCommand(
+                    domain = WEBSITE_DOMAIN,
+                    faviconUrl = WEBSITE_FAVICON_URL
+                )
             val website = createWebsite(id = ID, domain = WEBSITE_DOMAIN)
 
             every { websiteRepository.upsertByDomain(any()) } returns website

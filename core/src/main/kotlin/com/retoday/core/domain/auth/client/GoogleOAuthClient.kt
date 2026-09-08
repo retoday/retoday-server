@@ -38,7 +38,7 @@ class GoogleOAuthClient(
             .run {
                 GetOAuthUserResponse(
                     id = getValue(ID_FIELD),
-                    provider = socialProvider,
+                    socialProvider = socialProvider,
                     email = getValue(EMAIL_FIELD),
                     firstName = get(FIRST_NAME_FIELD),
                     lastName = get(LAST_NAME_FIELD),

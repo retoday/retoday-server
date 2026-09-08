@@ -5,6 +5,11 @@ import jakarta.validation.constraints.Size
 import kotlin.reflect.KClass
 
 private const val MAX_DOMAIN_LENGTH = 255
+private val DOMAIN_REGEX =
+    Regex(
+        "^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?$",
+        RegexOption.IGNORE_CASE
+    )
 
 @MustBeDocumented
 @Target(
@@ -16,18 +21,14 @@ private const val MAX_DOMAIN_LENGTH = 255
 @ReportAsSingleViolation
 @Constraint(validatedBy = [DomainValidator::class])
 annotation class Domain(
-    val message: String = "유효한 URL 형식이 아니거나 ${MAX_DOMAIN_LENGTH}자를 초과합니다.",
+    val message: String = "유효한 도메인 형식이 아니거나 ${MAX_DOMAIN_LENGTH}자를 초과합니다.",
     val groups: Array<KClass<*>> = [],
     val payload: Array<KClass<out Payload>> = []
 )
 
 class DomainValidator : ConstraintValidator<Domain, String> {
-    private companion object {
-        val DOMAIN_REGEX = Regex("^(?!-)(?:[a-zA-Z0-9-]{1,63}\\.)+[a-zA-Z]{2,63}$")
-    }
-
     override fun isValid(
         value: String?,
         context: ConstraintValidatorContext
-    ): Boolean = (value == null) || (DOMAIN_REGEX matches value)
+    ): Boolean = (value == null) || DOMAIN_REGEX matches value.trim()
 }

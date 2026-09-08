@@ -23,8 +23,6 @@ import org.springframework.dao.DuplicateKeyException
 import org.springframework.data.relational.core.conversion.DbAction
 import org.springframework.data.relational.core.conversion.DbActionExecutionException
 
-private const val UNNORMALIZED_WEBSITE_DOMAIN = " GitHub.COM "
-private const val UNNORMALIZED_WEBSITE_DOMAIN_FOR_DELETE = " GitHub.com "
 private const val OAUTH_TOKEN = "oauth-token"
 private const val OTHER_SOCIAL_ID = "other-social-id"
 
@@ -61,17 +59,17 @@ class UserServiceTest : ServiceTest() {
             }
         }
 
-        Given("정규화가 필요한 도메인 추가 요청 시") {
+        Given("도메인 추가 요청 시") {
             every { userExcludedWebsiteRepository.save(any()) } answers { firstArg() }
 
             When("예외 도메인 추가를 요청하면") {
                 val saved =
                     userService.addMyExcludedDomain(
                         ID,
-                        AddMyExcludedDomainCommand(domain = UNNORMALIZED_WEBSITE_DOMAIN)
+                        AddMyExcludedDomainCommand(domain = " WWW.GITHUB.COM ")
                     )
 
-                Then("소문자/trim 처리되어 저장된다") {
+                Then("도메인이 저장된다") {
                     saved shouldBe createUserExcludedWebsiteDomain(userId = ID, domain = WEBSITE_DOMAIN)
                     verify(exactly = 1) {
                         userExcludedWebsiteRepository.save(
@@ -102,15 +100,17 @@ class UserServiceTest : ServiceTest() {
         }
 
         Given("도메인 삭제 요청 시") {
-            every { userExcludedWebsiteRepository.deleteByUserIdAndDomain(ID, WEBSITE_DOMAIN) } returns 1L
+            every {
+                userExcludedWebsiteRepository.deleteByUserIdAndDomain(ID, WEBSITE_DOMAIN)
+            } returns 1L
 
             When("예외 도메인 삭제를 요청하면") {
                 userService.deleteMyExcludedDomain(
                     ID,
-                    DeleteMyExcludedDomainCommand(domain = UNNORMALIZED_WEBSITE_DOMAIN_FOR_DELETE)
+                    DeleteMyExcludedDomainCommand(domain = WEBSITE_DOMAIN)
                 )
 
-                Then("정규화된 도메인으로 삭제된다") {
+                Then("도메인을 삭제한다") {
                     verify(exactly = 1) {
                         userExcludedWebsiteRepository.deleteByUserIdAndDomain(ID, WEBSITE_DOMAIN)
                     }

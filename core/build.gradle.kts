@@ -78,7 +78,7 @@ jooq {
                         userType = "java.util.UUID"
                         converter = "com.retoday.core.global.converter.UuidConverter"
                         includeTypes = "BINARY\\(16\\)"
-                        includeExpression = "(?i).*\\.(id|.*_id)$"
+                        includeExpression = ".*\\.(id|.*_id)$"
                     }
 
                     forcedType {

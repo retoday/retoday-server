@@ -11,6 +11,7 @@ import com.retoday.core.domain.history.exception.WebsiteCategoryAlreadyExistsExc
 import com.retoday.core.domain.history.exception.WebsiteNotFoundException
 import com.retoday.core.domain.history.repository.WebsiteCategoryClassificationOutboxRepository
 import com.retoday.core.domain.history.repository.WebsiteRepository
+import com.retoday.core.global.extension.canonicalizeDomain
 import com.retoday.core.global.extension.createUuid
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.data.repository.findByIdOrNull
@@ -40,7 +41,7 @@ class WebsiteService(
                 websiteRepository.upsertByDomain(
                     Website(
                         id = websiteId,
-                        domain = domain,
+                        domain = canonicalizeDomain(domain),
                         faviconUrl = faviconUrl
                     )
                 )

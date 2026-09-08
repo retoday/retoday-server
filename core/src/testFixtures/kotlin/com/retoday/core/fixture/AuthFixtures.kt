@@ -34,7 +34,7 @@ fun createGetOAuthUserResponse(
 ): GetOAuthUserResponse =
     GetOAuthUserResponse(
         id = id,
-        provider = provider,
+        socialProvider = provider,
         email = email,
         firstName = firstName,
         lastName = lastName,

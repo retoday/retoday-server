@@ -4,7 +4,7 @@ import com.retoday.core.domain.user.entity.SocialProvider
 
 data class GetOAuthUserResponse(
     val id: String,
-    val provider: SocialProvider,
+    val socialProvider: SocialProvider,
     val email: String,
     val firstName: String?,
     val lastName: String?,

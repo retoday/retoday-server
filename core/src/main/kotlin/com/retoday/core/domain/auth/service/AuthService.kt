@@ -56,12 +56,12 @@ class AuthService(
             transaction {
                 val user =
                     userRepository
-                        .findBySocialIdAndSocialProvider(getOAuthUserResponse.id, getOAuthUserResponse.provider)
+                        .findBySocialIdAndSocialProvider(getOAuthUserResponse.id, getOAuthUserResponse.socialProvider)
                         ?.copy(email = getOAuthUserResponse.email)
                         ?: User(
                             socialId = getOAuthUserResponse.id,
                             email = getOAuthUserResponse.email,
-                            socialProvider = getOAuthUserResponse.provider
+                            socialProvider = getOAuthUserResponse.socialProvider
                         )
                 val savedUser = userRepository.save(user)
 
