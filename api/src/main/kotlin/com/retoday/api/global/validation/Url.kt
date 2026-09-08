@@ -36,12 +36,11 @@ class UrlValidator : ConstraintValidator<Url, String> {
         context: ConstraintValidatorContext
     ): Boolean {
         if (value == null) return true
-        val normalizedValue = value.trim()
-        if (normalizedValue.length > MAX_URL_LENGTH) return false
+        if (value.length > MAX_URL_LENGTH) return false
 
         val uri =
             try {
-                URI(normalizedValue)
+                URI(value)
             } catch (_: URISyntaxException) {
                 return false
             }

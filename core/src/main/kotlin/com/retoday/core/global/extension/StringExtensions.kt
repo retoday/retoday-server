@@ -6,7 +6,7 @@ import java.net.URI
 private const val WWW_PREFIX = "www."
 
 fun canonicalizeUrl(url: String): String =
-    with(URI(url.trim())) {
+    with(URI(url)) {
         UriComponentsBuilder.fromUri(this)
             .scheme(scheme.lowercase())
             .host(canonicalizeDomain(host))

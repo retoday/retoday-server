@@ -22,9 +22,9 @@ data class CreateHistoryRequest(
         CreateHistoryCommand(
             startedAt = startedAt,
             timeZone = timeZone,
-            url = url.trim(),
+            url = url,
             title = title,
             description = description,
-            faviconUrl = faviconUrl?.trim()
+            faviconUrl = faviconUrl
         )
 }
