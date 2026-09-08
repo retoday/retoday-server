@@ -11,11 +11,7 @@ import com.retoday.core.domain.user.service.UserService
 import com.retoday.core.fixture.*
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import io.mockk.every
-import io.mockk.just
-import io.mockk.mockk
-import io.mockk.runs
-import io.mockk.verify
+import io.mockk.*
 import java.time.Duration
 import java.time.Instant
 
@@ -41,7 +37,11 @@ class HistoryServiceTest : ServiceTest() {
     init {
         Given("정상 기록 생성 요청이 들어오면") {
             val website = createWebsite(domain = WEBSITE_DOMAIN, category = WEBSITE_CATEGORY).copy(id = ID)
-            val command = createHistoryCommand()
+            val command =
+                createHistoryCommand(
+                    url = "HTTPS://WWW.GITHUB.COM/Nexters/retoday-server",
+                    faviconUrl = "HTTPS://GITHUB.GITHUBASSETS.COM/favicons/favicon.svg"
+                )
             val page = createPage(websiteId = website.id!!).copy(id = ID)
             val history =
                 createHistory(
@@ -64,6 +64,15 @@ class HistoryServiceTest : ServiceTest() {
                 Then("새로운 활성 기록을 저장한다") {
                     result shouldBe CreateHistoryResult(historyId = history.id!!)
                     verify(exactly = 1) {
+                        websiteService.upsertWebsite(
+                            match {
+                                it.domain == WEBSITE_DOMAIN &&
+                                    it.faviconUrl == command.faviconUrl
+                            }
+                        )
+                        pageService.upsertPage(
+                            match { it.url == WEBSITE_PAGE_URL }
+                        )
                         historyRepository.save(
                             match {
                                 it.startedAt.equals(command.startedAt) &&

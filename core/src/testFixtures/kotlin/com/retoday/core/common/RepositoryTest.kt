@@ -7,6 +7,7 @@ import org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.autoconfigure.jooq.AutoConfigureJooq
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection
+import org.springframework.context.annotation.ComponentScan
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.context.ContextConfiguration
 import org.testcontainers.containers.MySQLContainer
@@ -14,6 +15,7 @@ import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers as EnableTestContainers
 
 @DataJdbcTest
+@ComponentScan(basePackages = ["com.retoday.core.global.converter"])
 @EnableTestContainers
 @AutoConfigureJooq
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)

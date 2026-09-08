@@ -27,10 +27,8 @@ CREATE TABLE profile (
     ) NOT NULL,
     language     ENUM(
         'KOREAN',
-        'ENGLISH',
-        'JAPANESE'
-    ) NOT NULL,
-    recap_period TIME(6)
+        'ENGLISH'
+    ) NOT NULL
 );
 
 CREATE UNIQUE INDEX uk_profile_user_id
@@ -101,7 +99,6 @@ CREATE TABLE history (
     started_at     TIMESTAMP(6) NOT NULL,
     last_active_at TIMESTAMP(6) NOT NULL,
     time_zone      ENUM(
-        'UTC',
         'SEOUL',
         'PACIFIC'
     ) NOT NULL,

@@ -1,8 +1,9 @@
 package com.retoday.core.global.config
 
-import com.retoday.core.global.converter.BytesToUuidConverter
-import com.retoday.core.global.converter.UuidToBytesConverter
+import com.retoday.core.global.converter.JdbcReadingConverter
+import com.retoday.core.global.converter.JdbcWritingConverter
 import com.retoday.core.global.extension.createUuid
+import org.jooq.Converter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.jdbc.core.convert.JdbcCustomConversions
@@ -14,12 +15,14 @@ import org.springframework.data.relational.core.mapping.event.BeforeConvertCallb
 @EnableJdbcRepositories(basePackages = ["com.retoday.core.domain"])
 class JdbcConfiguration {
     @Bean
-    fun jdbcCustomConversions(): JdbcCustomConversions =
+    fun jdbcCustomConversions(converters: List<Converter<*, *>>): JdbcCustomConversions =
         JdbcCustomConversions(
-            listOf(
-                UuidToBytesConverter,
-                BytesToUuidConverter
-            )
+            converters.flatMap {
+                listOf(
+                    JdbcReadingConverter(it),
+                    JdbcWritingConverter(it)
+                )
+            }
         )
 
     /**

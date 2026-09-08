@@ -16,6 +16,7 @@ import com.retoday.core.domain.user.exception.UserNotFoundException
 import com.retoday.core.domain.user.repository.ProfileRepository
 import com.retoday.core.domain.user.repository.UserExcludedWebsiteRepository
 import com.retoday.core.domain.user.repository.UserRepository
+import com.retoday.core.global.extension.canonicalizeDomain
 import com.retoday.core.global.extension.transaction
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
@@ -40,25 +41,19 @@ class UserService(
     @Cacheable(cacheNames = ["excluded-domains"], key = "#userId")
     @Transactional(readOnly = true)
     fun getExcludedDomains(userId: UUID): List<UserExcludedWebsiteDomain> =
-        userExcludedWebsiteRepository
-            .findAllByUserId(userId)
+        userExcludedWebsiteRepository.findAllByUserId(userId)
 
     @CacheEvict(cacheNames = ["excluded-domains"], key = "#userId")
     @Transactional
     fun addMyExcludedDomain(
         userId: UUID,
         command: AddMyExcludedDomainCommand
-    ): UserExcludedWebsiteDomain {
-        val normalizedDomain =
-            command.domain
-                .trim()
-                .lowercase()
-
+    ): UserExcludedWebsiteDomain =
         try {
-            return userExcludedWebsiteRepository.save(
+            userExcludedWebsiteRepository.save(
                 UserExcludedWebsiteDomain(
                     userId = userId,
-                    domain = normalizedDomain
+                    domain = canonicalizeDomain(command.domain)
                 )
             )
         } catch (exception: DbActionExecutionException) {
@@ -68,7 +63,6 @@ class UserService(
 
             throw exception
         }
-    }
 
     @CacheEvict(cacheNames = ["excluded-domains"], key = "#userId")
     @Transactional
@@ -76,12 +70,7 @@ class UserService(
         userId: UUID,
         command: DeleteMyExcludedDomainCommand
     ) {
-        val normalizedDomain =
-            command.domain
-                .trim()
-                .lowercase()
-
-        userExcludedWebsiteRepository.deleteByUserIdAndDomain(userId, normalizedDomain)
+        userExcludedWebsiteRepository.deleteByUserIdAndDomain(userId, canonicalizeDomain(command.domain))
     }
 
     @CacheEvict(cacheNames = ["excluded-domains"], key = "#userId")

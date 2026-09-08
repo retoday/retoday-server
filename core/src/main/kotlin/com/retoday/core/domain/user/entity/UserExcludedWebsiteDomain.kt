@@ -11,5 +11,5 @@ data class UserExcludedWebsiteDomain(
     val userId: UUID,
     val domain: String
 ) {
-    fun includes(domain: String): Boolean = (domain == this.domain) || domain.endsWith(".${this.domain}")
+    fun includes(domain: String): Boolean = domain == this.domain || domain.endsWith(".${this.domain}")
 }
