@@ -3,6 +3,8 @@ package com.retoday.core.fixture
 import com.retoday.core.domain.history.dto.command.CreateHistoryCommand
 import com.retoday.core.domain.history.dto.projection.HistoryWithWebsiteProjection
 import com.retoday.core.domain.history.dto.result.*
+import com.retoday.core.domain.history.dto.result.GetWorkPatternResult.Companion.HOURS_PER_DAY
+import com.retoday.core.domain.history.dto.result.GetWorkPatternResult.HourlyCount
 import com.retoday.core.domain.history.entity.*
 import com.retoday.core.domain.user.entity.TimeZone
 import java.time.Duration
@@ -29,10 +31,6 @@ val WEBSITE_CATEGORY_OUTBOX_CREATED_AT = Instant.parse("2026-07-21T00:00:00Z")
 val WEBSITE_CATEGORY_OUTBOX_STATUS = WebsiteCategoryClassificationOutboxStatus.PENDING
 const val WEBSITE_CATEGORY_OUTBOX_ATTEMPT_COUNT = 0
 const val DASHBOARD_VISIT_COUNT = 1
-const val DAWN_VISIT_COUNT = 2
-const val MORNING_VISIT_COUNT = 3
-const val DAYTIME_VISIT_COUNT = 5
-const val EVENING_VISIT_COUNT = 4
 val HISTORY_STARTED_AT = Instant.parse("2026-09-03T00:00:00Z")
 val HISTORY_ENDED_AT = HISTORY_STARTED_AT + Duration.ofSeconds(10)
 
@@ -192,19 +190,16 @@ fun createGetFrequentlyVisitedWebsitesResult(
     )
 
 fun createGetWorkPatternResult(
-    dawnCount: Int = DAWN_VISIT_COUNT,
-    morningCount: Int = MORNING_VISIT_COUNT,
-    daytimeCount: Int = DAYTIME_VISIT_COUNT,
-    eveningCount: Int = EVENING_VISIT_COUNT
+    counts: List<HourlyCount> =
+        List(HOURS_PER_DAY) { hour ->
+            HourlyCount(
+                hour = hour,
+                count = DASHBOARD_VISIT_COUNT
+            )
+        }
 ): GetWorkPatternResult =
     GetWorkPatternResult(
-        counts =
-            mapOf(
-                GetWorkPatternResult.TimeSlot.DAWN to dawnCount,
-                GetWorkPatternResult.TimeSlot.MORNING to morningCount,
-                GetWorkPatternResult.TimeSlot.DAYTIME to daytimeCount,
-                GetWorkPatternResult.TimeSlot.EVENING to eveningCount
-            )
+        counts = counts
     )
 
 fun createHistory(

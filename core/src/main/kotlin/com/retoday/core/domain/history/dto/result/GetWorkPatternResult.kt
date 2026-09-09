@@ -1,15 +1,14 @@
 package com.retoday.core.domain.history.dto.result
 
 data class GetWorkPatternResult(
-    val counts: Map<TimeSlot, Int>
+    val counts: List<HourlyCount>
 ) {
-    enum class TimeSlot(
-        val startHour: Int,
-        val endHour: Int
-    ) {
-        DAWN(0, 6),
-        MORNING(6, 12),
-        DAYTIME(12, 18),
-        EVENING(18, 24)
+    companion object {
+        const val HOURS_PER_DAY = 24
     }
+
+    data class HourlyCount(
+        val hour: Int,
+        val count: Int
+    )
 }
