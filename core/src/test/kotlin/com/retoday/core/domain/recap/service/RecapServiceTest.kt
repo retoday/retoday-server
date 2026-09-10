@@ -1,6 +1,8 @@
 package com.retoday.core.domain.recap.service
 
 import com.retoday.core.common.ServiceTest
+import com.retoday.core.domain.history.repository.HistoryRepository
+import com.retoday.core.domain.history.service.DashboardService
 import com.retoday.core.domain.recap.dto.query.GetMyRecapQuery
 import com.retoday.core.domain.recap.dto.result.GetMyRecapResult
 import com.retoday.core.domain.recap.exception.RecapNotFoundException
@@ -8,8 +10,10 @@ import com.retoday.core.domain.recap.repository.RecapRepository
 import com.retoday.core.domain.recap.repository.SectionRepository
 import com.retoday.core.domain.recap.repository.TimelineRepository
 import com.retoday.core.domain.recap.repository.TopicRepository
+import com.retoday.core.domain.user.entity.TimeZone
 import com.retoday.core.fixture.ID
 import com.retoday.core.fixture.RECAP_DATE
+import com.retoday.core.fixture.createGetScreenTimeResult
 import com.retoday.core.fixture.createRecap
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -22,13 +26,17 @@ class RecapServiceTest : ServiceTest() {
     private val sectionRepository = mockk<SectionRepository>()
     private val topicRepository = mockk<TopicRepository>()
     private val timelineRepository = mockk<TimelineRepository>()
+    private val historyRepository = mockk<HistoryRepository>()
+    private val dashboardService = mockk<DashboardService>()
 
     private val recapService =
         RecapService(
             recapRepository = recapRepository,
             topicRepository = topicRepository,
             timelineRepository = timelineRepository,
-            sectionRepository = sectionRepository
+            sectionRepository = sectionRepository,
+            historyRepository = historyRepository,
+            dashboardService = dashboardService
         )
 
     init {
@@ -38,7 +46,7 @@ class RecapServiceTest : ServiceTest() {
             When("해당 날짜의 리캡을 조회하면") {
                 Then("RecapNotFoundException이 발생한다") {
                     shouldThrow<RecapNotFoundException> {
-                        recapService.getMyRecap(ID, GetMyRecapQuery(RECAP_DATE))
+                        recapService.getMyRecap(ID, GetMyRecapQuery(RECAP_DATE, TimeZone.SEOUL))
                     }
                 }
             }
@@ -47,22 +55,26 @@ class RecapServiceTest : ServiceTest() {
         Given("리캡이 있는 날짜를 조회하면") {
             val date = RECAP_DATE
             val recap = createRecap(userId = ID, recapDate = date).copy(id = ID)
+            val screenTimeResult = createGetScreenTimeResult()
 
             every { recapRepository.findByUserIdAndDate(ID, date) } returns recap
             every { sectionRepository.findAllByRecapId(ID) } returns emptyList()
             every { topicRepository.findAllByRecapId(ID) } returns emptyList()
             every { timelineRepository.findAllByRecapId(ID) } returns emptyList()
+            every { historyRepository.findHistoriesWithWebsite(ID, any(), any()) } returns emptyList()
+            every { dashboardService.getScreenTime(any()) } returns screenTimeResult
 
             When("해당 날짜의 리캡을 조회하면") {
-                val result = recapService.getMyRecap(ID, GetMyRecapQuery(date))
+                val result = recapService.getMyRecap(ID, GetMyRecapQuery(date, TimeZone.SEOUL))
 
-                Then("리캡과 하위 데이터를 반환한다") {
+                Then("리캡과 하위 데이터, 대시보드와 동일한 로직의 스크린타임을 반환한다") {
                     result shouldBe
                         GetMyRecapResult(
                             recap = recap,
                             sections = emptyList(),
                             topics = emptyList(),
-                            timelines = emptyList()
+                            timelines = emptyList(),
+                            getScreenTimeResult = screenTimeResult
                         )
                 }
             }
