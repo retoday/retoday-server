@@ -105,7 +105,7 @@ class DashboardService(
      * 버킷의 개수는 집계 범위와 집계 단위([GetScreenTimeQuery.screenTimeUnit])에 따라 달라진다.
      * 기록 수가 `N`일때, 시간 복잡도는 `O(N)`이다.
      */
-    private fun getScreenTime(query: GetScreenTimeQuery): GetScreenTimeResult =
+    fun getScreenTime(query: GetScreenTimeQuery): GetScreenTimeResult =
         with(query) {
             val bucketCount = ((endedAt - startedAt) / screenTimeUnit).toInt()
             val stayDurations =

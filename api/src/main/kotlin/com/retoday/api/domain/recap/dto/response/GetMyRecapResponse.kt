@@ -18,7 +18,7 @@ data class GetMyRecapResponse(
         fun from(result: GetMyRecapResult): GetMyRecapResponse =
             with(result) {
                 GetMyRecapResponse(
-                    recap = RecapResponse.from(recap),
+                    recap = RecapResponse.from(recap, getScreenTimeResult.totalStayDuration),
                     sections = sections.map { SectionResponse.from(it) },
                     timelines = timelines.map { TimelineResponse.from(it) },
                     topics = topics.map { TopicResponse.from(it) }
@@ -32,13 +32,17 @@ data class GetMyRecapResponse(
         val date: LocalDate,
         val title: String,
         val summary: String,
+        val totalStayDuration: Duration,
         val image: RecapImage?,
         val aiProvider: AiProvider,
         val startedAt: Instant,
         val endedAt: Instant
     ) {
         companion object {
-            fun from(recap: Recap): RecapResponse =
+            fun from(
+                recap: Recap,
+                totalStayDuration: Duration
+            ): RecapResponse =
                 with(recap) {
                     RecapResponse(
                         id = id!!,
@@ -46,6 +50,7 @@ data class GetMyRecapResponse(
                         date = date,
                         title = title,
                         summary = summary,
+                        totalStayDuration = totalStayDuration,
                         image = image,
                         aiProvider = aiProvider,
                         startedAt = startedAt,
