@@ -10,8 +10,6 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
-import java.time.Instant
-import java.time.Period
 
 class GenerateRecapItemReaderTest :
     BehaviorSpec({
@@ -27,12 +25,12 @@ class GenerateRecapItemReaderTest :
             } returns listOf(profile)
         }
 
-        Given("recapDate Job Parameter가 있으면") {
+        Given("date Job Parameter가 있으면") {
             val reader =
                 GenerateRecapItemReader(
                     profileRepository = profileRepository,
-                    timeZone = TimeZone.SEOUL.name,
-                    requestedRecapDate = RECAP_DATE.toString(),
+                    timeZone = TimeZone.SEOUL,
+                    date = RECAP_DATE.toString(),
                     aiProvider = AiProvider.BEDROCK
                 )
 
@@ -41,19 +39,17 @@ class GenerateRecapItemReaderTest :
             }
         }
 
-        Given("recapDate Job Parameter가 없으면") {
+        Given("AI provider Job Parameter가 있으면") {
             val reader =
                 GenerateRecapItemReader(
                     profileRepository = profileRepository,
-                    timeZone = TimeZone.SEOUL.name,
-                    requestedRecapDate = null,
+                    timeZone = TimeZone.SEOUL,
+                    date = RECAP_DATE.toString(),
                     aiProvider = AiProvider.BEDROCK
                 )
 
-            Then("기존처럼 사용자 현지 날짜의 어제로 아이템을 생성한다") {
-                val expectedDate = Instant.now().atZone(profile.timeZone.id).toLocalDate() - Period.ofDays(1)
-
-                reader.read()?.recapDate shouldBe expectedDate
+            Then("지정한 provider로 아이템을 생성한다") {
+                reader.read()?.aiProvider shouldBe AiProvider.BEDROCK
             }
         }
     })

@@ -16,7 +16,9 @@ import com.retoday.core.domain.user.exception.UserNotFoundException
 import com.retoday.core.domain.user.repository.ProfileRepository
 import com.retoday.core.domain.user.repository.UserRepository
 import com.retoday.core.fixture.*
+import com.retoday.core.global.jwt.JwtProperties
 import com.retoday.core.global.jwt.JwtProvider
+import io.jsonwebtoken.security.Keys
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -39,8 +41,12 @@ class AuthServiceTest : ServiceTest() {
             refreshTokenRepository = refreshTokenRepository,
             oAuthClients = listOf(oAuthClient),
             jwtProvider = jwtProvider,
-            accessTokenExpiration = EXPIRATION,
-            refreshTokenExpiration = EXPIRATION
+            jwtProperties =
+                JwtProperties(
+                    accessTokenExpiration = EXPIRATION,
+                    refreshTokenExpiration = EXPIRATION,
+                    secretKey = Keys.hmacShaKeyFor(ByteArray(32))
+                )
         )
 
     init {

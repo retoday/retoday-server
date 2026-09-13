@@ -6,6 +6,7 @@ import com.retoday.core.domain.history.dto.result.CreateHistoryResult
 import com.retoday.core.domain.history.exception.HistoryNotFoundException
 import com.retoday.core.domain.history.exception.InvalidTimeRangeException
 import com.retoday.core.domain.history.exception.WebsiteExcludedByUserException
+import com.retoday.core.domain.history.property.HistoryProperties
 import com.retoday.core.domain.history.repository.HistoryRepository
 import com.retoday.core.domain.user.service.UserService
 import com.retoday.core.fixture.*
@@ -31,7 +32,8 @@ class HistoryServiceTest : ServiceTest() {
             historyRepository = historyRepository,
             websiteService = websiteService,
             pageService = pageService,
-            userService = userService
+            userService = userService,
+            historyProperties = HistoryProperties(heartbeatTimeout = Duration.ofMinutes(10))
         )
 
     init {

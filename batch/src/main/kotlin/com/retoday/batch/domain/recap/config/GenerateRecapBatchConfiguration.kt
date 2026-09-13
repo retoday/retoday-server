@@ -20,7 +20,7 @@ class GenerateRecapBatchConfiguration(
     private val transactionManager: PlatformTransactionManager
 ) {
     private companion object {
-        const val GENERATE_RECAP_CHUNK_SIZE = 1
+        const val CHUNK_SIZE = 1
     }
 
     @Bean
@@ -36,7 +36,7 @@ class GenerateRecapBatchConfiguration(
         generateRecapItemWriter: ItemWriter<GenerateRecapResult>
     ): Step =
         StepBuilder(::generateRecapStep.name, jobRepository)
-            .chunk<GenerateRecapItem, GenerateRecapResult>(GENERATE_RECAP_CHUNK_SIZE, transactionManager)
+            .chunk<GenerateRecapItem, GenerateRecapResult>(CHUNK_SIZE, transactionManager)
             .reader(generateRecapItemReader)
             .processor(generateRecapItemProcessor)
             .writer(generateRecapItemWriter)

@@ -3,11 +3,9 @@ spring:
     name: retoday-api
   main:
     banner-mode: off
-  profiles:
-    include:
-    - auth
-    - db
-    - ai
+  config:
+    import:
+    - classpath:application-core.yaml
 server:
   port: 8080
   forward-headers-strategy: native
@@ -23,7 +21,9 @@ management:
       default: none
     web:
       exposure:
-        include: health,prometheus
+        include:
+        - health
+        - prometheus
     jmx:
       exposure:
         exclude: '*'
@@ -46,9 +46,9 @@ frontend:
   uris: https://localhost:3000
 scheduler:
   history-heartbeat:
-    fixed-delay: PT1M
+    fixed-delay: ${HISTORY_HEARTBEAT_DELAY}
   website-category-classification:
-    fixed-delay: PT1M
+    fixed-delay: ${WEBSITE_CATEGORY_CLASSIFICATION_DELAY}
 sentry:
   environment: ${spring.profiles.active}
   in-app-includes:
