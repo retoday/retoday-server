@@ -4,18 +4,14 @@ spring:
   main:
     banner-mode: off
     web-application-type: none
+  config:
+    import:
+    - classpath:application-core.yaml
   batch:
     jdbc:
       initialize-schema: never
     job:
       enabled: true
-  profiles:
-    include:
-    - auth
-    - db
-    - ai
-recap:
-  ai-provider: ${RECAP_AI_PROVIDER:GEMINI}
 logging:
   config: classpath:log4j2-${spring.profiles.active}.yaml
 ---
@@ -24,6 +20,10 @@ spring:
     activate:
       on-profile: local
 management:
+  endpoints:
+    web:
+      exposure:
+        exclude: '*'
   prometheus:
     metrics:
       export:
@@ -49,4 +49,4 @@ management:
           shutdown-operation: put
           grouping-key:
             environment: ${spring.profiles.active}
-            cronjob: ${BATCH_CRONJOB_NAME}
+            cronjob: ${CRON_JOB_NAME}

@@ -9,13 +9,13 @@ import com.retoday.core.domain.history.entity.History
 import com.retoday.core.domain.history.exception.HistoryNotFoundException
 import com.retoday.core.domain.history.exception.InvalidTimeRangeException
 import com.retoday.core.domain.history.exception.WebsiteExcludedByUserException
+import com.retoday.core.domain.history.property.HistoryProperties
 import com.retoday.core.domain.history.repository.HistoryRepository
 import com.retoday.core.domain.user.service.UserService
 import com.retoday.core.global.extension.canonicalizeUrl
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.net.URI
-import java.time.Duration
 import java.time.Instant
 import java.util.*
 
@@ -24,12 +24,9 @@ class HistoryService(
     private val historyRepository: HistoryRepository,
     private val websiteService: WebsiteService,
     private val pageService: PageService,
-    private val userService: UserService
+    private val userService: UserService,
+    private val historyProperties: HistoryProperties
 ) {
-    private companion object {
-        val HISTORY_STALE_AFTER = Duration.ofMinutes(10)
-    }
-
     /**
      * 처음 페이지 방문 시 기록을 생성하는 유스케이스
      *
@@ -117,7 +114,7 @@ class HistoryService(
      * @see [HistoryRepository.endStaleHistories]
      */
     @Transactional
-    fun endStaleHistories() = historyRepository.endStaleHistories(Instant.now() - HISTORY_STALE_AFTER)
+    fun endStaleHistories() = historyRepository.endStaleHistories(Instant.now() - historyProperties.heartbeatTimeout)
 
     @Transactional
     fun deleteMyHistories(userId: UUID) {

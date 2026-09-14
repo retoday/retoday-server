@@ -2,19 +2,18 @@ spring:
   ai:
     bedrock:
       aws:
-        # AWS SDK resolves AWS_BEARER_TOKEN_BEDROCK directly from the environment.
-        region: ${AWS_BEDROCK_REGION:ap-northeast-1}
+        region: ${AWS_BEDROCK_REGION}
       converse:
         chat:
           options:
-            model: ${AWS_BEDROCK_MODEL:amazon.nova-lite-v1:0}
+            model: ${AWS_BEDROCK_MODEL}
             temperature: 0.7
-            max-tokens: ${AWS_BEDROCK_MAX_TOKENS:4096}
+            max-tokens: ${AWS_BEDROCK_MAX_TOKENS}
     google:
       genai:
-        api-key: ${GEMINI_API_KEY}
+        api-key: ${GOOGLE_GEMINI_API_KEY}
         chat:
           options:
-            model: ${GEMINI_MODEL}
+            model: ${GOOGLE_GEMINI_MODEL}
             response-mime-type: application/json
             temperature: 0.7

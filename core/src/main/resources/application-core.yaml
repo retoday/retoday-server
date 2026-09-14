@@ -1,0 +1,11 @@
+spring:
+  config:
+    import:
+    - classpath:application-db.yaml
+    - classpath:application-ai.yaml
+history:
+  heartbeat-timeout: ${HISTORY_HEARTBEAT_TIMEOUT}
+website-category-classification-outbox:
+  max-attempt-count: ${WEBSITE_CATEGORY_CLASSIFICATION_OUTBOX_MAX_ATTEMPT_COUNT}
+  retry-delay: ${WEBSITE_CATEGORY_CLASSIFICATION_OUTBOX_RETRY_DELAY}
+  processing-timeout: ${WEBSITE_CATEGORY_CLASSIFICATION_OUTBOX_PROCESSING_TIMEOUT}

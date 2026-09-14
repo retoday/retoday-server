@@ -91,7 +91,7 @@ class CustomProfileRepositoryTest : RepositoryTest() {
             }
         }
 
-        describe("${ProfileRepository::findAllByStatusAndTimeZoneIn.name}()") {
+        describe("${ProfileRepository::findAllByStatusAndTimeZone.name}()") {
             context("서로 다른 시간대의 활성 사용자 프로필이 저장되어 있으면") {
                 it("요청한 상태와 시간대가 모두 일치하는 프로필만 반환한다") {
                     val seoulUserId = userRepository.save(createUser(socialId = SEOUL_SOCIAL_ID)).id!!
@@ -114,9 +114,9 @@ class CustomProfileRepositoryTest : RepositoryTest() {
                     )
 
                     val profiles =
-                        profileRepository.findAllByStatusAndTimeZoneIn(
+                        profileRepository.findAllByStatusAndTimeZone(
                             status = UserStatus.ACTIVE,
-                            timeZones = listOf(TimeZone.SEOUL)
+                            timeZone = TimeZone.SEOUL
                         )
 
                     profiles shouldBe
