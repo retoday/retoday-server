@@ -6,7 +6,8 @@ import com.retoday.core.domain.recap.dto.query.GetMyRecapQuery
 
 val getMyRecapQueryFields =
     fieldsOf(
-        GetMyRecapQuery::date desc "조회할 리캡 날짜(yyyy-MM-dd)"
+        GetMyRecapQuery::date desc "조회할 리캡 날짜(yyyy-MM-dd)",
+        GetMyRecapQuery::timeZone desc "타임존"
     )
 
 val getMyRecapResponseFields =
@@ -18,6 +19,7 @@ val getMyRecapResponseFields =
             GetMyRecapResponse.RecapResponse::date desc "리캡 날짜",
             GetMyRecapResponse.RecapResponse::title desc "리캡 제목",
             GetMyRecapResponse.RecapResponse::summary desc "리캡 요약",
+            GetMyRecapResponse.RecapResponse::totalStayDuration desc "총 스크린타임(대시보드 통계와 동일한 값)",
             GetMyRecapResponse.RecapResponse::aiProvider desc "AI 제공자",
             GetMyRecapResponse.RecapResponse::startedAt desc "리캡 시작 시각",
             GetMyRecapResponse.RecapResponse::endedAt desc "리캡 종료 시각",

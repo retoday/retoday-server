@@ -3,7 +3,8 @@ package com.retoday.core.domain.history.service
 import com.retoday.core.common.ServiceTest
 import com.retoday.core.domain.history.dto.query.GetMyDashboardQuery
 import com.retoday.core.domain.history.dto.query.GetMyDashboardQuery.DashboardPeriod
-import com.retoday.core.domain.history.dto.result.GetWorkPatternResult
+import com.retoday.core.domain.history.dto.result.GetWorkPatternResult.Companion.HOURS_PER_DAY
+import com.retoday.core.domain.history.dto.result.GetWorkPatternResult.HourlyCount
 import com.retoday.core.domain.history.entity.WebsiteCategory
 import com.retoday.core.domain.history.exception.HistoryNotFoundException
 import com.retoday.core.domain.history.repository.HistoryRepository
@@ -113,25 +114,39 @@ class DashboardServiceTest : ServiceTest() {
                     }
                     frequentlyVisitedWebsites.sumOf { it.visitCount } shouldBe histories.size
                     result.getScreenTimeResult.buckets.first().stayDuration shouldBe FIRST_BUCKET_STAY_DURATION
+                    result.getScreenTimeResult.buckets.map { it.stayDuration } shouldBe
+                        listOf(
+                            FIRST_BUCKET_STAY_DURATION,
+                            Duration.ofMinutes(30),
+                            Duration.ZERO,
+                            Duration.ofHours(1),
+                            Duration.ZERO,
+                            Duration.ZERO,
+                            Duration.ofHours(1),
+                            Duration.ofMinutes(30),
+                            Duration.ZERO,
+                            Duration.ZERO,
+                            Duration.ZERO,
+                            Duration.ZERO
+                        )
                     result.getCategoryAnalysesResult.categoryAnalyses.map { it.category } shouldBe
                         listOf(WebsiteCategory.DEVELOPMENT, null)
                     result.getFrequentlyVisitedWebsitesResult.websiteAnalyses.first().visitCount shouldBe 2
                     result.getFrequentlyVisitedWebsitesResult.websiteAnalyses.first().stayDuration shouldBe
                         LONGEST_STAY_DURATION
                     result.getWorkPatternResult.counts shouldBe
-                        mapOf(
-                            GetWorkPatternResult.TimeSlot.DAWN to 1,
-                            GetWorkPatternResult.TimeSlot.MORNING to 1,
-                            GetWorkPatternResult.TimeSlot.DAYTIME to 1,
-                            GetWorkPatternResult.TimeSlot.EVENING to 0
-                        )
+                        List(HOURS_PER_DAY) { hour ->
+                            HourlyCount(
+                                hour = hour,
+                                count = if (hour in setOf(0, 1, 2, 7, 13, 14)) 1 else 0
+                            )
+                        }
                     result.getLongestStayedWebsiteResult.domain shouldBe WEBSITE_DOMAIN
                     result.getLongestStayedWebsiteResult.stayDuration shouldBe LONGEST_STAY_DURATION
                     val longestStayedWebsite = frequentlyVisitedWebsites.maxBy { it.stayDuration }
                     result.getLongestStayedWebsiteResult.domain shouldBe longestStayedWebsite.domain
                     result.getLongestStayedWebsiteResult.faviconUrl shouldBe longestStayedWebsite.faviconUrl
                     result.getLongestStayedWebsiteResult.stayDuration shouldBe longestStayedWebsite.stayDuration
-                    result.getWorkPatternResult.counts.values.sum() shouldBe histories.size
                     verify(exactly = 1) { historyRepository.findHistoriesWithWebsite(any(), any(), any()) }
                 }
             }
@@ -174,6 +189,121 @@ class DashboardServiceTest : ServiceTest() {
                     result.getFrequentlyVisitedWebsitesResult.websiteAnalyses.single().stayDuration shouldBe
                         totalStayDuration
                     result.getLongestStayedWebsiteResult.stayDuration shouldBe totalStayDuration
+                    result.getWorkPatternResult.counts shouldBe
+                        List(HOURS_PER_DAY) { hour -> HourlyCount(hour = hour, count = 1) }
+                }
+            }
+        }
+
+        Given("00시부터 04시 50분까지 체류한 기록이 주어지면") {
+            val date = DASHBOARD_DATE
+            val history =
+                createHistoryWithWebsiteProjection(
+                    startedAt = DAILY_SEOUL_STARTED_AT,
+                    endedAt = DAILY_SEOUL_STARTED_AT + Duration.ofHours(4) + Duration.ofMinutes(50)
+                )
+            every {
+                historyRepository.findHistoriesWithWebsite(
+                    ID,
+                    DAILY_SEOUL_STARTED_AT,
+                    DAILY_SEOUL_ENDED_AT
+                )
+            } returns listOf(history)
+
+            When("일간 대시보드를 조회하면") {
+                val result =
+                    dashboardService.getMyDashboard(
+                        ID,
+                        GetMyDashboardQuery(
+                            date = date,
+                            timeZone = TimeZone.SEOUL,
+                            period = DashboardPeriod.DAILY
+                        )
+                    )
+
+                Then("0~4시는 각각 1개로 집계하고 나머지 시간은 0개로 반환한다") {
+                    result.getWorkPatternResult.counts shouldBe
+                        List(HOURS_PER_DAY) { hour ->
+                            HourlyCount(
+                                hour = hour,
+                                count = if (hour in 0..4) 1 else 0
+                            )
+                        }
+                }
+            }
+        }
+
+        Given("자정을 넘긴 기록과 다음 날 같은 시간에 체류한 기록이 주어지면") {
+            val nextDayStartedAt = WEEKLY_STARTED_AT + DAY
+            every {
+                historyRepository.findHistoriesWithWebsite(ID, WEEKLY_STARTED_AT, WEEKLY_ENDED_AT)
+            } returns
+                listOf(
+                    createHistoryWithWebsiteProjection(
+                        startedAt = nextDayStartedAt - Duration.ofMinutes(30),
+                        endedAt = nextDayStartedAt + Duration.ofHours(1)
+                    ),
+                    createHistoryWithWebsiteProjection(
+                        startedAt = nextDayStartedAt + Duration.ofMinutes(30),
+                        endedAt = nextDayStartedAt + Duration.ofHours(2)
+                    )
+                )
+
+            When("주간 대시보드를 조회하면") {
+                val result =
+                    dashboardService.getMyDashboard(
+                        ID,
+                        GetMyDashboardQuery(
+                            date = WEEKLY_DASHBOARD_DATE,
+                            timeZone = TimeZone.SEOUL,
+                            period = DashboardPeriod.WEEKLY
+                        )
+                    )
+
+                Then("23시는 1개, 0시는 2개, 1시는 1개로 집계한다") {
+                    result.getWorkPatternResult.counts shouldBe
+                        List(HOURS_PER_DAY) { hour ->
+                            HourlyCount(
+                                hour = hour,
+                                count =
+                                    when (hour) {
+                                        0 -> 2
+                                        1, 23 -> 1
+                                        else -> 0
+                                    }
+                            )
+                        }
+                }
+            }
+        }
+
+        Given("한 주 동안 이어진 기록이 주어지면") {
+            every {
+                historyRepository.findHistoriesWithWebsite(ID, WEEKLY_STARTED_AT, WEEKLY_ENDED_AT)
+            } returns
+                listOf(
+                    createHistoryWithWebsiteProjection(
+                        startedAt = WEEKLY_STARTED_AT,
+                        endedAt = WEEKLY_ENDED_AT
+                    )
+                )
+
+            When("주간 대시보드를 조회하면") {
+                val result =
+                    dashboardService.getMyDashboard(
+                        ID,
+                        GetMyDashboardQuery(
+                            date = WEEKLY_DASHBOARD_DATE,
+                            timeZone = TimeZone.SEOUL,
+                            period = DashboardPeriod.WEEKLY
+                        )
+                    )
+
+                Then("여러 날 같은 시간을 지나도 시간별로 한 번씩만 집계한다") {
+                    result.getWorkPatternResult.counts shouldBe
+                        List(HOURS_PER_DAY) { hour -> HourlyCount(hour = hour, count = 1) }
+                    result.getScreenTimeResult.buckets.map { it.stayDuration } shouldBe
+                        List(result.getScreenTimeResult.buckets.size) { DAY }
                 }
             }
         }
@@ -263,6 +393,13 @@ class DashboardServiceTest : ServiceTest() {
                     result.getScreenTimeResult.buckets.first().startedAt shouldBe WEEKLY_STARTED_AT
                     result.getScreenTimeResult.buckets.last().endedAt shouldBe WEEKLY_ENDED_AT
                     result.getScreenTimeResult.totalStayDuration shouldBe LONGEST_STAY_DURATION
+                    result.getWorkPatternResult.counts shouldBe
+                        List(HOURS_PER_DAY) { hour ->
+                            HourlyCount(
+                                hour = hour,
+                                count = if (hour in setOf(0, 22, 23)) 1 else 0
+                            )
+                        }
                 }
             }
         }

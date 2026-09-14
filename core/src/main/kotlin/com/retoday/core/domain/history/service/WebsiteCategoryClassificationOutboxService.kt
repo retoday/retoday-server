@@ -3,6 +3,7 @@ package com.retoday.core.domain.history.service
 import com.retoday.core.domain.history.dto.command.CategorizeWebsiteCommand
 import com.retoday.core.domain.history.entity.WebsiteCategoryClassificationOutboxStatus
 import com.retoday.core.domain.history.exception.WebsiteCategoryAlreadyExistsException
+import com.retoday.core.domain.history.property.WebsiteCategoryClassificationOutboxProperties
 import com.retoday.core.domain.history.repository.WebsiteCategoryClassificationOutboxRepository
 import com.retoday.core.global.extension.getLogger
 import com.retoday.core.global.extension.transaction
@@ -15,14 +16,9 @@ import java.time.Instant
 @Service
 class WebsiteCategoryClassificationOutboxService(
     private val websiteService: WebsiteService,
-    private val websiteCategoryClassificationOutboxRepository: WebsiteCategoryClassificationOutboxRepository
+    private val websiteCategoryClassificationOutboxRepository: WebsiteCategoryClassificationOutboxRepository,
+    private val websiteCategoryClassificationOutboxProperties: WebsiteCategoryClassificationOutboxProperties
 ) {
-    private companion object {
-        const val MAX_ATTEMPT_COUNT = 5
-        val RETRY_DELAY = Duration.ofMinutes(10)
-        val PROCESSING_TIMEOUT = Duration.ofMinutes(10)
-    }
-
     private val logger = getLogger()
 
     /**
@@ -42,8 +38,9 @@ class WebsiteCategoryClassificationOutboxService(
             transaction {
                 websiteCategoryClassificationOutboxRepository
                     .claimNext(
-                        retryableAttemptedBefore = now - RETRY_DELAY,
-                        recoverableAttemptedBefore = now - PROCESSING_TIMEOUT
+                        retryableAttemptedBefore = now - websiteCategoryClassificationOutboxProperties.retryDelay,
+                        recoverableAttemptedBefore =
+                            now - websiteCategoryClassificationOutboxProperties.processingTimeout
                     )
                     ?.let {
                         websiteCategoryClassificationOutboxRepository.save(
@@ -82,7 +79,7 @@ class WebsiteCategoryClassificationOutboxService(
             }
         } catch (exception: Exception) {
             val status =
-                if (outbox.attemptCount >= MAX_ATTEMPT_COUNT) {
+                if (outbox.attemptCount >= websiteCategoryClassificationOutboxProperties.maxAttemptCount) {
                     WebsiteCategoryClassificationOutboxStatus.FAILED
                 } else {
                     WebsiteCategoryClassificationOutboxStatus.PENDING

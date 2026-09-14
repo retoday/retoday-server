@@ -19,6 +19,7 @@ import com.retoday.core.domain.recap.exception.RecapNotFoundException
 import com.retoday.core.domain.recap.service.RecapService
 import com.retoday.core.fixture.ID
 import com.retoday.core.fixture.RECAP_DATE
+import com.retoday.core.fixture.createGetScreenTimeResult
 import com.retoday.core.fixture.createRecap
 import io.mockk.every
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
@@ -74,7 +75,8 @@ class RecapControllerTest : ControllerTest() {
                                 title = TOPIC_TITLE,
                                 content = TOPIC_CONTENT
                             )
-                        )
+                        ),
+                    getScreenTimeResult = createGetScreenTimeResult()
                 )
 
             context("리캡이 존재하는 경우") {
@@ -83,7 +85,7 @@ class RecapControllerTest : ControllerTest() {
                 it("200과 리캡 응답을 반환한다") {
                     webClient
                         .get()
-                        .uri("$RECAP_PATH?date=$date")
+                        .uri("$RECAP_PATH?date=$date&timeZone=SEOUL")
                         .withAuthentication()
                         .exchange()
                         .expectStatus(200)
@@ -101,7 +103,7 @@ class RecapControllerTest : ControllerTest() {
                 it("404와 ErrorResponse를 반환한다") {
                     webClient
                         .get()
-                        .uri("$RECAP_PATH?date=$date")
+                        .uri("$RECAP_PATH?date=$date&timeZone=SEOUL")
                         .withAuthentication()
                         .exchange()
                         .expectStatus(404)

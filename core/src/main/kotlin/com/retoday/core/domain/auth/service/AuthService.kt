@@ -19,14 +19,13 @@ import com.retoday.core.domain.user.repository.ProfileRepository
 import com.retoday.core.domain.user.repository.UserRepository
 import com.retoday.core.global.extension.extractPayload
 import com.retoday.core.global.extension.transaction
+import com.retoday.core.global.jwt.JwtProperties
 import com.retoday.core.global.jwt.JwtProvider
 import io.jsonwebtoken.JwtException
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
-import java.time.Duration
 import java.util.*
 
 @Service
@@ -36,10 +35,7 @@ class AuthService(
     private val refreshTokenRepository: RefreshTokenRepository,
     private val oAuthClients: List<OAuthClient>,
     private val jwtProvider: JwtProvider,
-    @Value($$"${jwt.access-token-expiration}")
-    private val accessTokenExpiration: Duration,
-    @Value($$"${jwt.refresh-token-expiration}")
-    private val refreshTokenExpiration: Duration
+    private val jwtProperties: JwtProperties
 ) {
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     fun login(command: LoginCommand): LoginResult {
@@ -131,15 +127,21 @@ class AuthService(
      */
     private fun User.createTokens(): Pair<String, String> {
         val accessToken =
-            jwtProvider.createToken(accessTokenExpiration, AuthenticationTokenPayload.of(this, TokenType.ACCESS))
+            jwtProvider.createToken(
+                jwtProperties.accessTokenExpiration,
+                AuthenticationTokenPayload.of(this, TokenType.ACCESS)
+            )
         val refreshToken =
-            jwtProvider.createToken(refreshTokenExpiration, AuthenticationTokenPayload.of(this, TokenType.REFRESH))
+            jwtProvider.createToken(
+                jwtProperties.refreshTokenExpiration,
+                AuthenticationTokenPayload.of(this, TokenType.REFRESH)
+            )
 
         refreshTokenRepository.save(
             RefreshToken(
                 userId = id!!,
                 content = refreshToken,
-                expiration = refreshTokenExpiration.seconds
+                expiration = jwtProperties.refreshTokenExpiration.seconds
             )
         )
 

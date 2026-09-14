@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
     implementation(project(":core"))
+    implementation(libs.spring.actuator)
     implementation(libs.spring.batch)
     implementation(libs.spring.log4j2)
     implementation(libs.prometheus)

@@ -8,6 +8,7 @@ import com.retoday.api.extension.*
 import com.retoday.core.domain.history.dto.result.GetCategoryAnalysesResult
 import com.retoday.core.domain.history.dto.result.GetFrequentlyVisitedWebsitesResult
 import com.retoday.core.domain.history.dto.result.GetScreenTimeResult
+import com.retoday.core.domain.history.dto.result.GetWorkPatternResult
 
 val createHistoryRequestFields =
     fieldsOf(
@@ -76,12 +77,10 @@ val getFrequentlyVisitedWebsitesResponseFields =
 
 val getWorkPatternResponseFields =
     fieldsOf(
-        *objectFieldsOf(
-            objectField = GetWorkPatternResponse::counts desc "시간대별 카운트",
-            "DAWN" desc "새벽",
-            "MORNING" desc "오전",
-            "DAYTIME" desc "오후",
-            "EVENING" desc "저녁"
+        *listFieldsOf(
+            listField = GetWorkPatternResponse::counts desc "시간순으로 정렬된 24시간별 체류 기록 수",
+            GetWorkPatternResult.HourlyCount::hour desc "조회 타임존 기준 시간(0~23)",
+            GetWorkPatternResult.HourlyCount::count desc "해당 시간에 체류한 기록 수(기록이 없으면 0)"
         )
     )
 
