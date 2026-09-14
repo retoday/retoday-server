@@ -9,7 +9,7 @@ import com.retoday.core.global.extension.fetchOneInto
 import com.retoday.core.global.jooq.tables.Profile.Companion.PROFILE
 import com.retoday.core.global.jooq.tables.User.Companion.USER
 import org.jooq.DSLContext
-import org.jooq.impl.DSL
+import org.jooq.impl.DSL.value
 import java.util.*
 
 class CustomProfileRepositoryImpl(
@@ -31,9 +31,9 @@ class CustomProfileRepositoryImpl(
             .where(USER.ID.equal(userId))
             .fetchOneInto()
 
-    override fun findAllByStatusAndTimeZoneIn(
+    override fun findAllByStatusAndTimeZone(
         status: UserStatus,
-        timeZones: Collection<TimeZone>
+        timeZone: TimeZone
     ): List<Profile> =
         dsl
             .select(PROFILE)
@@ -41,8 +41,8 @@ class CustomProfileRepositoryImpl(
             .join(USER)
             .on(USER.ID.equal(PROFILE.USER_ID))
             .where(
-                PROFILE.TIME_ZONE.`in`(timeZones)
-                    .and(USER.STATUS.equal(DSL.value(status, USER.STATUS)))
+                USER.STATUS.equal(value(status, USER.STATUS))
+                    .and(PROFILE.TIME_ZONE.equal(value(timeZone, PROFILE.TIME_ZONE)))
             )
             .fetchInto()
 }

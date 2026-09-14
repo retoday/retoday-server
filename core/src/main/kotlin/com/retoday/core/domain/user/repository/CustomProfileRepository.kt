@@ -9,8 +9,8 @@ import java.util.*
 interface CustomProfileRepository {
     fun findByUserIdWithEmail(userId: UUID): ProfileWithEmailProjection?
 
-    fun findAllByStatusAndTimeZoneIn(
+    fun findAllByStatusAndTimeZone(
         status: UserStatus,
-        timeZones: Collection<TimeZone>
+        timeZone: TimeZone
     ): List<Profile>
 }
