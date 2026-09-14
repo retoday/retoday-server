@@ -2,6 +2,7 @@ spring:
   config:
     import:
     - classpath:application-db.yaml
+    - classpath:application-auth.yaml
     - classpath:application-ai.yaml
 history:
   heartbeat-timeout: ${HISTORY_HEARTBEAT_TIMEOUT}
