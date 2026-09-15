@@ -26,7 +26,7 @@ class CustomPageRepositoryTest : RepositoryTest() {
     private lateinit var websiteRepository: WebsiteRepository
 
     init {
-        describe("${PageRepository::getByUrl.name}()") {
+        describe("${PageRepository::findByUrl.name}()") {
             context("여러 페이지가 저장되어 있으면") {
                 it("URL에 해당하는 페이지를 반환한다") {
                     val websiteId = websiteRepository.save(createWebsite(domain = PAGE_TEST_DOMAIN)).id!!
@@ -49,7 +49,7 @@ class CustomPageRepositoryTest : RepositoryTest() {
                                 )
                             ).id!!
 
-                    val found = pageRepository.getByUrl(TARGET_PAGE_URL)
+                    val found = pageRepository.findByUrl(TARGET_PAGE_URL)
 
                     found shouldBe
                         createPage(
@@ -96,7 +96,7 @@ class CustomPageRepositoryTest : RepositoryTest() {
                             title = UPDATED_PAGE_TITLE,
                             description = UPDATED_PAGE_DESCRIPTION
                         )
-                    pageRepository.getByUrl(FILL_PAGE_URL) shouldBe result
+                    pageRepository.findByUrl(FILL_PAGE_URL) shouldBe result
                 }
             }
         }
