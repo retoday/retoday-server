@@ -36,16 +36,23 @@ class WebsiteService(
     @Transactional
     fun upsertWebsite(command: UpsertWebsiteCommand): Website =
         with(command) {
+            val canonicalizedDomain = canonicalizeDomain(domain)
+            val website = websiteRepository.findByDomain(canonicalizedDomain)
+
+            if (website != null && website.faviconUrl == faviconUrl) {
+                return website
+            }
+
             val websiteId = createUuid()
-            val website =
+            val upsertedWebsite =
                 websiteRepository.upsertByDomain(
                     Website(
                         id = websiteId,
-                        domain = canonicalizeDomain(domain),
+                        domain = canonicalizedDomain,
                         faviconUrl = faviconUrl
                     )
                 )
-            val isNew = website.id == websiteId
+            val isNew = upsertedWebsite.id == websiteId
 
             if (isNew) {
                 websiteCategoryClassificationOutboxRepository.save(
@@ -55,7 +62,7 @@ class WebsiteService(
                 )
             }
 
-            return website
+            return upsertedWebsite
         }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)

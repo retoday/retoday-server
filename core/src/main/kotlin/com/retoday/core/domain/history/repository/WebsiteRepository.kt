@@ -9,5 +9,5 @@ import java.util.*
 interface WebsiteRepository :
     JdbcRepository<Website, UUID>,
     CustomWebsiteRepository {
-    fun getByDomain(domain: String): Website
+    fun findByDomain(domain: String): Website?
 }

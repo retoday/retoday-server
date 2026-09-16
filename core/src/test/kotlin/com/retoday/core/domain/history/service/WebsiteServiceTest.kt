@@ -41,6 +41,7 @@ class WebsiteServiceTest : ServiceTest() {
                 )
             val outboxId = java.util.UUID.randomUUID()
 
+            every { websiteRepository.findByDomain(WEBSITE_DOMAIN) } returns null
             every { websiteRepository.upsertByDomain(any()) } answers { firstArg() }
             every { websiteClassificationOutboxRepository.save(any()) } answers {
                 firstArg<WebsiteCategoryClassificationOutbox>().copy(id = outboxId)
@@ -66,20 +67,78 @@ class WebsiteServiceTest : ServiceTest() {
             }
         }
 
-        Given("이미 등록된 웹사이트면") {
+        Given("이미 등록된 웹사이트의 favicon이 같으면") {
             val command =
                 UpsertWebsiteCommand(
-                    domain = WEBSITE_DOMAIN,
+                    domain = "WWW.GITHUB.COM",
                     faviconUrl = WEBSITE_FAVICON_URL
                 )
-            val website = createWebsite(id = ID, domain = WEBSITE_DOMAIN)
+            val website = createWebsite(id = ID, domain = WEBSITE_DOMAIN, faviconUrl = WEBSITE_FAVICON_URL)
 
+            every { websiteRepository.findByDomain(WEBSITE_DOMAIN) } returns website
+
+            When("웹사이트를 등록하면") {
+                val result = websiteService.upsertWebsite(command)
+
+                Then("조회한 웹사이트를 반환하고 쓰기를 생략한다") {
+                    result shouldBe website
+                    verify(exactly = 0) { websiteRepository.upsertByDomain(any()) }
+                    verify(exactly = 0) { websiteClassificationOutboxRepository.save(any()) }
+                }
+            }
+        }
+
+        listOf(
+            null to WEBSITE_FAVICON_URL,
+            WEBSITE_FAVICON_URL to "https://github.com/new.ico",
+            WEBSITE_FAVICON_URL to null
+        ).forEach { (previousFavicon, requestedFavicon) ->
+            Given("favicon이 $previousFavicon 에서 $requestedFavicon 으로 변경되면") {
+                val website = createWebsite(id = ID, domain = WEBSITE_DOMAIN, faviconUrl = previousFavicon)
+                val updatedWebsite = website.copy(faviconUrl = requestedFavicon)
+                every { websiteRepository.findByDomain(WEBSITE_DOMAIN) } returns website
+                every { websiteRepository.upsertByDomain(any()) } returns updatedWebsite
+
+                When("웹사이트를 등록하면") {
+                    val result = websiteService.upsertWebsite(UpsertWebsiteCommand(WEBSITE_DOMAIN, requestedFavicon))
+
+                    Then("기존 웹사이트를 갱신하고 Outbox를 추가하지 않는다") {
+                        result shouldBe updatedWebsite
+                        verify(exactly = 1) {
+                            websiteRepository.upsertByDomain(match { it.faviconUrl == requestedFavicon })
+                        }
+                        verify(exactly = 0) { websiteClassificationOutboxRepository.save(any()) }
+                    }
+                }
+            }
+        }
+
+        Given("저장된 favicon과 요청한 favicon이 모두 null이면") {
+            val website = createWebsite(id = ID, domain = WEBSITE_DOMAIN, faviconUrl = null)
+            every { websiteRepository.findByDomain(WEBSITE_DOMAIN) } returns website
+
+            When("웹사이트를 등록하면") {
+                val result = websiteService.upsertWebsite(UpsertWebsiteCommand(WEBSITE_DOMAIN, null))
+
+                Then("기존 웹사이트를 반환하고 쓰기를 생략한다") {
+                    result shouldBe website
+                    verify(exactly = 0) { websiteRepository.upsertByDomain(any()) }
+                    verify(exactly = 0) { websiteClassificationOutboxRepository.save(any()) }
+                }
+            }
+        }
+
+        Given("조회 직후 다른 요청이 같은 도메인을 먼저 생성하면") {
+            val website = createWebsite(id = ID, domain = WEBSITE_DOMAIN, faviconUrl = WEBSITE_FAVICON_URL)
+            every { websiteRepository.findByDomain(WEBSITE_DOMAIN) } returns null
             every { websiteRepository.upsertByDomain(any()) } returns website
 
             When("웹사이트를 등록하면") {
-                websiteService.upsertWebsite(command)
+                val result = websiteService.upsertWebsite(UpsertWebsiteCommand(WEBSITE_DOMAIN, WEBSITE_FAVICON_URL))
 
-                Then("카테고리 분류가 다시 요청되지 않는다") {
+                Then("먼저 생성된 웹사이트를 반환하고 Outbox를 중복 생성하지 않는다") {
+                    result shouldBe website
+                    verify(exactly = 1) { websiteRepository.upsertByDomain(any()) }
                     verify(exactly = 0) { websiteClassificationOutboxRepository.save(any()) }
                 }
             }
