@@ -51,7 +51,7 @@ class UserServiceTest : ServiceTest() {
             every { userExcludedWebsiteRepository.findAllByUserId(ID) } returns excludedDomains
 
             When("사용자의 예외 도메인을 조회하면") {
-                val result = userService.getExcludedDomains(ID)
+                val result = userService.getMyExcludedDomains(ID)
 
                 Then("저장된 값이 반환된다") {
                     result shouldBe excludedDomains

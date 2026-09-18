@@ -55,7 +55,7 @@ class HistoryServiceTest : ServiceTest() {
                     endedAt = null
                 ).copy(id = ID)
 
-            every { userService.getExcludedDomains(ID) } returns emptyList()
+            every { userService.getMyExcludedDomains(ID) } returns emptyList()
             every { websiteService.upsertWebsite(any()) } returns website
             every { pageService.upsertPage(any()) } returns page
             every { historyRepository.save(any()) } returns history
@@ -89,7 +89,7 @@ class HistoryServiceTest : ServiceTest() {
 
         Given("예외 도메인 요청이면") {
             val command = createHistoryCommand(url = EXCLUDED_WEBSITE_URL)
-            every { userService.getExcludedDomains(ID) } returns
+            every { userService.getMyExcludedDomains(ID) } returns
                 listOf(createUserExcludedWebsiteDomain(userId = ID, domain = WEBSITE_DOMAIN))
 
             When("제외 도메인의 기록 생성을 요청하면") {
