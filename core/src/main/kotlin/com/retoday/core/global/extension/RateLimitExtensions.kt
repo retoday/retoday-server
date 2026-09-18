@@ -9,20 +9,22 @@ import java.time.Duration
 
 @Component
 class RateLimitWrapper {
-    constructor(redisTemplate: RedisTemplate<String, String>) {
+    constructor(redisTemplate: RedisTemplate<Any, Any>) {
         RateLimitWrapper.redisTemplate = redisTemplate
     }
 
     companion object {
+        private const val RATE_LIMIT_PREFIX = "rate-limit"
         private val script = RedisScript<List<Long>>(ClassPathResource("script/rate_limit.lua"))
-        private lateinit var redisTemplate: RedisTemplate<String, String>
+        private lateinit var redisTemplate: RedisTemplate<Any, Any>
 
         operator fun <T> invoke(
-            key: String,
+            id: Any,
             limitCount: Long,
             window: Duration,
             func: () -> T
         ): T {
+            val key = "$RATE_LIMIT_PREFIX:$id"
             val (count, ttl) = redisTemplate.execute(script, listOf(key), window.seconds.toString())!!
             val retryAfter = ttl.takeIf { count > limitCount }
 
@@ -36,13 +38,13 @@ class RateLimitWrapper {
 }
 
 fun <T> limit(
-    key: String,
+    id: Any,
     limitCount: Long,
     window: Duration,
     func: () -> T
 ): T =
     RateLimitWrapper(
-        key = key,
+        id = id,
         limitCount = limitCount,
         window = window,
         func = func
