@@ -5,7 +5,6 @@ import com.retoday.core.domain.user.entity.Language
 import com.retoday.core.domain.user.entity.Profile
 import com.retoday.core.domain.user.entity.TimeZone
 import com.retoday.core.domain.user.repository.ProfileRepository
-import com.retoday.core.domain.user.repository.UserExcludedWebsiteRepository
 import com.retoday.core.fixture.ID
 import com.retoday.core.fixture.createProfile
 import io.kotest.core.spec.style.BehaviorSpec
@@ -16,11 +15,11 @@ import io.mockk.slot
 
 class ProfileServiceTest : BehaviorSpec() {
     private val profileRepository = mockk<ProfileRepository>()
-    private val userExcludedWebsiteRepository = mockk<UserExcludedWebsiteRepository>()
+    private val userService = mockk<UserService>()
     private val profileService =
         ProfileService(
             profileRepository = profileRepository,
-            userExcludedWebsiteRepository = userExcludedWebsiteRepository
+            userService = userService
         )
 
     init {

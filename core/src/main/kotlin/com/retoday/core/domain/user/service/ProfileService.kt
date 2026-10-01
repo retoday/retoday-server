@@ -4,7 +4,6 @@ import com.retoday.core.domain.user.dto.command.UpdateMyProfileCommand
 import com.retoday.core.domain.user.dto.result.GetMyProfileResult
 import com.retoday.core.domain.user.exception.ProfileNotFoundException
 import com.retoday.core.domain.user.repository.ProfileRepository
-import com.retoday.core.domain.user.repository.UserExcludedWebsiteRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -12,14 +11,13 @@ import java.util.*
 @Service
 class ProfileService(
     private val profileRepository: ProfileRepository,
-    private val userExcludedWebsiteRepository: UserExcludedWebsiteRepository
+    private val userService: UserService
 ) {
     @Transactional(readOnly = true)
     fun getMyProfile(userId: UUID): GetMyProfileResult {
         val profileWithEmail = profileRepository.findByUserIdWithEmail(userId) ?: throw ProfileNotFoundException()
         val excludedDomains =
-            userExcludedWebsiteRepository
-                .findAllByUserId(userId)
+            userService.getMyExcludedDomains(userId)
                 .map { it.domain }
 
         return GetMyProfileResult.of(

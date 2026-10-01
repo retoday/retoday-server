@@ -40,7 +40,7 @@ class HistoryService(
         with(command) {
             val canonicalizedUrl = canonicalizeUrl(url)
             val domain = URI(canonicalizedUrl).host
-            val userExcludedWebsiteDomains = userService.getExcludedDomains(userId)
+            val userExcludedWebsiteDomains = userService.getMyExcludedDomains(userId)
 
             if (userExcludedWebsiteDomains.any { it.includes(domain) }) {
                 throw WebsiteExcludedByUserException()
