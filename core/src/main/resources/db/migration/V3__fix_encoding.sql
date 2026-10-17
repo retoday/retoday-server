@@ -1,5 +1,4 @@
--- Preserve column types, nullability, and the existing general_ci comparison rules.
--- MySQL DDL commits implicitly. Keep utf8mb4 when rolling back application code.
+/* [jooq ignore start] */
 
 ALTER TABLE `user`
     DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
@@ -97,3 +96,5 @@ ALTER TABLE BATCH_JOB_EXECUTION_SEQ
 ALTER TABLE BATCH_JOB_SEQ
     DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
     MODIFY COLUMN `UNIQUE_KEY` CHAR(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL;
+
+/* [jooq ignore stop] */
