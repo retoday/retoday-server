@@ -16,6 +16,7 @@ import com.retoday.core.domain.user.exception.UserNotFoundException
 import com.retoday.core.domain.user.repository.ProfileRepository
 import com.retoday.core.domain.user.repository.UserExcludedWebsiteRepository
 import com.retoday.core.domain.user.repository.UserRepository
+import com.retoday.core.global.config.Caches
 import com.retoday.core.global.extension.canonicalizeDomain
 import com.retoday.core.global.extension.transaction
 import org.springframework.cache.annotation.CacheEvict
@@ -38,12 +39,12 @@ class UserService(
     private val recapService: RecapService,
     private val oAuthClients: List<OAuthClient>
 ) {
-    @Cacheable(cacheNames = ["excluded-domains"], key = "#userId")
+    @Cacheable(cacheNames = [Caches.USER_EXCLUDED_WEBSITE_DOMAIN], key = "#userId")
     @Transactional(readOnly = true)
-    fun getExcludedDomains(userId: UUID): List<UserExcludedWebsiteDomain> =
+    fun getMyExcludedDomains(userId: UUID): List<UserExcludedWebsiteDomain> =
         userExcludedWebsiteRepository.findAllByUserId(userId)
 
-    @CacheEvict(cacheNames = ["excluded-domains"], key = "#userId")
+    @CacheEvict(cacheNames = [Caches.USER_EXCLUDED_WEBSITE_DOMAIN], key = "#userId")
     @Transactional
     fun addMyExcludedDomain(
         userId: UUID,
@@ -64,7 +65,7 @@ class UserService(
             throw exception
         }
 
-    @CacheEvict(cacheNames = ["excluded-domains"], key = "#userId")
+    @CacheEvict(cacheNames = [Caches.USER_EXCLUDED_WEBSITE_DOMAIN], key = "#userId")
     @Transactional
     fun deleteMyExcludedDomain(
         userId: UUID,
@@ -73,7 +74,7 @@ class UserService(
         userExcludedWebsiteRepository.deleteByUserIdAndDomain(userId, canonicalizeDomain(command.domain))
     }
 
-    @CacheEvict(cacheNames = ["excluded-domains"], key = "#userId")
+    @CacheEvict(cacheNames = [Caches.USER_EXCLUDED_WEBSITE_DOMAIN], key = "#userId")
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     fun withdraw(
         userId: UUID,

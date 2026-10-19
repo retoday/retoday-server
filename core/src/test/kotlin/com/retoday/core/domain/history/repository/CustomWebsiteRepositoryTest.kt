@@ -1,15 +1,10 @@
 package com.retoday.core.domain.history.repository
 
 import com.retoday.core.common.RepositoryTest
-import com.retoday.core.domain.history.entity.WebsiteCategory
 import com.retoday.core.fixture.createWebsite
 import io.kotest.matchers.shouldBe
 import org.springframework.beans.factory.annotation.Autowired
 
-private const val OTHER_DOMAIN = "other.example.com"
-private const val OTHER_FAVICON_URL = "https://other.example.com/favicon.ico"
-private const val TARGET_DOMAIN = "target.example.com"
-private const val TARGET_FAVICON_URL = "https://target.example.com/favicon.ico"
 private const val INSERT_DOMAIN = "insert.example.com"
 private const val INSERT_FAVICON_URL = "https://insert.example.com/favicon.ico"
 private const val FILL_DOMAIN = "fill.example.com"
@@ -23,39 +18,6 @@ class CustomWebsiteRepositoryTest : RepositoryTest() {
     private lateinit var websiteRepository: WebsiteRepository
 
     init {
-        describe("${WebsiteRepository::getByDomain.name}()") {
-            context("여러 웹사이트가 저장되어 있으면") {
-                it("도메인에 해당하는 웹사이트를 반환한다") {
-                    websiteRepository.save(
-                        createWebsite(
-                            domain = OTHER_DOMAIN,
-                            category = WebsiteCategory.NEWS,
-                            faviconUrl = OTHER_FAVICON_URL
-                        )
-                    )
-                    val targetId =
-                        websiteRepository
-                            .save(
-                                createWebsite(
-                                    domain = TARGET_DOMAIN,
-                                    category = WebsiteCategory.DEVELOPMENT,
-                                    faviconUrl = TARGET_FAVICON_URL
-                                )
-                            ).id!!
-
-                    val found = websiteRepository.getByDomain(TARGET_DOMAIN)
-
-                    found shouldBe
-                        createWebsite(
-                            id = targetId,
-                            domain = TARGET_DOMAIN,
-                            category = WebsiteCategory.DEVELOPMENT,
-                            faviconUrl = TARGET_FAVICON_URL
-                        )
-                }
-            }
-        }
-
         describe("${WebsiteRepository::upsertByDomain.name}()") {
             context("저장되지 않은 domain이 주어지면") {
                 it("웹사이트를 추가하고 저장된 웹사이트를 반환한다") {
@@ -68,7 +30,7 @@ class CustomWebsiteRepositoryTest : RepositoryTest() {
                             )
                         )
 
-                    websiteRepository.getByDomain(INSERT_DOMAIN) shouldBe result
+                    websiteRepository.findByDomain(INSERT_DOMAIN) shouldBe result
                 }
             }
 
@@ -97,7 +59,7 @@ class CustomWebsiteRepositoryTest : RepositoryTest() {
                             domain = FILL_DOMAIN,
                             faviconUrl = FILL_FAVICON_URL
                         )
-                    websiteRepository.getByDomain(FILL_DOMAIN) shouldBe result
+                    websiteRepository.findByDomain(FILL_DOMAIN) shouldBe result
                 }
             }
 
@@ -126,7 +88,7 @@ class CustomWebsiteRepositoryTest : RepositoryTest() {
                             domain = KEEP_DOMAIN,
                             faviconUrl = REPLACEMENT_FAVICON_URL
                         )
-                    websiteRepository.getByDomain(KEEP_DOMAIN) shouldBe result
+                    websiteRepository.findByDomain(KEEP_DOMAIN) shouldBe result
                 }
             }
         }

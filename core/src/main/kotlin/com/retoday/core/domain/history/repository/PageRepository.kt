@@ -9,5 +9,5 @@ import java.util.*
 interface PageRepository :
     JdbcRepository<Page, UUID>,
     CustomPageRepository {
-    fun getByUrl(url: String): Page
+    fun findByUrl(url: String): Page?
 }

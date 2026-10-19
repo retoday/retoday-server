@@ -13,6 +13,12 @@ class PageService(
     @Transactional
     fun upsertPage(command: UpsertPageCommand): Page =
         with(command) {
+            val page = pageRepository.findByUrl(url)
+
+            if (page != null && page.title == title && page.description == description) {
+                return page
+            }
+
             pageRepository.upsertByUrl(
                 Page(
                     websiteId = websiteId,

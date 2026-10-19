@@ -8,6 +8,8 @@ import jakarta.validation.ConstraintViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
+import org.springframework.validation.FieldError
+import org.springframework.validation.ObjectError
 import org.springframework.web.HttpRequestMethodNotSupportedException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -28,7 +30,7 @@ class GlobalExceptionHandler {
     private val logger = getLogger()
 
     @ExceptionHandler(RateLimitExceededException::class)
-    private fun handle(exception: RateLimitExceededException): ResponseEntity<ErrorResponse> =
+    fun handle(exception: RateLimitExceededException): ResponseEntity<ErrorResponse> =
         with(exception) {
             logger.warn { message }
 
@@ -65,9 +67,13 @@ class GlobalExceptionHandler {
         handle(
             InvalidRequestException(
                 message =
-                    exception.bindingResult
-                        .fieldErrors
-                        .joinToString(", ") { "${it.field}: ${it.defaultMessage}" }
+                    exception.bindingResult.allErrors
+                        .joinToString(", ") {
+                            when (it) {
+                                is FieldError -> "${it.field}: ${it.defaultMessage}"
+                                is ObjectError -> "${it.objectName}: ${it.defaultMessage}"
+                            }
+                        }
             )
         )
 
